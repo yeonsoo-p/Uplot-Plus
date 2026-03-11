@@ -1,6 +1,6 @@
 import React from 'react';
-import { Chart, Scale, Series, Axis } from '../../src';
-import type { ChartData, GradientConfig } from '../../src';
+import { Chart, Scale, Series, Axis, fadeGradient } from '../../src';
+import type { ChartData } from '../../src';
 
 function generateData(): ChartData {
   const n = 120;
@@ -18,22 +18,6 @@ function generateData(): ChartData {
   return [{ x, series: [y1, y2] }];
 }
 
-const blueGradient: GradientConfig = {
-  type: 'linear',
-  stops: [
-    [0, 'rgba(66,133,244,0.8)'],
-    [1, 'rgba(66,133,244,0.0)'],
-  ],
-};
-
-const purpleGradient: GradientConfig = {
-  type: 'linear',
-  stops: [
-    [0, 'rgba(156,39,176,0.7)'],
-    [1, 'rgba(156,39,176,0.0)'],
-  ],
-};
-
 export default function Gradients() {
   const data = generateData();
 
@@ -47,8 +31,8 @@ export default function Gradients() {
         <Scale id="y" auto ori={1} dir={1} />
         <Axis scale="x" side={2} label="Time" />
         <Axis scale="y" side={3} label="Value" />
-        <Series group={0} index={0} yScale="y" stroke="#4285f4" fill={blueGradient} width={2} label="Blue Series" />
-        <Series group={0} index={1} yScale="y" stroke="#9c27b0" fill={purpleGradient} width={2} label="Purple Series" />
+        <Series group={0} index={0} yScale="y" stroke="#4285f4" fill={fadeGradient('#4285f4')} width={2} label="Blue Series" />
+        <Series group={0} index={1} yScale="y" stroke="#9c27b0" fill={fadeGradient('#9c27b0', 0.7)} width={2} label="Purple Series" />
       </Chart>
     </div>
   );

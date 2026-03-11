@@ -41,11 +41,18 @@ export function timeAxisSplits(
     d.setUTCDate(1);
     d.setUTCHours(0, 0, 0, 0);
     start = d.getTime() / 1000;
+    const monthStep = Math.max(1, Math.round(incr / MONTH));
     if (start < minSec) {
       d.setUTCMonth(d.getUTCMonth() + 1);
       start = d.getTime() / 1000;
     }
-    const monthStep = Math.max(1, Math.round(incr / MONTH));
+    // Snap to nearest aligned month boundary (e.g., Jan/Apr/Jul/Oct for quarterly)
+    if (monthStep > 1) {
+      const m = d.getUTCMonth();
+      const aligned = Math.ceil((m + 1) / monthStep) * monthStep;
+      d.setUTCMonth(aligned - 1);
+      start = d.getTime() / 1000;
+    }
     while (start <= maxSec) {
       splits.push(start);
       d.setUTCMonth(d.getUTCMonth() + monthStep);

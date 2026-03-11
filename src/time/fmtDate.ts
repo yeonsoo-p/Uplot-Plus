@@ -3,6 +3,18 @@
  * Uses Intl.DateTimeFormat for timezone-aware formatting.
  */
 
+const fmtCache = new Map<string, Intl.DateTimeFormat>();
+
+function getCachedFmt(opts: Intl.DateTimeFormatOptions, tz?: string): Intl.DateTimeFormat {
+  const key = JSON.stringify(opts) + (tz ?? '');
+  let fmt = fmtCache.get(key);
+  if (fmt == null) {
+    fmt = new Intl.DateTimeFormat(undefined, { ...opts, timeZone: tz });
+    fmtCache.set(key, fmt);
+  }
+  return fmt;
+}
+
 /** Format a timestamp (seconds) as a date string using Intl.DateTimeFormat options. */
 export function fmtDate(
   ts: number,
@@ -10,8 +22,7 @@ export function fmtDate(
   tz?: string,
 ): string {
   const date = new Date(ts * 1000);
-  const fmt = new Intl.DateTimeFormat(undefined, { ...opts, timeZone: tz });
-  return fmt.format(date);
+  return getCachedFmt(opts, tz).format(date);
 }
 
 /** Compact formatters for common time axis label patterns. */

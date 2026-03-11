@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
-import { Chart, Scale, Series, Axis, Legend } from '../../src';
+import { Chart, Scale, Series, Axis, Legend, fmtMonthName } from '../../src';
 import type { ChartData } from '../../src';
-
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function MonthsTimeSeries() {
   const data: ChartData = useMemo(() => {
@@ -23,12 +21,6 @@ export default function MonthsTimeSeries() {
     return [{ x, series: [y1, y2] }];
   }, []);
 
-  const fmtMonths = (splits: number[]) =>
-    splits.map(s => {
-      const d = new Date(s * 1000);
-      return MONTH_NAMES[d.getMonth()] ?? '';
-    });
-
   return (
     <div>
       <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
@@ -37,7 +29,7 @@ export default function MonthsTimeSeries() {
       <Chart width={800} height={400} data={data}>
         <Scale id="x" auto ori={0} dir={1} />
         <Scale id="y" auto ori={1} dir={1} />
-        <Axis scale="x" side={2} label="Month" values={fmtMonths} />
+        <Axis scale="x" side={2} label="Month" values={fmtMonthName()} />
         <Axis scale="y" side={3} label="Value" />
         <Series group={0} index={0} yScale="y" stroke="#e74c3c" width={2} label="Metric A" />
         <Series group={0} index={1} yScale="y" stroke="#3498db" width={2} label="Metric B" />

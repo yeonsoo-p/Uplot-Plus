@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Scale, Series, Axis } from '../../src';
+import { Chart, Scale, Series, Axis, withAlpha } from '../../src';
 import type { ChartData } from '../../src';
 
 function generateData(): ChartData {
@@ -26,9 +26,9 @@ export default function AreaFill() {
       <Scale id="y" auto ori={1} dir={1} />
       <Axis scale="x" side={2} />
       <Axis scale="y" side={3} />
-      <Series group={0} index={0} yScale="y" stroke="red" fill="rgba(255,0,0,0.1)" width={2} label="Red" />
-      <Series group={0} index={1} yScale="y" stroke="green" fill="rgba(0,255,0,0.1)" width={2} label="Green" />
-      <Series group={0} index={2} yScale="y" stroke="blue" fill="rgba(0,0,255,0.1)" width={2} label="Blue" />
+      <Series group={0} index={0} yScale="y" stroke="#ff0000" fill={withAlpha('#ff0000', 0.1)} width={2} label="Red" />
+      <Series group={0} index={1} yScale="y" stroke="#00ff00" fill={withAlpha('#00ff00', 0.1)} width={2} label="Green" />
+      <Series group={0} index={2} yScale="y" stroke="#0000ff" fill={withAlpha('#0000ff', 0.1)} width={2} label="Blue" />
     </Chart>
   );
 }

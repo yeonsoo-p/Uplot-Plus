@@ -44,8 +44,8 @@ describe('stackGroup', () => {
     ]);
     const result = stackGroup(group);
 
-    // Accumulator[1] stays 0 when src[1] is null, then 5 is added
-    expect(result.group.series[0]).toEqual([1, 0, 3]);
+    // Null gaps should be preserved in stacked output
+    expect(result.group.series[0]).toEqual([1, null, 3]);
     expect(result.group.series[1]).toEqual([5, 5, 9]);
   });
 

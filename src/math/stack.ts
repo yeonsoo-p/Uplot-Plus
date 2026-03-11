@@ -32,11 +32,12 @@ export function stackGroup(
     const dst: (number | null)[] = new Array<number | null>(len);
     for (let i = 0; i < len; i++) {
       const v = src[i];
-      const acc = accumulator[i];
-      if (v != null && acc != null) {
-        accumulator[i] = acc + v;
+      if (v != null) {
+        accumulator[i] = (accumulator[i] as number) + v;
+        dst[i] = accumulator[i] as number;
+      } else {
+        dst[i] = null;
       }
-      dst[i] = accumulator[i] ?? 0;
     }
     stacked.push(dst);
   }
@@ -49,10 +50,7 @@ export function stackGroup(
     if (stackedEntry != null) {
       newSeries.push(stackedEntry);
     } else {
-      const original = group.series[i];
-      if (original != null) {
-        newSeries.push(original);
-      }
+      newSeries.push(group.series[i] ?? []);
     }
   }
 

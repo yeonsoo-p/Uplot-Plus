@@ -22,7 +22,6 @@ const _catmullRomFitting: SplineInterpFn = (
 
   if (n < 2) return null;
 
-  const alpha = 0.5;
   const path = new Path2D();
 
   const x0 = pxRound(xCoords[0] ?? 0);
@@ -55,16 +54,17 @@ const _catmullRomFitting: SplineInterpFn = (
     const p3x = i + 2 < n ? (xCoords[i + 2] ?? 0) : p2x;
     const p3y = i + 2 < n ? (yCoords[i + 2] ?? 0) : p2y;
 
-    const d1 = Math.sqrt(Math.pow(p0x - p1x, 2) + Math.pow(p0y - p1y, 2));
-    const d2 = Math.sqrt(Math.pow(p1x - p2x, 2) + Math.pow(p1y - p2y, 2));
-    const d3 = Math.sqrt(Math.pow(p2x - p3x, 2) + Math.pow(p2y - p3y, 2));
+    const d1 = Math.hypot(p0x - p1x, p0y - p1y);
+    const d2 = Math.hypot(p1x - p2x, p1y - p2y);
+    const d3 = Math.hypot(p2x - p3x, p2y - p3y);
 
-    const d3powA = Math.pow(d3, alpha);
-    const d3pow2A = Math.pow(d3, alpha * 2);
-    const d2powA = Math.pow(d2, alpha);
-    const d2pow2A = Math.pow(d2, alpha * 2);
-    const d1powA = Math.pow(d1, alpha);
-    const d1pow2A = Math.pow(d1, alpha * 2);
+    // alpha = 0.5, so pow(d, 0.5) = sqrt(d) and pow(d, 1.0) = d
+    const d3powA = Math.sqrt(d3);
+    const d3pow2A = d3;
+    const d2powA = Math.sqrt(d2);
+    const d2pow2A = d2;
+    const d1powA = Math.sqrt(d1);
+    const d1pow2A = d1;
 
     const A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
     const B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;

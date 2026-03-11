@@ -8,10 +8,16 @@ export { Legend } from './components/Legend';
 export { Tooltip } from './components/Tooltip';
 export { ZoomRanger } from './components/ZoomRanger';
 export { Timeline } from './components/Timeline';
+export { Sparkline } from './components/Sparkline';
+export { ResponsiveChart } from './components/ResponsiveChart';
+
+// Annotation components (declarative)
+export { HLine, VLine, Region, AnnotationLabel } from './components/annotations';
 
 // Hooks
 export { useChart } from './hooks/useChart';
 export { useDrawHook, useCursorDrawHook } from './hooks/useDrawHook';
+export { useStreamingData } from './hooks/useStreamingData';
 
 // Types
 export type {
@@ -42,6 +48,10 @@ export type { AnnotationStyle } from './annotations';
 export type { ZoomRangerProps } from './components/ZoomRanger';
 export type { TimelineProps, TimelineLane, TimelineSegment } from './types/timeline';
 export type { CandlestickOpts } from './paths/candlestick';
+export type { SparklineProps } from './components/Sparkline';
+export type { ResponsiveChartProps } from './components/ResponsiveChart';
+export type { HLineProps, VLineProps, RegionProps, AnnotationLabelProps } from './components/annotations';
+export type { StreamingOptions, StreamingResult } from './hooks/useStreamingData';
 
 // Path builders
 export { linear } from './paths/linear';
@@ -61,6 +71,13 @@ export { drawHLine, drawVLine, drawLabel, drawRegion } from './annotations';
 
 // Scale utilities (for advanced draw hooks that need raw access)
 export { valToPos, posToVal } from './core/Scale';
+
+// Axis value formatters
+export { fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtDateStr, fmtLabels } from './formatters';
+export type { AxisValueFormatter } from './formatters';
+
+// Color utilities
+export { fadeGradient, withAlpha, palette } from './colors';
 
 // Cursor/selection draw config types
 export type { CursorDrawConfig } from './rendering/drawCursor';

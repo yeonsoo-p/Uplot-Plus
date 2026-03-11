@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { demos } from './demos';
 
 function getHashDemo(): string {
@@ -8,12 +8,35 @@ function getHashDemo(): string {
 
 export function DemoApp() {
   const [activeId, setActiveId] = useState(getHashDemo);
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     const onHash = () => setActiveId(getHashDemo());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  const categories = useMemo(() => {
+    const cats: { name: string; items: typeof demos }[] = [];
+    const seen = new Set<string>();
+    for (const d of demos) {
+      if (!seen.has(d.category)) {
+        seen.add(d.category);
+        cats.push({ name: d.category, items: [] });
+      }
+      cats[cats.length - 1].items.push(d);
+    }
+    return cats;
+  }, []);
+
+  const toggleCategory = (name: string) => {
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
 
   const active = demos.find(d => d.id === activeId) ?? demos[0];
   const Component = active.component;
@@ -22,17 +45,29 @@ export function DemoApp() {
     <div className="demo-app">
       <nav className="sidebar">
         <h1>uPlot+ Demos</h1>
-        {demos.map(d => (
-          <button
-            key={d.id}
-            className={`sidebar-item${d.id === activeId ? ' active' : ''}`}
-            onClick={() => {
-              window.location.hash = d.id;
-              setActiveId(d.id);
-            }}
-          >
-            {d.title}
-          </button>
+        {categories.map(cat => (
+          <div key={cat.name} className="sidebar-group">
+            <button
+              className={`sidebar-category${collapsed.has(cat.name) ? ' collapsed' : ''}`}
+              onClick={() => toggleCategory(cat.name)}
+            >
+              <span className="sidebar-chevron" />
+              {cat.name}
+              <span className="sidebar-count">{cat.items.length}</span>
+            </button>
+            {!collapsed.has(cat.name) && cat.items.map(d => (
+              <button
+                key={d.id}
+                className={`sidebar-item${d.id === activeId ? ' active' : ''}`}
+                onClick={() => {
+                  window.location.hash = d.id;
+                  setActiveId(d.id);
+                }}
+              >
+                {d.title}
+              </button>
+            ))}
+          </div>
         ))}
       </nav>
       <main className="content">

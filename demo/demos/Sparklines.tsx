@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Scale, Series, Axis } from '../../src';
+import { Sparkline } from '../../src';
 import type { ChartData } from '../../src';
 
 function randomWalk(n: number, start: number): number[] {
@@ -15,20 +15,6 @@ const symbols = ['AAPL', 'AMD', 'AMZN', 'CSCO', 'META', 'MSFT', 'QCOM', 'SBUX', 
 function makeSparkData(n: number): ChartData {
   const x = Array.from({ length: n }, (_, i) => i);
   return [{ x, series: [randomWalk(n, 100 + Math.random() * 100)] }];
-}
-
-function Spark({ data }: { data: ChartData }) {
-  return (
-    <div style={{ pointerEvents: 'none' }}>
-      <Chart width={150} height={30} data={data}>
-        <Scale id="x" auto ori={0} dir={1} time={false} />
-        <Scale id="y" auto ori={1} dir={1} />
-        <Axis scale="x" side={2} show={false} />
-        <Axis scale="y" side={3} show={false} />
-        <Series group={0} index={0} yScale="y" stroke="#03a9f4" fill="#b3e5fc" width={1} />
-      </Chart>
-    </div>
-  );
 }
 
 export default function Sparklines() {
@@ -51,8 +37,8 @@ export default function Sparklines() {
         {rows.map(r => (
           <tr key={r.sym}>
             <th>{r.sym}</th>
-            <td><Spark data={r.price} /></td>
-            <td><Spark data={r.volume} /></td>
+            <td><Sparkline data={r.price} stroke="#03a9f4" fill="#b3e5fc" /></td>
+            <td><Sparkline data={r.volume} stroke="#03a9f4" fill="#b3e5fc" /></td>
           </tr>
         ))}
       </tbody>

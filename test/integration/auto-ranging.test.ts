@@ -36,8 +36,11 @@ describe('auto-ranging pipeline', () => {
     const yScale = mgr.getScale('y');
     expect(yScale!.min).toBeDefined();
     expect(yScale!.max).toBeDefined();
+    // Auto-range with 10% padding: data [10, 100] → range [1, 109]
+    expect(yScale!.min!).toBeGreaterThanOrEqual(-5);
     expect(yScale!.min!).toBeLessThanOrEqual(10);
     expect(yScale!.max!).toBeGreaterThanOrEqual(100);
+    expect(yScale!.max!).toBeLessThanOrEqual(115);
   });
 
   it('zoom narrows y-range to windowed data', () => {
@@ -73,6 +76,10 @@ describe('auto-ranging pipeline', () => {
 
     const yScale = mgr.getScale('y');
     // y-range should reflect only the first half's data (10-30), not 3000
-    expect(yScale!.max!).toBeLessThan(500);
+    // Auto-range with 10% padding: data [10, 30] → range [8, 32]
+    expect(yScale!.min!).toBeGreaterThan(0);
+    expect(yScale!.min!).toBeLessThanOrEqual(10);
+    expect(yScale!.max!).toBeGreaterThanOrEqual(30);
+    expect(yScale!.max!).toBeLessThan(50);
   });
 });

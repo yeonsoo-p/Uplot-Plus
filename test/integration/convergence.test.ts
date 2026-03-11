@@ -15,8 +15,9 @@ describe('convergeSize integration', () => {
     const scales: Record<string, ScaleState> = { y: makeScale(-10, 10) };
     const plotBox = convergeSize(800, 600, axes, id => scales[id]);
 
-    expect(plotBox.left).toBeGreaterThan(0); // y-axis takes space
-    expect(plotBox.width).toBeLessThan(800);
+    // Y-axis gutter is 50px; plotBox: {left:50, top:0, width:750, height:600}
+    expect(plotBox.left).toBe(50);
+    expect(plotBox.width).toBe(750);
     expect(plotBox.height).toBe(600); // no x-axis
   });
 
@@ -31,11 +32,12 @@ describe('convergeSize integration', () => {
     };
     const plotBox = convergeSize(800, 600, axes, id => scales[id]);
 
-    expect(plotBox.left).toBeGreaterThan(0);
+    // Y-axis left gutter ~50px, x-axis bottom gutter ~50px
+    expect(plotBox.left).toBe(50);
     expect(plotBox.top).toBe(0);
-    expect(plotBox.width).toBeLessThan(800);
-    expect(plotBox.height).toBeLessThan(600);
-    expect(plotBox.width + plotBox.left).toBeLessThanOrEqual(800);
+    expect(plotBox.width).toBe(750);
+    expect(plotBox.height).toBe(550);
+    expect(plotBox.width + plotBox.left).toBe(800);
     expect(plotBox.height + plotBox.top).toBeLessThanOrEqual(600);
   });
 
@@ -53,11 +55,10 @@ describe('convergeSize integration', () => {
     const box2 = convergeSize(800, 600, makeAxes(), id => scales[id]);
 
     expect(box1).toEqual(box2);
-    expect(box1.width).toBeGreaterThan(0);
-    expect(box1.height).toBeGreaterThan(0);
-    expect(box1.left).toBeGreaterThan(0);
-    expect(box1.width).toBeLessThan(800);
-    expect(box1.height).toBeLessThan(600);
+    // Should produce same layout as x+y case
+    expect(box1.left).toBe(50);
+    expect(box1.width).toBe(750);
+    expect(box1.height).toBe(550);
   });
 
   it('handles dual y-axes', () => {
@@ -73,7 +74,10 @@ describe('convergeSize integration', () => {
     };
     const plotBox = convergeSize(800, 600, axes, id => scales[id]);
 
-    expect(plotBox.left).toBeGreaterThan(0); // left y-axis
-    expect(plotBox.width + plotBox.left).toBeLessThan(800); // right y-axis
+    // Left y-axis: 50px, right y-axis: ~54px, total gutter ~104px
+    expect(plotBox.left).toBe(50);
+    expect(plotBox.width + plotBox.left).toBeLessThan(800); // right y-axis takes space
+    expect(plotBox.width).toBeGreaterThan(600); // most of the 800px is plot
+    expect(plotBox.width).toBeLessThan(750); // but less than single-axis case
   });
 });

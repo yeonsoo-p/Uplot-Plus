@@ -77,7 +77,8 @@ npm run test        # Vitest
 - **Run**: `npm run test`
 - **Mocks**: `test/setup.ts` provides Path2D, Canvas context, and requestAnimationFrame stubs
 - **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
-- **Coverage**: math (utils, increments, stack, align), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, resize, mount, focus)
+- **Coverage**: math (utils, increments, stack, align), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, interactions, resize, mount, focus)
+- **Interaction tests**: `setupInteraction()` extracted from `useInteraction` hook for direct DOM event testing without React Testing Library
 - **Demos**: 85+ interactive examples covering all chart types, interactions, and edge cases
 
 ## Reference Code

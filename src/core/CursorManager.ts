@@ -18,7 +18,7 @@ export interface SyncTarget {
  * using pixel-space Euclidean distance.
  */
 export class CursorManager {
-  readonly state: CursorState = {
+  state: CursorState = {
     left: -10,
     top: -10,
     activeGroup: -1,

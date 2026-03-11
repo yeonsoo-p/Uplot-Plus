@@ -48,6 +48,8 @@ export default function BarsValuesAutosize() {
           label="Sales"
           paths={bars()}
           fillTo={0}
+          cursor={{ show: false }}
+          points={{ show: false }}
         />
       </Chart>
     </div>

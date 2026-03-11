@@ -26,25 +26,23 @@ export class DataStore {
     this.windows.clear();
     for (const sub of this.minMaxCache.values()) sub.clear();
     this.minMaxCache.clear();
-    this.rebuildBlockTrees();
+    this.blockTrees.clear();
   }
 
-  /** Build block min-max trees for all series */
-  private rebuildBlockTrees(): void {
-    this.blockTrees.clear();
-    for (let gi = 0; gi < this.data.length; gi++) {
-      const group = this.data[gi];
-      if (!group) continue;
-      for (let si = 0; si < group.series.length; si++) {
-        const yData = group.series[si];
-        if (yData && yData.length > 0) {
-          this.blockTrees.set(
-            `${gi}:${si}`,
-            new BlockMinMaxTree(yData as ArrayLike<number | null>),
-          );
-        }
-      }
-    }
+  /** Get or lazily build a block min-max tree for a series */
+  private getOrBuildTree(group: number, index: number): BlockMinMaxTree | undefined {
+    const key = `${group}:${index}`;
+    let tree = this.blockTrees.get(key);
+    if (tree) return tree;
+
+    const grp = this.data[group];
+    if (!grp) return undefined;
+    const yData = grp.series[index];
+    if (!yData || yData.length === 0) return undefined;
+
+    tree = new BlockMinMaxTree(yData as ArrayLike<number | null>);
+    this.blockTrees.set(key, tree);
+    return tree;
   }
 
   /**
@@ -139,7 +137,7 @@ export class DataStore {
 
     // Use block tree for unsorted, non-log data (the common case)
     // Sorted data and log scales need special handling in getMinMax
-    const tree = (!isLog && sorted === SortOrder.Unsorted) ? this.blockTrees.get(`${group}:${index}`) : undefined;
+    const tree = (!isLog && sorted === SortOrder.Unsorted) ? this.getOrBuildTree(group, index) : undefined;
     if (tree) {
       result = tree.rangeMinMax(i0, i1);
     } else {
@@ -152,7 +150,7 @@ export class DataStore {
 
   /** Get block tree for a series (exposed for incremental append) */
   getBlockTree(group: number, index: number): BlockMinMaxTree | undefined {
-    return this.blockTrees.get(`${group}:${index}`);
+    return this.getOrBuildTree(group, index);
   }
 
   /**

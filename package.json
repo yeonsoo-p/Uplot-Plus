@@ -6,19 +6,33 @@
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     }
   },
+  "keywords": [
+    "chart",
+    "react",
+    "canvas",
+    "uplot",
+    "typescript",
+    "time-series",
+    "visualization"
+  ],
   "scripts": {
     "dev": "vite serve demo",
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bench": "vite serve bench --config bench/vite.config.ts"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

@@ -73,7 +73,8 @@ export function ZoomRanger({
     const max = xMin + selFrac[1] * range;
 
     const prev = prevRangeRef.current;
-    if (prev != null && Math.abs(prev[0] - min) < 1e-10 && Math.abs(prev[1] - max) < 1e-10) return;
+    const eps = Math.max(1e-10, Math.abs(max - min) * 1e-12);
+    if (prev != null && Math.abs(prev[0] - min) < eps && Math.abs(prev[1] - max) < eps) return;
     prevRangeRef.current = [min, max];
     onRangeChange(min, max);
   }, [selFrac, data, onRangeChange]);

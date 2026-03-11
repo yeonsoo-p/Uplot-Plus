@@ -150,8 +150,12 @@ export function linear(): PathBuilder {
         }
       }
 
-      if (minY != null && minY !== maxY)
-        drawAcc(stroke, accX, pixelForY(minY), pixelForY(maxY), pixelForY(inY), pixelForY(outY));
+      if (minY != null) {
+        if (minY !== maxY)
+          drawAcc(stroke, accX, pixelForY(minY), pixelForY(maxY), pixelForY(inY), pixelForY(outY));
+        else
+          lineTo(stroke, accX, pixelForY(outY));
+      }
     } else {
       for (let i = dir === Direction.Forward ? idx0 : idx1; i >= idx0 && i <= idx1; i += dir) {
         const yVal = dataY[i];

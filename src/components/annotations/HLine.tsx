@@ -1,6 +1,6 @@
 import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawHLine } from '../../annotations';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 export interface HLineProps {
   /** Y data value where the line is drawn */
@@ -25,7 +25,7 @@ export interface HLineProps {
  */
 export function HLine(props: HLineProps): null {
   const propsRef = useRef(props);
-  propsRef.current = props;
+  useLayoutEffect(() => { propsRef.current = props; });
 
   useDrawHook((dc) => {
     const p = propsRef.current;

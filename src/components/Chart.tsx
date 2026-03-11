@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useLayoutEffect, useCallback, useState } from 'react';
 import type { ChartProps } from '../types';
 import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import type { EventCallbacks } from '../types/events';
@@ -31,15 +31,17 @@ export function Chart({
     store.focusAlpha = focusAlpha;
   }, [store, wheelZoom, focusAlpha]);
 
-  // Sync event callback props to store via refs (no DOM listener churn on callback changes)
+  // Sync event callback props to store (outside render to respect React purity)
   const eventCallbacksRef = useRef<EventCallbacks>(store.eventCallbacks);
-  eventCallbacksRef.current.onClick = onClick;
-  eventCallbacksRef.current.onContextMenu = onContextMenu;
-  eventCallbacksRef.current.onDblClick = onDblClick;
-  eventCallbacksRef.current.onCursorMove = onCursorMove;
-  eventCallbacksRef.current.onCursorLeave = onCursorLeave;
-  eventCallbacksRef.current.onScaleChange = onScaleChange;
-  eventCallbacksRef.current.onSelect = onSelect;
+  useEffect(() => {
+    eventCallbacksRef.current.onClick = onClick;
+    eventCallbacksRef.current.onContextMenu = onContextMenu;
+    eventCallbacksRef.current.onDblClick = onDblClick;
+    eventCallbacksRef.current.onCursorMove = onCursorMove;
+    eventCallbacksRef.current.onCursorLeave = onCursorLeave;
+    eventCallbacksRef.current.onScaleChange = onScaleChange;
+    eventCallbacksRef.current.onSelect = onSelect;
+  });
 
   // Attach mouse/touch interaction handlers
   useInteraction(store, containerEl);
@@ -116,7 +118,7 @@ export function Chart({
 
   // Ref wrapper for onDraw — register stable wrapper once, update ref on each render
   const onDrawRef = useRef<DrawCallback | undefined>(onDraw);
-  onDrawRef.current = onDraw;
+  useLayoutEffect(() => { onDrawRef.current = onDraw; });
 
   useEffect(() => {
     const wrapper: DrawCallback = (dc) => { onDrawRef.current?.(dc); };
@@ -126,7 +128,7 @@ export function Chart({
 
   // Ref wrapper for onCursorDraw
   const onCursorDrawRef = useRef<CursorDrawCallback | undefined>(onCursorDraw);
-  onCursorDrawRef.current = onCursorDraw;
+  useLayoutEffect(() => { onCursorDrawRef.current = onCursorDraw; });
 
   useEffect(() => {
     const wrapper: CursorDrawCallback = (dc, cursor) => { onCursorDrawRef.current?.(dc, cursor); };

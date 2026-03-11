@@ -72,7 +72,9 @@ export function timeAxisSplits(
     start = Math.ceil(minSec / incr) * incr;
   }
 
-  for (let t = start; t <= maxSec; t += incr) {
+  for (let n = 0; ; n++) {
+    const t = start + n * incr;
+    if (t > maxSec) break;
     splits.push(t);
   }
 

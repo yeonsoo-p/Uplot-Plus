@@ -59,6 +59,59 @@ export class ScaleManager {
   }
 
   /**
+   * Auto-range only x-scales from data (cheap: just reads first/last x values).
+   * Call before updateWindows() so the x-scale range is set for window clipping.
+   */
+  autoRangeX(data: ChartData): void {
+    const xRanges = new Map<string, { dataMin: number; dataMax: number }>();
+
+    for (const [groupIdx, scaleKey] of this.groupXScales) {
+      const scale = this.scales.get(scaleKey);
+      if (!scale || !scale.auto) continue;
+
+      const group = data[groupIdx];
+      if (!group || group.x.length === 0) continue;
+
+      const gMin = group.x[0];
+      const gMax = group.x[group.x.length - 1];
+      if (gMin == null || gMax == null) continue;
+      const existing = xRanges.get(scaleKey);
+
+      if (existing) {
+        existing.dataMin = Math.min(existing.dataMin, gMin);
+        existing.dataMax = Math.max(existing.dataMax, gMax);
+      } else {
+        xRanges.set(scaleKey, { dataMin: gMin, dataMax: gMax });
+      }
+    }
+
+    for (const [scaleKey, { dataMin, dataMax }] of xRanges) {
+      const scale = this.scales.get(scaleKey);
+      if (!scale) continue;
+
+      if (scale.range) {
+        const [rMin, rMax] = rangeNum(dataMin, dataMax, {
+          min: { pad: scale.range.min?.pad ?? 0, soft: scale.range.min?.soft ?? null, mode: scale.range.min?.mode ?? 0 },
+          max: { pad: scale.range.max?.pad ?? 0, soft: scale.range.max?.soft ?? null, mode: scale.range.max?.mode ?? 0 },
+        });
+        scale.min = rMin;
+        scale.max = rMax;
+      } else {
+        if (dataMin === dataMax) {
+          [scale.min, scale.max] = rangeNum(dataMin, dataMax, {
+            min: { pad: 0.1, soft: null, mode: 0 },
+            max: { pad: 0.1, soft: null, mode: 0 },
+          });
+        } else {
+          scale.min = dataMin;
+          scale.max = dataMax;
+        }
+      }
+      invalidateScaleCache(scale);
+    }
+  }
+
+  /**
    * Auto-range scales from data.
    * For each x-scale: range from its group's x values.
    * For each y-scale: range from all series that reference it, within the visible x-window.

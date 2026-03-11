@@ -77,6 +77,8 @@ export default function MassSpectrum() {
         label="Intensity"
         paths={bars(0.4)}
         fillTo={1}
+        cursor={{ show: false }}
+        points={{ show: false }}
       />
     </Chart>
   );

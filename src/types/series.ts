@@ -49,6 +49,11 @@ export interface SeriesConfig {
   pxAlign?: number;
   /** Fill-to value or function */
   fillTo?: number | ((min: number, max: number) => number);
+  /** Cursor behavior for this series */
+  cursor?: {
+    /** Whether to draw the point indicator on hover (default: true) */
+    show?: boolean;
+  };
 }
 
 export interface PointsConfig {

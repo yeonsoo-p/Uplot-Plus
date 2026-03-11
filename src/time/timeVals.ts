@@ -1,5 +1,5 @@
 import { DAY, HOUR, MIN, MONTH, YEAR } from './timeIncrs';
-import { fmtHourMinute, fmtTimeOnly, fmtMonthDay, fmtMonthYear, fmtYear } from './fmtDate';
+import { fmtHourMinute, fmtTimeOnly, fmtFullDateTime, fmtMonthDay, fmtMonthYear, fmtYear } from './fmtDate';
 
 /**
  * Format time axis tick values as strings.
@@ -28,7 +28,7 @@ export function timeAxisVals(
   else if (incr >= MIN)
     fmt = fmtTimeOnly;
   else
-    fmt = fmtTimeOnly;
+    fmt = fmtFullDateTime;
 
   return splits.map(ts => fmt(ts, tz));
 }

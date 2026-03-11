@@ -32,6 +32,8 @@ export default function ThinBarsStrokeFill() {
           label="Stroke Only"
           paths={bars()}
           fillTo={0}
+          cursor={{ show: false }}
+          points={{ show: false }}
         />
         {/* Fill only */}
         <Series
@@ -44,6 +46,8 @@ export default function ThinBarsStrokeFill() {
           label="Fill Only"
           paths={bars()}
           fillTo={0}
+          cursor={{ show: false }}
+          points={{ show: false }}
         />
         {/* Stroke + Fill */}
         <Series
@@ -56,6 +60,8 @@ export default function ThinBarsStrokeFill() {
           label="Stroke + Fill"
           paths={bars()}
           fillTo={0}
+          cursor={{ show: false }}
+          points={{ show: false }}
         />
         <Legend />
       </Chart>

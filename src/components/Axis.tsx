@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { AxisConfig } from '../types';
 import { Side } from '../types';
 import { useChart } from '../hooks/useChart';
@@ -21,7 +21,7 @@ export function Axis(props: AxisProps): null {
   const store = useChart();
   const resolved = resolveAxis(props);
   const propsRef = useRef(resolved);
-  propsRef.current = resolved;
+  useLayoutEffect(() => { propsRef.current = resolved; });
 
   // Mount/unmount: register on mount, unregister on unmount or identity change.
   useEffect(() => {

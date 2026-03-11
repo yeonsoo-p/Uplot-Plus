@@ -1,6 +1,6 @@
 import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawRegion } from '../../annotations';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 export interface RegionProps {
   /** Lower y data value */
@@ -25,7 +25,7 @@ export interface RegionProps {
  */
 export function Region(props: RegionProps): null {
   const propsRef = useRef(props);
-  propsRef.current = props;
+  useLayoutEffect(() => { propsRef.current = props; });
 
   useDrawHook((dc) => {
     const p = propsRef.current;

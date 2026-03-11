@@ -96,34 +96,38 @@ export function drawCursor(
       const yVal = yData != null ? yData[di] : null;
 
       if (xVal != null && yVal != null) {
-        // Find matching series config for stroke color
+        // Find matching series config for stroke color and cursor opt-out
         let pointFill = cfg.stroke;
+        let showPoint = true;
         for (const sc of seriesConfigs) {
           if (sc.group === gi && sc.index === si) {
             const scStroke = sc.stroke;
             pointFill = (typeof scStroke === 'string' ? scStroke : undefined) ?? cfg.stroke;
+            showPoint = sc.cursor?.show !== false;
             break;
           }
         }
 
-        const xScaleId = getGroupXScaleKey(gi);
-        const xScale = xScaleId != null ? getScale(xScaleId) : undefined;
-        const yScaleId = findYScaleId(seriesConfigs, gi, si);
-        const yScale = yScaleId != null ? getScale(yScaleId) : undefined;
+        if (showPoint) {
+          const xScaleId = getGroupXScaleKey(gi);
+          const xScale = xScaleId != null ? getScale(xScaleId) : undefined;
+          const yScaleId = findYScaleId(seriesConfigs, gi, si);
+          const yScale = yScaleId != null ? getScale(yScaleId) : undefined;
 
-        if (xScale != null && yScale != null) {
-          const px = round(valToPos(xVal, xScale, plotBox.width, plotBox.left) * pr);
-          const py = round(valToPos(yVal, yScale, plotBox.height, plotBox.top) * pr);
-          const r = cfg.pointRadius * pr;
+          if (xScale != null && yScale != null && xScale.min != null && xScale.max != null && yScale.min != null && yScale.max != null) {
+            const px = round(valToPos(xVal, xScale, plotBox.width, plotBox.left) * pr);
+            const py = round(valToPos(yVal, yScale, plotBox.height, plotBox.top) * pr);
+            const r = cfg.pointRadius * pr;
 
-          const strokeW = round(2 * pr);
-          ctx.beginPath();
-          ctx.arc(px, py, r, 0, Math.PI * 2);
-          ctx.fillStyle = '#fff';
-          ctx.fill();
-          ctx.strokeStyle = pointFill;
-          ctx.lineWidth = strokeW;
-          ctx.stroke();
+            const strokeW = round(2 * pr);
+            ctx.beginPath();
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.strokeStyle = pointFill;
+            ctx.lineWidth = strokeW;
+            ctx.stroke();
+          }
         }
       }
     }

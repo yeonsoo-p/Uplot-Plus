@@ -88,7 +88,7 @@ export function logAxisSplits(
       split = roundDec(split, dec);
     }
 
-    if (split >= nextMagIncr) {
+    if (split >= nextMagIncr * (1 - 1e-10)) {
       foundIncr = split;
       nextMagIncr = foundIncr * logBase;
 

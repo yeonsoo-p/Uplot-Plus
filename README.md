@@ -1,6 +1,6 @@
 # uPlot+
 
-High-performance React charting library built from scratch in TypeScript. Canvas 2D rendering, native React components, multi-x-axis support.
+High-performance React charting library ripped off from uPlot. Might perform occasionally better than original uPlot in React context (or worse). Definitely easier to use in React context.
 
 ## Features
 

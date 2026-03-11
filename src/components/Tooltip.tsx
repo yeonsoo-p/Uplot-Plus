@@ -140,8 +140,8 @@ export function Tooltip({
       }}
     >
       <div style={{ fontWeight: 600, marginBottom: 2 }}>{xLabel}</div>
-      {items.map((item, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      {items.map((item) => (
+        <div key={`${item.group}:${item.index}`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, display: 'inline-block' }} />
           <span>{item.label}:</span>
           <span style={{ fontWeight: 600 }}>{item.value != null ? item.value.toPrecision(4) : '—'}</span>

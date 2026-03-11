@@ -28,7 +28,7 @@ export default function BasicLine() {
       <Axis scale="x" label="Time (s)" />
       <Axis scale="y" label="Value" />
       <Series group={0} index={0} yScale="y" stroke="#e74c3c" width={1} label="Sine" />
-      <Series group={0} index={1} yScale="y" stroke="#3498db" width={2} label="Cosine" />
+      <Series group={0} index={1} yScale="y" stroke="#3498db" width={1} label="Cosine" />
     </Chart>
   );
 }

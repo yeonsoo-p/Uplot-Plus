@@ -1,5 +1,5 @@
 import { useDrawHook } from '../../hooks/useDrawHook';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 
 export interface AnnotationLabelProps {
   /** X data value */
@@ -28,7 +28,7 @@ export interface AnnotationLabelProps {
  */
 export function AnnotationLabel(props: AnnotationLabelProps): null {
   const propsRef = useRef(props);
-  propsRef.current = props;
+  useLayoutEffect(() => { propsRef.current = props; });
 
   useDrawHook((dc) => {
     const p = propsRef.current;

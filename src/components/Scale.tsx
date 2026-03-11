@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { ScaleConfig } from '../types';
 import { useChart } from '../hooks/useChart';
 import { shallowEqual } from '../utils/shallowEqual';
@@ -15,7 +15,7 @@ export type ScaleProps = ScaleConfig;
 export function Scale(props: ScaleProps): null {
   const store = useChart();
   const propsRef = useRef(props);
-  propsRef.current = props;
+  useLayoutEffect(() => { propsRef.current = props; });
 
   // Mount/unmount: register on mount, unregister on unmount or identity change.
   useEffect(() => {

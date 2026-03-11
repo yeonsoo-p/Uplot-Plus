@@ -25,7 +25,7 @@ export default function LinePaths() {
         <Series group={0} index={1} yScale="y" stroke="#3498db" width={2} label="monotoneCubic" paths={monotoneCubic()} />
         <Series group={0} index={2} yScale="y" stroke="#2ecc71" width={2} label="catmullRom" paths={catmullRom()} />
         <Series group={0} index={3} yScale="y" stroke="#f39c12" width={2} label="stepped" paths={stepped(1)} />
-        <Series group={0} index={4} yScale="y" stroke="#9b59b6" fill="rgba(155,89,182,0.4)" width={0} label="bars" paths={bars()} fillTo={0} />
+        <Series group={0} index={4} yScale="y" stroke="#9b59b6" fill="rgba(155,89,182,0.4)" width={0} label="bars" paths={bars()} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
         <Series group={0} index={5} yScale="y" stroke="#1abc9c" width={0} label="points" paths={points()} points={{ show: true, size: 8, fill: '#1abc9c' }} />
         <Legend />
       </Chart>

@@ -69,20 +69,28 @@ const _catmullRomFitting: SplineInterpFn = (
     const A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
     const B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;
 
-    let N = 3 * d1powA * (d1powA + d2powA);
-    if (N > 0) N = 1 / N;
+    const Nd = 3 * d1powA * (d1powA + d2powA);
+    const Md = 3 * d3powA * (d3powA + d2powA);
 
-    let M = 3 * d3powA * (d3powA + d2powA);
-    if (M > 0) M = 1 / M;
+    let bp1x: number, bp1y: number, bp2x: number, bp2y: number;
 
-    let bp1x = (-d2pow2A * p0x + A * p1x + d1pow2A * p2x) * N;
-    let bp1y = (-d2pow2A * p0y + A * p1y + d1pow2A * p2y) * N;
+    if (Nd > 0) {
+      const N = 1 / Nd;
+      bp1x = (-d2pow2A * p0x + A * p1x + d1pow2A * p2x) * N;
+      bp1y = (-d2pow2A * p0y + A * p1y + d1pow2A * p2y) * N;
+    } else {
+      bp1x = p1x;
+      bp1y = p1y;
+    }
 
-    let bp2x = (d3pow2A * p1x + B * p2x - d2pow2A * p3x) * M;
-    let bp2y = (d3pow2A * p1y + B * p2y - d2pow2A * p3y) * M;
-
-    if (bp1x === 0 && bp1y === 0) { bp1x = p1x; bp1y = p1y; }
-    if (bp2x === 0 && bp2y === 0) { bp2x = p2x; bp2y = p2y; }
+    if (Md > 0) {
+      const M = 1 / Md;
+      bp2x = (d3pow2A * p1x + B * p2x - d2pow2A * p3x) * M;
+      bp2y = (d3pow2A * p1y + B * p2y - d2pow2A * p3y) * M;
+    } else {
+      bp2x = p2x;
+      bp2y = p2y;
+    }
 
     if (isHoriz)
       path.bezierCurveTo(bp1x, bp1y, bp2x, bp2y, p2x, p2y);

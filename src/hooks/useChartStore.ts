@@ -258,7 +258,16 @@ export function createChartStore(): ChartStore {
 
       // --- Full redraw path ---
 
-      // 1. Auto-range scales from data (first pass)
+      // 1. Auto-range x-scales (cheap: reads first/last x values only)
+      scaleManager.autoRangeX(dataStore.data);
+
+      // 2. Update data windows from x-scale ranges
+      dataStore.updateWindows((groupIdx) => {
+        const scaleKey = scaleManager.getGroupXScaleKey(groupIdx);
+        return scaleKey != null ? scaleManager.getScale(scaleKey) : undefined;
+      });
+
+      // 3. Auto-range all scales (single pass — windows already set)
       const seriesScaleMap = seriesConfigs.map(s => ({
         group: s.group,
         index: s.index,
@@ -266,17 +275,6 @@ export function createChartStore(): ChartStore {
       }));
 
       scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore);
-
-      // 2. Update data windows from x-scale ranges
-      const windowsChanged = dataStore.updateWindows((groupIdx) => {
-        const scaleKey = scaleManager.getGroupXScaleKey(groupIdx);
-        return scaleKey != null ? scaleManager.getScale(scaleKey) : undefined;
-      });
-
-      // 3. Re-range with windows (second pass for y-scales)
-      if (windowsChanged) {
-        scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore);
-      }
 
       // 4. Rebuild axis states from configs
       syncAxisStates(store);
@@ -403,10 +401,10 @@ export function createChartStore(): ChartStore {
         }
         ctx.restore();
       }
-      renderer.saveSnapshot(ctx, width * pxRatio, height * pxRatio);
-
       // 10. Re-snap cursor to current data (handles zoom restore and streaming data shifts)
       if (store.cursorManager.state.left >= 0) {
+        // Only save snapshot when cursor is active (skip on initial render)
+        renderer.saveSnapshot(ctx, width * pxRatio, height * pxRatio);
         store.cursorManager.update(
           store.cursorManager.state.left,
           store.cursorManager.state.top,

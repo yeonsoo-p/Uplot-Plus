@@ -133,6 +133,8 @@ export function valToPos(val: number, scale: ScaleState, dim: number, off: numbe
  * Convert a CSS pixel position to a data value.
  */
 export function posToVal(pos: number, scale: ScaleState, dim: number, off: number): number {
+  if (dim === 0) return scale.min ?? 0;
+
   let pct = (pos - off) / dim;
 
   if (scale.ori === Orientation.Horizontal) {

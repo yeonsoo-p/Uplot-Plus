@@ -62,9 +62,9 @@ export default function BarsGroupedStacked() {
         <Scale id="y"  />
         <Axis scale="x" label="Month" values={fmtMonth} />
         <Axis scale="y" label="Sales" />
-        <Series group={0} index={0} yScale="y" stroke="#2980b9" fill="rgba(41,128,185,0.7)" width={0} label="Product A" paths={groupedBars(0, 3)} fillTo={0} />
-        <Series group={0} index={1} yScale="y" stroke="#27ae60" fill="rgba(39,174,96,0.7)" width={0} label="Product B" paths={groupedBars(1, 3)} fillTo={0} />
-        <Series group={0} index={2} yScale="y" stroke="#e67e22" fill="rgba(230,126,34,0.7)" width={0} label="Product C" paths={groupedBars(2, 3)} fillTo={0} />
+        <Series group={0} index={0} yScale="y" stroke="#2980b9" fill="rgba(41,128,185,0.7)" width={0} label="Product A" paths={groupedBars(0, 3)} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
+        <Series group={0} index={1} yScale="y" stroke="#27ae60" fill="rgba(39,174,96,0.7)" width={0} label="Product B" paths={groupedBars(1, 3)} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
+        <Series group={0} index={2} yScale="y" stroke="#e67e22" fill="rgba(230,126,34,0.7)" width={0} label="Product C" paths={groupedBars(2, 3)} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
       </Chart>
 
       <h3 style={{ fontSize: 14, margin: '24px 0 8px' }}>Stacked Bars</h3>
@@ -73,9 +73,9 @@ export default function BarsGroupedStacked() {
         <Scale id="y"  />
         <Axis scale="x" label="Month" values={fmtMonth} />
         <Axis scale="y" label="Sales" />
-        <Series group={0} index={0} yScale="y" stroke="#2980b9" fill="rgba(41,128,185,0.8)" width={0} label="Product A" paths={bars()} fillTo={0} />
-        <Series group={0} index={1} yScale="y" stroke="#27ae60" fill="rgba(39,174,96,0.8)" width={0} label="Product B" paths={bars()} fillTo={0} />
-        <Series group={0} index={2} yScale="y" stroke="#e67e22" fill="rgba(230,126,34,0.8)" width={0} label="Product C" paths={bars()} fillTo={0} />
+        <Series group={0} index={0} yScale="y" stroke="#2980b9" fill="rgba(41,128,185,0.8)" width={0} label="Product A" paths={bars()} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
+        <Series group={0} index={1} yScale="y" stroke="#27ae60" fill="rgba(39,174,96,0.8)" width={0} label="Product B" paths={bars()} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
+        <Series group={0} index={2} yScale="y" stroke="#e67e22" fill="rgba(230,126,34,0.8)" width={0} label="Product C" paths={bars()} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
         {bands.map((b: BandConfig, i: number) => (
           <Band
             key={i}

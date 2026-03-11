@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { useChart } from './useChart';
 
@@ -10,7 +10,7 @@ import { useChart } from './useChart';
 export function useDrawHook(fn: DrawCallback): void {
   const store = useChart();
   const fnRef = useRef(fn);
-  useLayoutEffect(() => { fnRef.current = fn; });
+  fnRef.current = fn;
 
   useEffect(() => {
     const wrapper: DrawCallback = (dc) => fnRef.current(dc);
@@ -29,7 +29,7 @@ export function useDrawHook(fn: DrawCallback): void {
 export function useCursorDrawHook(fn: CursorDrawCallback): void {
   const store = useChart();
   const fnRef = useRef(fn);
-  useLayoutEffect(() => { fnRef.current = fn; });
+  fnRef.current = fn;
 
   useEffect(() => {
     const wrapper: CursorDrawCallback = (dc, cursor) => fnRef.current(dc, cursor);

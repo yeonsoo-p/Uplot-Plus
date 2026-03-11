@@ -2,6 +2,9 @@ import React, { useSyncExternalStore, useCallback, useRef } from 'react';
 import { useChart } from '../hooks/useChart';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 
+/** Estimated tooltip width for edge-flip detection (CSS px) */
+const TOOLTIP_FLIP_WIDTH = 160;
+
 interface TooltipSnapshot {
   left: number;
   top: number;
@@ -95,7 +98,7 @@ export function Tooltip({
   const offY = offset.y ?? -12;
 
   // Flip tooltip to left side when near right edge
-  const flipX = (snap.left + plotBox.left + offX + 160) > (plotBox.left + plotBox.width);
+  const flipX = (snap.left + plotBox.left + offX + TOOLTIP_FLIP_WIDTH) > (plotBox.left + plotBox.width);
   const flipY = (snap.top + plotBox.top + offY) < plotBox.top;
 
   const posLeft = flipX ? tooltipData.left - offX : tooltipData.left + offX;

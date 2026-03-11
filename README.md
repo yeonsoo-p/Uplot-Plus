@@ -11,7 +11,7 @@ High-performance React charting library ripped off from uPlot. Might perform occ
 - **7 path builders** — linear, stepped, bars, monotone cubic, Catmull-Rom, points, candlestick
 - **Interactive** — wheel/touch zoom, drag-to-zoom, cursor snapping, series focus
 - **Cursor sync** — linked crosshairs and tooltips across multiple charts
-- **Small bundle** — ~18KB (5.7KB gzip), React 18+ peer dependency
+- **Compact bundle** — ~111KB (~30KB gzip), React 18+ peer dependency
 - **Dual output** — ES module + CommonJS
 
 ## Installation

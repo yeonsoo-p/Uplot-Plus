@@ -21,8 +21,16 @@ export function useInteraction(
 ): void {
   useEffect(() => {
     if (containerEl == null) return;
+    return setupInteraction(store, containerEl);
+  }, [store, containerEl]);
+}
 
-    const el = containerEl;
+/**
+ * Attach mouse/touch listeners to a container element for chart interactions.
+ * Returns a cleanup function that removes all listeners.
+ * Extracted from useInteraction for testability.
+ */
+export function setupInteraction(store: ChartStore, el: HTMLElement): () => void {
 
     // Interaction state (local to this effect instance)
     let dragStart: { x: number; y: number } | null = null;
@@ -232,7 +240,7 @@ export function useInteraction(
 
       // Fire onCursorMove callback
       if (domEvent != null && store.eventCallbacks.onCursorMove != null && isInPlot(cx, cy)) {
-        store.eventCallbacks.onCursorMove(buildEventInfo(domEvent, cx, cy));
+        try { store.eventCallbacks.onCursorMove(buildEventInfo(domEvent, cx, cy)); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
       }
 
       // Update selection during drag
@@ -314,7 +322,9 @@ export function useInteraction(
         let shouldZoom = true;
         if (store.eventCallbacks.onSelect != null) {
           const selInfo = buildSelectInfo(selectState);
-          if (store.eventCallbacks.onSelect(selInfo) === false) {
+          let selResult: unknown;
+          try { selResult = store.eventCallbacks.onSelect(selInfo); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
+          if (selResult === false) {
             shouldZoom = false;
           }
         }
@@ -351,7 +361,7 @@ export function useInteraction(
       if (coords == null) return;
       if (!isInPlot(coords.cx, coords.cy)) return;
 
-      cb(buildEventInfo(e, coords.cx, coords.cy));
+      try { cb(buildEventInfo(e, coords.cx, coords.cy)); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
     }
 
     function onContextMenu(e: MouseEvent): void {
@@ -363,7 +373,7 @@ export function useInteraction(
       if (!isInPlot(coords.cx, coords.cy)) return;
 
       e.preventDefault();
-      cb(buildEventInfo(e, coords.cx, coords.cy));
+      try { cb(buildEventInfo(e, coords.cx, coords.cy)); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
     }
 
     function onMouseLeave(_e: MouseEvent): void {
@@ -386,7 +396,7 @@ export function useInteraction(
 
       store.scheduleCursorRedraw();
 
-      store.eventCallbacks.onCursorLeave?.();
+      try { store.eventCallbacks.onCursorLeave?.(); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
     }
 
     function onDblClick(e: MouseEvent): void {
@@ -394,7 +404,9 @@ export function useInteraction(
       if (store.eventCallbacks.onDblClick != null) {
         const coords = getPlotCoords(e);
         if (coords != null && isInPlot(coords.cx, coords.cy)) {
-          if (store.eventCallbacks.onDblClick(buildEventInfo(e, coords.cx, coords.cy)) === false) {
+          let dblClickResult: unknown;
+          try { dblClickResult = store.eventCallbacks.onDblClick(buildEventInfo(e, coords.cx, coords.cy)); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
+          if (dblClickResult === false) {
             return;
           }
         }
@@ -584,5 +596,4 @@ export function useInteraction(
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
     };
-  }, [store, containerEl]);
 }

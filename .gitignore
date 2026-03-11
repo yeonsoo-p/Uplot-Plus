@@ -13,6 +13,7 @@ node_modules/
 **/demo-dist/
 build/
 reference/
+bench/
 
 # Environment files
 .env

@@ -248,7 +248,7 @@ export function createChartStore(): ChartStore {
           ctx.scale(pxRatio, pxRatio);
           const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
           for (const fn of store.cursorDrawHooks) {
-            try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }
+            try { fn(dc, store.cursorManager.state); } catch (err) { console.warn('[uPlot+] draw hook error:', err); }
           }
           ctx.restore();
         }
@@ -397,7 +397,7 @@ export function createChartStore(): ChartStore {
         ctx.scale(pxRatio, pxRatio);
         const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
         for (const fn of store.drawHooks) {
-          try { fn(dc); } catch { /* user hook error */ }
+          try { fn(dc); } catch (err) { console.warn('[uPlot+] draw hook error:', err); }
         }
         ctx.restore();
       }
@@ -438,7 +438,7 @@ export function createChartStore(): ChartStore {
         ctx.scale(pxRatio, pxRatio);
         const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
         for (const fn of store.cursorDrawHooks) {
-          try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }
+          try { fn(dc, store.cursorManager.state); } catch (err) { console.warn('[uPlot+] draw hook error:', err); }
         }
         ctx.restore();
       }
@@ -452,7 +452,7 @@ export function createChartStore(): ChartStore {
           if (scale.min == null || scale.max == null) continue;
           const prev = store._prevScaleRanges.get(scale.id);
           if (prev == null || prev.min !== scale.min || prev.max !== scale.max) {
-            store.eventCallbacks.onScaleChange(scale.id, scale.min, scale.max);
+            try { store.eventCallbacks.onScaleChange(scale.id, scale.min, scale.max); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
           }
         }
       }

@@ -53,7 +53,8 @@ export function drawCursor(
   const plotHgt = round(plotBox.height * pr);
 
   const lineW = round(cfg.width * pr);
-  // Half-pixel offset for crisp odd-width lines
+  // Canvas strokes are centered on coordinates; for odd-width lines,
+  // a 0.5px offset aligns to physical pixels, preventing anti-aliased blur.
   const offset = (lineW % 2) / 2;
 
   const curX = round((plotBox.left + cursor.left) * pr) + offset;

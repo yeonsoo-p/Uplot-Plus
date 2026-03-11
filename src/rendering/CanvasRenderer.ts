@@ -32,6 +32,9 @@ export class CanvasRenderer {
   private pathCache = new Map<number, Map<number, Map<string, SeriesPaths>>>();
   private pathCacheSize = 0;
 
+  // LRU tracking: flat list of composite keys in access order (oldest first)
+  private lruOrder: { group: number; index: number; key: string }[] = [];
+
   // --- Offscreen canvas for cursor-only snapshot (avoids getImageData/putImageData) ---
   private snapshotCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
   private snapshotValid = false;
@@ -162,22 +165,41 @@ export class CanvasRenderer {
     return `${i0}:${i1}`;
   }
 
-  /** Get cached paths for a series */
+  /** Get cached paths for a series, promoting to most-recently-used */
   getCachedPaths(group: number, index: number, i0: number, i1: number): SeriesPaths | undefined {
     const groupMap = this.pathCache.get(group);
     if (groupMap == null) return undefined;
     const indexMap = groupMap.get(index);
     if (indexMap == null) return undefined;
     const key = this.windowKey(i0, i1);
-    return indexMap.get(key);
+    const paths = indexMap.get(key);
+    if (paths != null) {
+      // Promote to most-recently-used
+      const idx = this.lruOrder.findIndex(e => e.group === group && e.index === index && e.key === key);
+      if (idx >= 0) {
+        const entry = this.lruOrder.splice(idx, 1)[0];
+        if (entry != null) this.lruOrder.push(entry);
+      }
+    }
+    return paths;
   }
 
-  /** Store paths in cache, clearing all entries when at capacity */
+  /** Store paths in cache, evicting oldest 25% when at capacity */
   setCachedPaths(group: number, index: number, i0: number, i1: number, paths: SeriesPaths): void {
-    // Clear all when at capacity (simple eviction strategy)
+    // LRU eviction: remove oldest 25% when at capacity
     if (this.pathCacheSize >= MAX_CACHE_SIZE) {
-      this.pathCache.clear();
-      this.pathCacheSize = 0;
+      const evictCount = MAX_CACHE_SIZE >> 2; // 25%
+      const toEvict = this.lruOrder.splice(0, evictCount);
+      for (const entry of toEvict) {
+        const gm = this.pathCache.get(entry.group);
+        if (gm == null) continue;
+        const im = gm.get(entry.index);
+        if (im == null) continue;
+        im.delete(entry.key);
+        this.pathCacheSize--;
+        if (im.size === 0) gm.delete(entry.index);
+        if (gm.size === 0) this.pathCache.delete(entry.group);
+      }
     }
 
     let groupMap = this.pathCache.get(group);
@@ -195,11 +217,12 @@ export class CanvasRenderer {
     const key = this.windowKey(i0, i1);
     if (!indexMap.has(key)) {
       this.pathCacheSize++;
+      this.lruOrder.push({ group, index, key });
     }
     indexMap.set(key, paths);
   }
 
-  /** Invalidate paths for a specific series (all windows) — O(1) */
+  /** Invalidate paths for a specific series (all windows) */
   invalidateSeries(group: number, index: number): void {
     const groupMap = this.pathCache.get(group);
     if (groupMap == null) return;
@@ -207,10 +230,11 @@ export class CanvasRenderer {
     if (indexMap != null) {
       this.pathCacheSize -= indexMap.size;
       groupMap.delete(index);
+      this.lruOrder = this.lruOrder.filter(e => !(e.group === group && e.index === index));
     }
   }
 
-  /** Invalidate cached paths for a specific group — O(1) */
+  /** Invalidate cached paths for a specific group */
   clearGroupCache(group: number): void {
     const groupMap = this.pathCache.get(group);
     if (groupMap != null) {
@@ -218,6 +242,7 @@ export class CanvasRenderer {
         this.pathCacheSize -= indexMap.size;
       }
       this.pathCache.delete(group);
+      this.lruOrder = this.lruOrder.filter(e => e.group !== group);
     }
     this.snapshotValid = false;
   }
@@ -226,6 +251,7 @@ export class CanvasRenderer {
   clearCache(): void {
     this.pathCache.clear();
     this.pathCacheSize = 0;
+    this.lruOrder.length = 0;
     this.snapshotValid = false;
   }
 

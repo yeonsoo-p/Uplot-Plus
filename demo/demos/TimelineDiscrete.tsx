@@ -61,10 +61,10 @@ export default function TimelineDiscreteDemo() {
         scale="x"
         side={2}
         label="Time of Day"
-        values={(v: number) => {
+        values={(splits: number[]) => splits.map(v => {
           const h = Math.floor(v / 3600);
           return `${h.toString().padStart(2, '0')}:00`;
-        }}
+        })}
       />
       <Axis scale="y" side={3} show={false} size={80} />
       <Timeline lanes={lanes} laneHeight={28} gap={4} scaleId="x" />

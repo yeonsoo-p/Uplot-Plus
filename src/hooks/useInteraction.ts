@@ -241,11 +241,11 @@ export function useInteraction(
     }
 
     function onDblClick(_e: MouseEvent): void {
-      for (const scale of store.scaleManager.getAllScales()) {
-        scale.min = null;
-        scale.max = null;
-        scale.auto = true;
-        invalidateScaleCache(scale);
+      // Restore each scale to its original declarative state from React props,
+      // rather than blindly setting auto=true. This preserves auto={false} scales
+      // (e.g., Heatmap, BoxWhisker) that have explicit min/max.
+      for (const cfg of store.scaleConfigs) {
+        store.scaleManager.addScale(cfg);
       }
       store.renderer.clearCache();
       store.scheduleRedraw();

@@ -30,6 +30,7 @@ export function Scale(props: ScaleProps): null {
   }, [store, props.id]);
 
   // Sync props to store config, skipping when nothing changed.
+  // No dependency array: runs every render to catch any prop change via shallow equality check.
   const prevPropsRef = useRef<ScaleProps | null>(null);
   useEffect(() => {
     if (shallowEqual(prevPropsRef.current, props)) return;

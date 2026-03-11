@@ -58,7 +58,7 @@ export function bars(): PathBuilder {
     const totalBarWid = Math.max(1, pxRound(colWid - fullGap));
 
     // For grouped bars, divide the total bar width by groupCount
-    const barWid = groupCount > 1 ? Math.max(1, pxRound(totalBarWid / groupCount)) : totalBarWid;
+    const barWid = groupCount > 1 ? Math.max(1, pxRound(totalBarWid / Math.max(1, groupCount))) : totalBarWid;
 
     const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
     const fillToY = pixelForY(fillToVal);

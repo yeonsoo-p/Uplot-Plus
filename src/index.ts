@@ -59,6 +59,9 @@ export { alignData } from './math/align';
 // Annotation helpers
 export { drawHLine, drawVLine, drawLabel, drawRegion } from './annotations';
 
+// Scale utilities (for advanced draw hooks that need raw access)
+export { valToPos, posToVal } from './core/Scale';
+
 // Cursor/selection draw config types
 export type { CursorDrawConfig } from './rendering/drawCursor';
 export type { SelectDrawConfig } from './rendering/drawSelect';

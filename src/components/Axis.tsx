@@ -35,6 +35,7 @@ export function Axis(props: AxisProps): null {
   }, [store, props.scale, props.side]);
 
   // Sync props to store config, skipping when nothing changed.
+  // No dependency array: runs every render to catch any prop change via shallow equality check.
   const prevPropsRef = useRef<AxisProps | null>(null);
   useEffect(() => {
     if (shallowEqual(prevPropsRef.current, props)) return;

@@ -15,7 +15,7 @@ export interface RenderableSeriesInfo {
   window: [number, number];
 }
 
-/** Maximum number of cached path entries before LRU eviction */
+/** Maximum number of cached path entries before full cache clear */
 const MAX_CACHE_SIZE = 64;
 
 /**
@@ -172,9 +172,9 @@ export class CanvasRenderer {
     return indexMap.get(key);
   }
 
-  /** Store paths in cache with LRU eviction */
+  /** Store paths in cache, clearing all entries when at capacity */
   setCachedPaths(group: number, index: number, i0: number, i1: number, paths: SeriesPaths): void {
-    // Evict oldest entries if at capacity (simple: clear all when full)
+    // Clear all when at capacity (simple eviction strategy)
     if (this.pathCacheSize >= MAX_CACHE_SIZE) {
       this.pathCache.clear();
       this.pathCacheSize = 0;

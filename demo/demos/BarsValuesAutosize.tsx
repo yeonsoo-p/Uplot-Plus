@@ -11,29 +11,21 @@ export default function BarsValuesAutosize() {
   }, [values]);
 
   // Draw value labels above each bar
-  const onDraw: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
-    ctx.save();
+  const onDraw: DrawCallback = ({ ctx, valToX, valToY }) => {
     ctx.fillStyle = '#333';
-    ctx.font = `${11 * pxRatio}px sans-serif`;
+    ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
 
-    const count = values.length;
-    const barWidth = plotBox.width / count;
-
-    // Approximate y mapping: data range ~0-100
-    const yMin = 0;
-    const yMax = 100;
-
-    for (let i = 0; i < count; i++) {
-      const v = values[i]!;
-      const cx = (plotBox.left + (i + 0.5) * barWidth) * pxRatio;
-      const yFrac = 1 - (v - yMin) / (yMax - yMin);
-      const cy = (plotBox.top + yFrac * plotBox.height - 4) * pxRatio;
-      ctx.fillText(String(v), cx, cy);
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i];
+      if (v == null) continue;
+      const xVal = i + 1; // x data values are 1-indexed
+      const cx = valToX(xVal);
+      const cy = valToY(v, 'y');
+      if (cx == null || cy == null) continue;
+      ctx.fillText(String(v), cx, cy - 4);
     }
-
-    ctx.restore();
   };
 
   return (

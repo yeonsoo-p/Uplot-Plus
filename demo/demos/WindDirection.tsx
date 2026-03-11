@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Chart, Scale, Series, Axis } from '../../src';
 import type { ChartData, DrawCallback } from '../../src';
-import { valToPos } from '../../src/core/Scale';
 
 function generateWindData(): { directions: number[]; chartData: ChartData } {
   const n = 48; // 48 half-hour intervals
@@ -33,10 +32,9 @@ function drawArrow(
   cy: number,
   angle: number,
   size: number,
-  pxRatio: number,
 ): void {
   const rad = (angle - 90) * (Math.PI / 180); // 0=N, 90=E
-  const len = size * pxRatio;
+  const len = size;
   const headLen = len * 0.35;
   const headAngle = Math.PI / 6;
 
@@ -69,7 +67,7 @@ function drawArrow(
 export default function WindDirection() {
   const { directions, chartData } = useMemo(() => generateWindData(), []);
 
-  const onDraw: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
+  const onDraw: DrawCallback = ({ ctx, valToX, valToY }) => {
     const group = chartData[0];
     if (group == null) return;
 
@@ -77,27 +75,8 @@ export default function WindDirection() {
     const speedArr = group.series[0];
     if (speedArr == null) return;
 
-    // Compute ranges
-    let xMin = Infinity, xMax = -Infinity;
-    let yMin = Infinity, yMax = -Infinity;
-    for (let i = 0; i < xArr.length; i++) {
-      const xv = xArr[i] as number;
-      const yv = speedArr[i] as number;
-      if (xv < xMin) xMin = xv;
-      if (xv > xMax) xMax = xv;
-      if (yv < yMin) yMin = yv;
-      if (yv > yMax) yMax = yv;
-    }
-    const yPad = (yMax - yMin) * 0.1;
-    yMin -= yPad;
-    yMax += yPad;
-
-    const xScale = { min: xMin, max: xMax, ori: 0 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'x', range: null, _min: null, _max: null };
-    const yScale = { min: yMin, max: yMax, ori: 1 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'y', range: null, _min: null, _max: null };
-
-    ctx.save();
     ctx.strokeStyle = '#c0392b';
-    ctx.lineWidth = 1.5 * pxRatio;
+    ctx.lineWidth = 1.5;
     ctx.lineCap = 'round';
 
     for (let i = 0; i < xArr.length; i++) {
@@ -105,15 +84,14 @@ export default function WindDirection() {
       const dir = directions[i];
       if (dir == null) continue;
 
-      const px = valToPos(xArr[i] as number, xScale, plotBox.width, plotBox.left) * pxRatio;
-      const py = valToPos(speed, yScale, plotBox.height, plotBox.top) * pxRatio;
+      const px = valToX(xArr[i] as number);
+      const py = valToY(speed, 'y');
+      if (px == null || py == null) continue;
 
       // Arrow size proportional to wind speed
       const arrowSize = 4 + (speed / 30) * 6;
-      drawArrow(ctx, px, py, dir, arrowSize, pxRatio);
+      drawArrow(ctx, px, py, dir, arrowSize);
     }
-
-    ctx.restore();
   };
 
   const fmtHour = (splits: number[]) => splits.map(v => `${v.toFixed(0)}h`);

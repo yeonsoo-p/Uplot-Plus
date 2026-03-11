@@ -97,7 +97,8 @@ export function ZoomRanger({
     if (el == null) return;
 
     const frac = getFrac(e.clientX);
-    const edgeThreshold = 8 / el.getBoundingClientRect().width;
+    const rectWidth = el.getBoundingClientRect().width;
+    const edgeThreshold = rectWidth > 0 ? 8 / rectWidth : 0;
 
     let mode: 'move' | 'left' | 'right';
     if (Math.abs(frac - selFrac[0]) < edgeThreshold) {

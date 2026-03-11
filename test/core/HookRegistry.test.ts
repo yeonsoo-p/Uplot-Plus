@@ -7,6 +7,9 @@ function makeDC(): DrawContext {
     ctx: {} as CanvasRenderingContext2D,
     plotBox: { left: 10, top: 10, width: 780, height: 380 },
     pxRatio: 1,
+    getScale: () => undefined,
+    valToX: () => null,
+    valToY: () => null,
   };
 }
 

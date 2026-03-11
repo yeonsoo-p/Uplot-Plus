@@ -1,45 +1,119 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chart, Scale, Series, Axis, Legend } from '../../src';
 import type { ChartData } from '../../src';
 
-const WINDOW = 200;
-const INTERVAL_MS = 100;
+const WINDOW = 2000;
+const BATCH = 4; // points per frame
+
+function initData(): ChartData {
+  const x = Array.from({ length: WINDOW }, (_, i) => i);
+  const y1: number[] = []; // random walk
+  const y2: number[] = []; // oscillating
+  const y3: number[] = []; // spiky
+
+  let walk = 50;
+  for (let i = 0; i < WINDOW; i++) {
+    walk += (Math.random() - 0.5) * 4;
+    walk = Math.max(5, Math.min(95, walk));
+    y1.push(walk);
+    y2.push(50 + Math.sin(i * 0.03) * 20 + (Math.random() - 0.5) * 6);
+    y3.push(30 + Math.random() * 40 + (Math.random() > 0.95 ? (Math.random() - 0.5) * 40 : 0));
+  }
+
+  return [{ x, series: [y1, y2, y3] }];
+}
 
 export default function StreamData() {
-  const [data, setData] = useState<ChartData>(() => {
-    const x = Array.from({ length: WINDOW }, (_, i) => i);
-    const y = x.map(() => Math.random() * 50 + 25);
-    return [{ x, series: [y] }];
-  });
-
+  const [data, setData] = useState<ChartData>(initData);
   const counterRef = useRef(WINDOW);
+  const fpsRef = useRef(0);
+  const frameCountRef = useRef(0);
+  const lastSecRef = useRef(performance.now());
+  const [fps, setFps] = useState(0);
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setData(prev => {
-        const group = prev[0];
-        if (!group) return prev;
+  const tick = useCallback(() => {
+    setData(prev => {
+      const group = prev[0];
+      if (!group) return prev;
 
-        const newX = [...group.x.slice(1), counterRef.current++] as number[];
-        const prevY = group.series[0] as number[];
-        const lastY = prevY[prevY.length - 1] ?? 50;
-        const newY = [...prevY.slice(1), lastY + (Math.random() - 0.5) * 8];
+      const xArr = group.x as number[];
+      const y1 = group.series[0] as number[];
+      const y2 = group.series[1] as number[];
+      const y3 = group.series[2] as number[];
 
-        return [{ x: newX, series: [newY] }];
-      });
-    }, INTERVAL_MS);
+      // Remove oldest BATCH points, push BATCH new points
+      const newX = xArr.slice(BATCH);
+      const newY1 = y1.slice(BATCH);
+      const newY2 = y2.slice(BATCH);
+      const newY3 = y3.slice(BATCH);
 
-    return () => clearInterval(id);
+      let walk = newY1[newY1.length - 1] ?? 50;
+      const baseI = counterRef.current;
+
+      for (let b = 0; b < BATCH; b++) {
+        const i = baseI + b;
+        newX.push(i);
+
+        // Random walk
+        walk += (Math.random() - 0.5) * 4;
+        walk = Math.max(5, Math.min(95, walk));
+        newY1.push(walk);
+
+        // Oscillating
+        newY2.push(50 + Math.sin(i * 0.03) * 20 + (Math.random() - 0.5) * 6);
+
+        // Spiky
+        newY3.push(30 + Math.random() * 40 + (Math.random() > 0.95 ? (Math.random() - 0.5) * 40 : 0));
+      }
+
+      counterRef.current += BATCH;
+      return [{ x: newX, series: [newY1, newY2, newY3] }];
+    });
   }, []);
 
+  useEffect(() => {
+    let rafId: number;
+
+    const loop = () => {
+      tick();
+
+      // FPS counter
+      frameCountRef.current++;
+      const now = performance.now();
+      if (now - lastSecRef.current >= 1000) {
+        fpsRef.current = frameCountRef.current;
+        setFps(fpsRef.current);
+        frameCountRef.current = 0;
+        lastSecRef.current = now;
+      }
+
+      rafId = requestAnimationFrame(loop);
+    };
+
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, [tick]);
+
   return (
-    <Chart width={800} height={300} data={data}>
-      <Scale id="x" auto ori={0} dir={1} time={false} />
-      <Scale id="y" auto ori={1} dir={1} />
-      <Axis scale="x" side={2} label="Tick" />
-      <Axis scale="y" side={3} label="Value" />
-      <Series group={0} index={0} yScale="y" stroke="#27ae60" fill="rgba(39,174,96,0.1)" width={2} label="Live Feed" />
-      <Legend />
-    </Chart>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+        <span style={{ fontSize: 13, color: '#666' }}>
+          {WINDOW} pts &middot; {BATCH} pts/frame &middot; ~{BATCH * 60} pts/sec
+        </span>
+        <span style={{ fontSize: 13, fontWeight: 'bold', color: fps > 50 ? '#27ae60' : fps > 30 ? '#f39c12' : '#e74c3c' }}>
+          {fps} FPS
+        </span>
+      </div>
+      <Chart width={800} height={350} data={data}>
+        <Scale id="x" auto ori={0} dir={1} time={false} />
+        <Scale id="y" auto ori={1} dir={1} />
+        <Axis scale="x" side={2} label="Tick" />
+        <Axis scale="y" side={3} label="Value" />
+        <Series group={0} index={0} yScale="y" stroke="#27ae60" width={1.5} label="Random Walk" />
+        <Series group={0} index={1} yScale="y" stroke="#2980b9" width={1.5} label="Oscillating" />
+        <Series group={0} index={2} yScale="y" stroke="#e74c3c" width={1} label="Spiky" />
+        <Legend />
+      </Chart>
+    </div>
   );
 }

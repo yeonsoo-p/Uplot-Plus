@@ -72,10 +72,4 @@ export interface SeriesState {
   max: number;
   /** Visible index range within this series's xGroup */
   idxs: [number, number];
-  /** Cached path data */
-  path: Path2D | null;
-  /** Cached clip path */
-  clip: Path2D | null;
-  /** Cached fill path */
-  fillPath: Path2D | null;
 }

@@ -75,6 +75,7 @@ export function logAxisSplits(
   if (logBase === 10)
     nextMagIncr = numIncrs[closestIdx(nextMagIncr, numIncrs)] ?? nextMagIncr;
 
+  let iters = 0;
   do {
     if (split >= scaleMin)
       splits.push(split);
@@ -93,7 +94,7 @@ export function logAxisSplits(
       if (logBase === 10)
         nextMagIncr = numIncrs[closestIdx(nextMagIncr, numIncrs)] ?? nextMagIncr;
     }
-  } while (split <= scaleMax);
+  } while (split <= scaleMax && ++iters < 10000);
 
   return splits;
 }
@@ -145,11 +146,12 @@ export function asinhAxisSplits(
     }
   }
 
-  // Sort and deduplicate
+  // Sort and deduplicate (with float tolerance)
   splits.sort((a, b) => a - b);
   const unique: number[] = [];
   for (const s of splits) {
-    if (unique.length === 0 || unique[unique.length - 1] !== s) {
+    const last = unique[unique.length - 1];
+    if (unique.length === 0 || (last != null && abs(s - last) > 1e-10)) {
       unique.push(s);
     }
   }

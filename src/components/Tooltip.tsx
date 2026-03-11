@@ -66,7 +66,7 @@ export function Tooltip({
   // X value
   const group = store.dataStore.data[activeGroup];
   const xVal = group != null ? (group.x[activeDataIdx] as number | undefined) ?? null : null;
-  const xLabel = xVal != null ? xVal.toPrecision(6) : '';
+  const xLabel = xVal != null ? parseFloat(xVal.toPrecision(6)).toString() : '';
 
   // Series values
   const items: TooltipItem[] = [];

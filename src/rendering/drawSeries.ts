@@ -77,7 +77,7 @@ export function drawSeriesPath(
 
     if (doAlign) ctx.translate(offset, offset);
     ctx.stroke(paths.stroke);
-    if (doAlign) ctx.translate(-offset, -offset);
+    // No need to un-translate: ctx.restore() below resets the transform
   }
 
   ctx.restore();

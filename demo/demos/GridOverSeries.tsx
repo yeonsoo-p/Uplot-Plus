@@ -11,18 +11,17 @@ function generateData(): ChartData {
 }
 
 // Custom draw hook that re-draws the grid lines on top of the series
-const gridOverlay: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
+const gridOverlay: DrawCallback = ({ ctx, plotBox }) => {
   const gridColor = 'rgba(0, 0, 0, 0.12)';
   const gridCount = 6;
 
-  ctx.save();
   ctx.strokeStyle = gridColor;
-  ctx.lineWidth = pxRatio;
+  ctx.lineWidth = 1;
 
-  const l = plotBox.left * pxRatio;
-  const t = plotBox.top * pxRatio;
-  const w = plotBox.width * pxRatio;
-  const h = plotBox.height * pxRatio;
+  const l = plotBox.left;
+  const t = plotBox.top;
+  const w = plotBox.width;
+  const h = plotBox.height;
 
   // Horizontal grid lines
   for (let i = 0; i <= gridCount; i++) {
@@ -41,8 +40,6 @@ const gridOverlay: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
     ctx.lineTo(x, t + h);
     ctx.stroke();
   }
-
-  ctx.restore();
 };
 
 export default function GridOverSeries() {

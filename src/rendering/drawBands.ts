@@ -19,7 +19,7 @@ export function drawBand(
   i0: number,
   i1: number,
 ): void {
-  if (i0 > i1) return;
+  if (i0 > i1 || i0 < 0) return;
 
   const fill = band.fill ?? 'rgba(0, 120, 255, 0.1)';
 

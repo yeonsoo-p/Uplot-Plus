@@ -30,6 +30,7 @@ export function Series(props: SeriesProps): null {
   }, [store, props.group, props.index]);
 
   // Sync props to store config, skipping when nothing changed.
+  // No dependency array: runs every render to catch any prop change via shallow equality check.
   const prevPropsRef = useRef<SeriesProps | null>(null);
   useEffect(() => {
     if (shallowEqual(prevPropsRef.current, props)) return;

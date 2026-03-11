@@ -21,6 +21,7 @@ import ScaleDirection from './ScaleDirection';
 import SyncCursor from './SyncCursor';
 import DrawHooks from './DrawHooks';
 import StreamData from './StreamData';
+import RealtimeSine from './RealtimeSine';
 import SpanGaps from './SpanGaps';
 import LargeDataset from './LargeDataset';
 import NoData from './NoData';
@@ -118,7 +119,8 @@ export const demos: DemoEntry[] = [
   { id: 'scale-direction', title: 'Scale Direction', description: 'Reversed y-axis (dir=-1) for depth charts where values increase downward.', component: ScaleDirection },
   { id: 'sync-cursor', title: 'Sync Cursor', description: 'Two charts sharing cursor position via syncKey.', component: SyncCursor },
   { id: 'draw-hooks', title: 'Draw Hooks', description: 'onDraw for threshold lines/zones, onCursorDraw for crosshair labels.', component: DrawHooks },
-  { id: 'stream-data', title: 'Stream Data', description: 'Live streaming data via React useState with sliding window updates.', component: StreamData },
+  { id: 'stream-data', title: 'Stream Data', description: '3-series 60fps streaming with 2000-point sliding window and FPS counter.', component: StreamData },
+  { id: 'realtime-sine', title: 'Real-Time Sine', description: '10,000-point scrolling sine waves at 60fps — inspired by webgl-plot-react.', component: RealtimeSine },
   { id: 'span-gaps', title: 'Span Gaps', description: 'spanGaps connects series across null values instead of breaking the line.', component: SpanGaps },
   { id: 'large-dataset', title: 'Large Dataset', description: '2,000,000 points rendered with minimal configuration to test performance.', component: LargeDataset },
   { id: 'no-data', title: 'No Data / Edge Cases', description: 'Single point, two points, and all-null edge cases.', component: NoData },

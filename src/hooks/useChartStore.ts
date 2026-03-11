@@ -17,6 +17,27 @@ import { drawBand } from '../rendering/drawBands';
 import type { BandConfig } from '../types/bands';
 import { DirtyFlag } from '../types/common';
 import type { DrawContext, DrawCallback, CursorDrawCallback } from '../types/hooks';
+import { valToPos } from '../core/Scale';
+
+/** Build a DrawContext with valToX/valToY helpers bound to current scales. */
+function buildDrawContext(
+  ctx: CanvasRenderingContext2D,
+  plotBox: BBox,
+  pxRatio: number,
+  getScale: (id: string) => ReturnType<ScaleManager['getScale']>,
+): DrawContext {
+  const valToX = (val: number, scaleId = 'x'): number | null => {
+    const s = getScale(scaleId);
+    if (s == null || s.min == null || s.max == null) return null;
+    return valToPos(val, s, plotBox.width, plotBox.left);
+  };
+  const valToY = (val: number, scaleId: string): number | null => {
+    const s = getScale(scaleId);
+    if (s == null || s.min == null || s.max == null) return null;
+    return valToPos(val, s, plotBox.height, plotBox.top);
+  };
+  return { ctx, plotBox, pxRatio, getScale, valToX, valToY };
+}
 
 /**
  * Mutable chart store — holds all chart state outside of React state.
@@ -212,12 +233,15 @@ export function createChartStore(): ChartStore {
           (gi) => scaleManager.getGroupXScaleKey(gi),
         );
         drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
-        // Fire cursor draw hooks on the overlay
+        // Fire cursor draw hooks on the overlay (pxRatio-scaled)
         if (store.cursorDrawHooks.size > 0) {
-          const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
+          ctx.save();
+          ctx.scale(pxRatio, pxRatio);
+          const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
           for (const fn of store.cursorDrawHooks) {
             try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }
           }
+          ctx.restore();
         }
         for (const fn of store.listeners) fn();
         return;
@@ -352,16 +376,41 @@ export function createChartStore(): ChartStore {
 
       ctx.restore();
 
-      // 9. Fire draw hooks (persistent layer), then save snapshot
+      // 9. Fire draw hooks (persistent layer, clipped to plot area + pxRatio-scaled)
       if (store.drawHooks.size > 0) {
-        const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(
+          store.plotBox.left * pxRatio,
+          store.plotBox.top * pxRatio,
+          store.plotBox.width * pxRatio,
+          store.plotBox.height * pxRatio,
+        );
+        ctx.clip();
+        ctx.scale(pxRatio, pxRatio);
+        const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
         for (const fn of store.drawHooks) {
           try { fn(dc); } catch { /* user hook error */ }
         }
+        ctx.restore();
       }
       renderer.saveSnapshot(ctx, width * pxRatio, height * pxRatio);
 
-      // 10. Draw cursor crosshair + point
+      // 10. Re-snap cursor to current data (handles zoom restore and streaming data shifts)
+      if (store.cursorManager.state.left >= 0) {
+        store.cursorManager.update(
+          store.cursorManager.state.left,
+          store.cursorManager.state.top,
+          store.plotBox,
+          dataStore.data,
+          seriesConfigs,
+          getScale,
+          (gi) => dataStore.getWindow(gi),
+          (gi) => scaleManager.getGroupXScaleKey(gi),
+        );
+      }
+
+      // 11. Draw cursor crosshair + point
       drawCursor(
         ctx,
         store.cursorManager.state,
@@ -373,15 +422,18 @@ export function createChartStore(): ChartStore {
         (gi) => scaleManager.getGroupXScaleKey(gi),
       );
 
-      // 11. Draw selection rectangle
+      // 12. Draw selection rectangle
       drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
 
-      // 12. Fire cursor draw hooks (overlay layer)
+      // 13. Fire cursor draw hooks (overlay layer, pxRatio-scaled)
       if (store.cursorDrawHooks.size > 0) {
-        const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
+        ctx.save();
+        ctx.scale(pxRatio, pxRatio);
+        const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
         for (const fn of store.cursorDrawHooks) {
           try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }
         }
+        ctx.restore();
       }
 
       // 13. Notify subscribers (Legend, Tooltip, etc.)

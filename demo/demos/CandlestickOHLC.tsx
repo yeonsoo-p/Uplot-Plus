@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Chart, Scale, Series, Axis } from '../../src';
 import type { ChartData, DrawCallback } from '../../src';
-import { drawCandlesticks } from '../../src/paths/candlestick';
 
 function generateOHLC(): ChartData {
   const n = 60;
@@ -33,43 +32,52 @@ function generateOHLC(): ChartData {
 export default function CandlestickOHLC() {
   const data = useMemo(() => generateOHLC(), []);
 
-  const onDraw: DrawCallback = useMemo(() => {
+  const onDraw: DrawCallback = ({ ctx, plotBox, valToX, valToY }) => {
     const group = data[0];
-    if (group == null) return () => {};
+    if (group == null) return;
 
     const xArr = group.x;
     const openArr = group.series[0];
     const highArr = group.series[1];
     const lowArr = group.series[2];
     const closeArr = group.series[3];
-    if (openArr == null || highArr == null || lowArr == null || closeArr == null) return () => {};
+    if (openArr == null || highArr == null || lowArr == null || closeArr == null) return;
 
-    // Compute scale bounds from data
-    let xMin = Infinity, xMax = -Infinity;
-    let yMin = Infinity, yMax = -Infinity;
+    const candleW = Math.max(2, (plotBox.width / xArr.length) * 0.6);
+
     for (let i = 0; i < xArr.length; i++) {
-      const xv = xArr[i] as number;
-      if (xv < xMin) xMin = xv;
-      if (xv > xMax) xMax = xv;
-      const hi = highArr[i] as number;
-      const lo = lowArr[i] as number;
-      if (hi > yMax) yMax = hi;
-      if (lo < yMin) yMin = lo;
-    }
-    const yPad = (yMax - yMin) * 0.05;
-    yMin -= yPad;
-    yMax += yPad;
+      const o = openArr[i];
+      const h = highArr[i];
+      const l = lowArr[i];
+      const c = closeArr[i];
+      if (o == null || h == null || l == null || c == null) continue;
 
-    return drawCandlesticks({
-      xValues: xArr,
-      open: openArr,
-      high: highArr,
-      low: lowArr,
-      close: closeArr,
-      xScale: { min: xMin, max: xMax, ori: 0, dir: 1, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'x', range: null, _min: null, _max: null },
-      yScale: { min: yMin, max: yMax, ori: 1, dir: 1, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'y', range: null, _min: null, _max: null },
-    });
-  }, [data]);
+      const cx = valToX(xArr[i] as number);
+      const oPx = valToY(o, 'y');
+      const hPx = valToY(h, 'y');
+      const lPx = valToY(l, 'y');
+      const cPx = valToY(c, 'y');
+      if (cx == null || oPx == null || hPx == null || lPx == null || cPx == null) continue;
+
+      const isUp = c >= o;
+      const color = isUp ? '#26a69a' : '#ef5350';
+
+      // Wick
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, hPx);
+      ctx.lineTo(cx, lPx);
+      ctx.stroke();
+
+      // Body
+      const bodyTop = Math.min(oPx, cPx);
+      const bodyH = Math.abs(cPx - oPx);
+      const halfW = candleW / 2;
+      ctx.fillStyle = color;
+      ctx.fillRect(cx - halfW, bodyTop, halfW * 2, Math.max(bodyH, 1));
+    }
+  };
 
   return (
     <Chart width={800} height={400} data={data} onDraw={onDraw}>

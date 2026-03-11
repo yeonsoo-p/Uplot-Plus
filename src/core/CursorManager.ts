@@ -8,6 +8,7 @@ import { closestIdx } from '../math/utils';
 export interface SyncTarget {
   dataStore: { data: ChartData; getWindow(gi: number): [number, number] };
   scaleManager: { getGroupXScaleKey(gi: number): string | undefined; getScale(id: string): ScaleState | undefined };
+  seriesConfigs: SeriesConfig[];
   plotBox: BBox;
 }
 
@@ -112,7 +113,7 @@ export class CursorManager {
           if (yVal == null) continue;
 
           let yScaleState = yScaleCache.get(sc.yScale);
-          if (yScaleState === undefined) {
+          if (yScaleState == null && !yScaleCache.has(sc.yScale)) {
             yScaleState = getScale(sc.yScale);
             yScaleCache.set(sc.yScale, yScaleState);
           }
@@ -172,9 +173,28 @@ export class CursorManager {
     // Convert to pixel position
     const pxX = valToPos(foundX, xScale, store.plotBox.width, store.plotBox.left);
     this.state.left = pxX - store.plotBox.left;
-    this.state.top = store.plotBox.height / 2; // center vertically
     this.state.activeGroup = 0;
     this.state.activeDataIdx = dataIdx;
-    this.state.activeSeriesIdx = 0;
+
+    // Find first visible series to compute proper y position
+    let bestSeriesIdx = 0;
+    let yPos = store.plotBox.height / 2; // fallback to center
+
+    for (const sc of store.seriesConfigs) {
+      if (sc.group !== 0 || sc.show === false) continue;
+      const yData = group.series[sc.index];
+      if (yData == null) continue;
+      const yVal = yData[dataIdx];
+      if (yVal == null) continue;
+      const yScale = store.scaleManager.getScale(sc.yScale);
+      if (yScale == null || yScale.min == null || yScale.max == null) continue;
+
+      yPos = valToPos(yVal, yScale, store.plotBox.height, store.plotBox.top) - store.plotBox.top;
+      bestSeriesIdx = sc.index;
+      break;
+    }
+
+    this.state.top = yPos;
+    this.state.activeSeriesIdx = bestSeriesIdx;
   }
 }

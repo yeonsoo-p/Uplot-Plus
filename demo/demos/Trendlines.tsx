@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Chart, Scale, Series, Axis } from '../../src';
 import type { ChartData, DrawCallback } from '../../src';
-import { valToPos } from '../../src/core/Scale';
 
 function generateData(): ChartData {
   const n = 80;
@@ -20,17 +19,14 @@ function generateData(): ChartData {
 export default function Trendlines() {
   const data = useMemo(() => generateData(), []);
 
-  const onDraw: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
+  // Pre-compute regression (data doesn't change)
+  const regression = useMemo(() => {
     const group = data[0];
-    if (group == null) return;
-
+    if (group == null) return { slope: 0, intercept: 0 };
     const xArr = group.x;
     const yArr = group.series[0];
-    if (yArr == null) return;
-
+    if (yArr == null) return { slope: 0, intercept: 0 };
     const n = xArr.length;
-
-    // Compute linear regression: least squares
     let sumX = 0, sumY = 0;
     for (let i = 0; i < n; i++) {
       sumX += xArr[i] as number;
@@ -38,7 +34,6 @@ export default function Trendlines() {
     }
     const meanX = sumX / n;
     const meanY = sumY / n;
-
     let num = 0, den = 0;
     for (let i = 0; i < n; i++) {
       const dx = (xArr[i] as number) - meanX;
@@ -48,39 +43,31 @@ export default function Trendlines() {
     }
     const slope = den !== 0 ? num / den : 0;
     const intercept = meanY - slope * meanX;
+    return { slope, intercept };
+  }, [data]);
 
-    // Compute y range for scale
-    let yMin = Infinity, yMax = -Infinity;
-    for (let i = 0; i < n; i++) {
-      const v = yArr[i] as number;
-      if (v < yMin) yMin = v;
-      if (v > yMax) yMax = v;
-    }
-    const trendStart = intercept;
-    const trendEnd = slope * (xArr[n - 1] as number) + intercept;
-    yMin = Math.min(yMin, trendStart, trendEnd);
-    yMax = Math.max(yMax, trendStart, trendEnd);
-    const pad = (yMax - yMin) * 0.05;
-    yMin -= pad;
-    yMax += pad;
+  const onDraw: DrawCallback = ({ ctx, valToX, valToY }) => {
+    const group = data[0];
+    if (group == null) return;
+    const xArr = group.x;
+    const n = xArr.length;
+    if (n === 0) return;
 
-    const xScale = { min: xArr[0] as number, max: xArr[n - 1] as number, ori: 0 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'x', range: null, _min: null, _max: null };
-    const yScale = { min: yMin, max: yMax, ori: 1 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'y', range: null, _min: null, _max: null };
-
+    const { slope, intercept } = regression;
     const x0 = xArr[0] as number;
     const x1 = xArr[n - 1] as number;
     const y0 = slope * x0 + intercept;
     const y1 = slope * x1 + intercept;
 
-    const px0 = valToPos(x0, xScale, plotBox.width, plotBox.left) * pxRatio;
-    const py0 = valToPos(y0, yScale, plotBox.height, plotBox.top) * pxRatio;
-    const px1 = valToPos(x1, xScale, plotBox.width, plotBox.left) * pxRatio;
-    const py1 = valToPos(y1, yScale, plotBox.height, plotBox.top) * pxRatio;
+    const px0 = valToX(x0);
+    const py0 = valToY(y0, 'y');
+    const px1 = valToX(x1);
+    const py1 = valToY(y1, 'y');
+    if (px0 == null || py0 == null || px1 == null || py1 == null) return;
 
-    ctx.save();
     ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 2.5 * pxRatio;
-    ctx.setLineDash([8 * pxRatio, 4 * pxRatio]);
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([8, 4]);
     ctx.beginPath();
     ctx.moveTo(px0, py0);
     ctx.lineTo(px1, py1);
@@ -89,15 +76,13 @@ export default function Trendlines() {
     // Label
     ctx.setLineDash([]);
     ctx.fillStyle = '#e74c3c';
-    ctx.font = `${11 * pxRatio}px sans-serif`;
+    ctx.font = '11px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(
       `y = ${slope.toFixed(2)}x + ${intercept.toFixed(1)}`,
-      px0 + 8 * pxRatio,
-      py0 - 8 * pxRatio,
+      px0 + 8,
+      py0 - 8,
     );
-
-    ctx.restore();
   };
 
   return (

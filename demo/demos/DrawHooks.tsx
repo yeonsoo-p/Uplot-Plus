@@ -10,69 +10,57 @@ function generateData(): ChartData {
 }
 
 // Draw a horizontal threshold line and colored zone on the persistent layer
-const onDraw: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
+const onDraw: DrawCallback = ({ ctx, plotBox, valToY }) => {
   const threshold = 65;
-  // Map threshold to pixel position (approximate: assumes y-scale auto range ~10-90)
-  const yMin = 10;
-  const yMax = 90;
-  const yFrac = 1 - (threshold - yMin) / (yMax - yMin);
-  const yPx = (plotBox.top + yFrac * plotBox.height) * pxRatio;
+  const yPx = valToY(threshold, 'y');
+  if (yPx == null) return;
 
   // Draw danger zone above threshold
-  ctx.save();
   ctx.fillStyle = 'rgba(231, 76, 60, 0.08)';
-  ctx.fillRect(
-    plotBox.left * pxRatio,
-    plotBox.top * pxRatio,
-    plotBox.width * pxRatio,
-    yPx - plotBox.top * pxRatio,
-  );
+  ctx.fillRect(plotBox.left, plotBox.top, plotBox.width, yPx - plotBox.top);
 
   // Draw threshold line
   ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = 2 * pxRatio;
-  ctx.setLineDash([6 * pxRatio, 4 * pxRatio]);
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
   ctx.beginPath();
-  ctx.moveTo(plotBox.left * pxRatio, yPx);
-  ctx.lineTo((plotBox.left + plotBox.width) * pxRatio, yPx);
+  ctx.moveTo(plotBox.left, yPx);
+  ctx.lineTo(plotBox.left + plotBox.width, yPx);
   ctx.stroke();
 
   // Label
   ctx.setLineDash([]);
   ctx.fillStyle = '#e74c3c';
-  ctx.font = `${11 * pxRatio}px sans-serif`;
+  ctx.font = '11px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('Threshold: 65', (plotBox.left + 4) * pxRatio, yPx - 4 * pxRatio);
-  ctx.restore();
+  ctx.fillText('Threshold: 65', plotBox.left + 4, yPx - 4);
 };
 
 // Draw crosshair coordinates on the cursor overlay
-const onCursorDraw: CursorDrawCallback = ({ ctx, plotBox, pxRatio }, cursor) => {
+const onCursorDraw: CursorDrawCallback = ({ ctx, plotBox }, cursor) => {
   if (cursor.left < 0 || cursor.top < 0) return;
 
-  const x = cursor.left * pxRatio;
-  const y = cursor.top * pxRatio;
+  const x = cursor.left;
+  const y = cursor.top;
 
-  ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.font = `${10 * pxRatio}px monospace`;
+  ctx.font = '10px monospace';
   ctx.textAlign = 'left';
 
   const label = `(${cursor.left.toFixed(0)}, ${cursor.top.toFixed(0)})`;
   const textW = ctx.measureText(label).width;
 
   // Background box
-  const padX = 4 * pxRatio;
-  const padY = 2 * pxRatio;
-  const boxX = Math.min(x + 8 * pxRatio, (plotBox.left + plotBox.width) * pxRatio - textW - padX * 2);
-  const boxY = y - 20 * pxRatio;
+  const padX = 4;
+  const padY = 2;
+  const boxX = Math.min(x + 8, plotBox.left + plotBox.width - textW - padX * 2);
+  const boxY = y - 20;
 
   ctx.fillStyle = 'rgba(0,0,0,0.75)';
-  ctx.fillRect(boxX, boxY, textW + padX * 2, 16 * pxRatio);
+  ctx.fillRect(boxX, boxY, textW + padX * 2, 16);
 
   ctx.fillStyle = '#fff';
-  ctx.fillText(label, boxX + padX, boxY + 12 * pxRatio);
-  ctx.restore();
+  ctx.fillText(label, boxX + padX, boxY + 12);
 };
 
 export default function DrawHooks() {

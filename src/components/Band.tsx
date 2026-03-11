@@ -17,9 +17,15 @@ export function Band({ series, group, fill, dir }: BandConfig): null {
   const s0 = series[0];
   const s1 = series[1];
 
-  // Mount effect: register once
+  // Single effect: register/update on any prop change, unregister on unmount.
   useEffect(() => {
     const cfg: BandConfig = { series: [s0, s1], group, fill, dir };
+
+    // Remove previous config if re-running due to prop change
+    if (cfgRef.current != null) {
+      store.bandConfigs = store.bandConfigs.filter(b => b !== cfgRef.current);
+    }
+
     cfgRef.current = cfg;
     store.bandConfigs.push(cfg);
     store.scheduleRedraw();
@@ -29,17 +35,7 @@ export function Band({ series, group, fill, dir }: BandConfig): null {
       cfgRef.current = null;
       store.scheduleRedraw();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/update split: fill and dir are handled by the update effect below
-  }, [store, s0, s1, group]);
-
-  // Update effect: replace config immutably when fill/dir change
-  useEffect(() => {
-    if (cfgRef.current == null) return;
-    const updated: BandConfig = { ...cfgRef.current, fill, dir };
-    store.bandConfigs = store.bandConfigs.map(b => b === cfgRef.current ? updated : b);
-    cfgRef.current = updated;
-    store.scheduleRedraw();
-  }, [store, fill, dir]);
+  }, [store, s0, s1, group, fill, dir]);
 
   return null;
 }

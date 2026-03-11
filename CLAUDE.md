@@ -9,15 +9,18 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 ```
 ./
 ├── src/
-│   ├── components/    Chart, Series, Scale, Axis (React components)
+│   ├── components/    Chart, Series, Scale, Axis, Band, Legend, Tooltip, ZoomRanger, Timeline
 │   ├── core/          DataStore, ScaleManager, CursorManager, RenderScheduler, Scale
 │   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect
-│   ├── hooks/         useChart, useInteraction, useChartStore
-│   ├── math/          utils, increments
+│   ├── hooks/         useChart, useInteraction, useChartStore, useDrawHook
+│   ├── math/          utils, increments, stack, align
 │   ├── axes/          ticks, layout
-│   ├── paths/         path builders (linear, etc.)
-│   ├── types/         all type definitions
+│   ├── paths/         linear, stepped, bars, monotoneCubic, catmullRom, points, candlestick
+│   ├── types/         all type definitions (common, scales, axes, hooks, bands, etc.)
+│   ├── time/          timeIncrs, timeSplits, timeVals, fmtDate
+│   ├── annotations.ts Annotation drawing helpers (drawHLine, drawVLine, drawLabel, drawRegion)
 │   └── index.ts       public API exports
+├── test/              Vitest test suite
 ├── demo/              demo app (vite dev server)
 └── dist/              build output (gitignored)
 ```
@@ -49,6 +52,14 @@ npm run test        # Vitest
 - **Cursor**: snaps to nearest point by pixel distance across all series/groups.
 - **Zoom**: linked by default — pixel fraction applied to all x-scales.
 - **Rendering**: Canvas 2D via `CanvasRenderer`. Axis layout uses a convergence loop (max 3 cycles).
+
+## Testing
+
+- **Framework**: Vitest with jsdom environment
+- **Run**: `npm run test`
+- **Mocks**: `test/setup.ts` provides Path2D, Canvas context, and requestAnimationFrame stubs
+- **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
+- **Coverage**: math (utils, increments, stack, align), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, resize, mount, focus)
 
 ## Reference Code
 

@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Chart, Scale, Axis } from '../../src';
 import type { ChartData, DrawCallback } from '../../src';
-import { valToPos } from '../../src/core/Scale';
 
 interface BoxData {
   min: number;
@@ -11,9 +10,11 @@ interface BoxData {
   max: number;
 }
 
-function generateBoxData(): { boxes: BoxData[]; chartData: ChartData } {
+function generateBoxData(): { boxes: BoxData[]; chartData: ChartData; yMin: number; yMax: number } {
   const categories = 10;
   const boxes: BoxData[] = [];
+
+  let yMin = Infinity, yMax = -Infinity;
 
   for (let i = 0; i < categories; i++) {
     const center = 30 + Math.random() * 60;
@@ -24,12 +25,18 @@ function generateBoxData(): { boxes: BoxData[]; chartData: ChartData } {
     const q3 = center + spread * 0.5;
     const max = center + spread + Math.random() * 10;
     boxes.push({ min, q1, median, q3, max });
+    if (min < yMin) yMin = min;
+    if (max > yMax) yMax = max;
   }
+
+  const pad = (yMax - yMin) * 0.1;
+  yMin -= pad;
+  yMax += pad;
 
   // Provide minimal data for axis rendering
   const x = Array.from({ length: categories }, (_, i) => i + 1);
   const y = x.map(() => 0);
-  return { boxes, chartData: [{ x, series: [y] }] };
+  return { boxes, chartData: [{ x, series: [y] }], yMin, yMax };
 }
 
 const fmtCategory = (splits: number[]) =>
@@ -40,44 +47,29 @@ const fmtCategory = (splits: number[]) =>
   });
 
 export default function BoxWhisker() {
-  const { boxes, chartData } = useMemo(() => generateBoxData(), []);
+  const { boxes, chartData, yMin, yMax } = useMemo(() => generateBoxData(), []);
 
-  // Compute y range
-  const yRange = useMemo(() => {
-    let yMin = Infinity, yMax = -Infinity;
-    for (const b of boxes) {
-      if (b.min < yMin) yMin = b.min;
-      if (b.max > yMax) yMax = b.max;
-    }
-    const pad = (yMax - yMin) * 0.1;
-    return { min: yMin - pad, max: yMax + pad };
-  }, [boxes]);
-
-  const onDraw: DrawCallback = ({ ctx, plotBox, pxRatio }) => {
-    const xScale = { min: 0.5, max: boxes.length + 0.5, ori: 0 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'x', range: null, _min: null, _max: null };
-    const yScale = { min: yRange.min, max: yRange.max, ori: 1 as const, dir: 1 as const, distr: 1, log: 10, asinh: 1, time: false, auto: true, id: 'y', range: null, _min: null, _max: null };
-
+  const onDraw: DrawCallback = ({ ctx, plotBox, valToX, valToY }) => {
     const boxW = (plotBox.width / boxes.length) * 0.5;
-
-    ctx.save();
 
     for (let i = 0; i < boxes.length; i++) {
       const b = boxes[i];
       if (b == null) continue;
 
-      const cx = valToPos(i + 1, xScale, plotBox.width, plotBox.left) * pxRatio;
-      const minPx = valToPos(b.min, yScale, plotBox.height, plotBox.top) * pxRatio;
-      const q1Px = valToPos(b.q1, yScale, plotBox.height, plotBox.top) * pxRatio;
-      const medPx = valToPos(b.median, yScale, plotBox.height, plotBox.top) * pxRatio;
-      const q3Px = valToPos(b.q3, yScale, plotBox.height, plotBox.top) * pxRatio;
-      const maxPx = valToPos(b.max, yScale, plotBox.height, plotBox.top) * pxRatio;
+      const cx = valToX(i + 1);
+      const minPx = valToY(b.min, 'y');
+      const q1Px = valToY(b.q1, 'y');
+      const medPx = valToY(b.median, 'y');
+      const q3Px = valToY(b.q3, 'y');
+      const maxPx = valToY(b.max, 'y');
+      if (cx == null || minPx == null || q1Px == null || medPx == null || q3Px == null || maxPx == null) continue;
 
-      const halfW = (boxW / 2) * pxRatio;
+      const halfW = boxW / 2;
       const capW = halfW * 0.6;
 
       // Whisker line: min to max
       ctx.strokeStyle = '#555';
-      ctx.lineWidth = 1 * pxRatio;
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(cx, minPx);
       ctx.lineTo(cx, maxPx);
@@ -101,25 +93,23 @@ export default function BoxWhisker() {
       ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
       ctx.fillRect(cx - halfW, boxTop, halfW * 2, boxH);
       ctx.strokeStyle = '#2980b9';
-      ctx.lineWidth = 1.5 * pxRatio;
+      ctx.lineWidth = 1.5;
       ctx.strokeRect(cx - halfW, boxTop, halfW * 2, boxH);
 
       // Median line
       ctx.strokeStyle = '#e74c3c';
-      ctx.lineWidth = 2.5 * pxRatio;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(cx - halfW, medPx);
       ctx.lineTo(cx + halfW, medPx);
       ctx.stroke();
     }
-
-    ctx.restore();
   };
 
   return (
     <Chart width={800} height={400} data={chartData} onDraw={onDraw}>
       <Scale id="x" ori={0} dir={1} auto={false} min={0.5} max={10.5} time={false} />
-      <Scale id="y" ori={1} dir={1} auto={false} min={yRange.min} max={yRange.max} />
+      <Scale id="y" ori={1} dir={1} auto={false} min={yMin} max={yMax} />
       <Axis scale="x" side={2} label="Category" values={fmtCategory} />
       <Axis scale="y" side={3} label="Value" />
     </Chart>

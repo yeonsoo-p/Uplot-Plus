@@ -6,6 +6,7 @@ import {
   numAxisSplits,
   numAxisVals,
   logAxisSplits,
+  logAxisValFilter,
   computeAxisSize,
 } from './ticks';
 import { timeIncrs } from '../time/timeIncrs';
@@ -90,6 +91,11 @@ export function axesCalc(
       axis._values = config.values(axis._splits, _space, _incr);
     } else if (scale.time) {
       axis._values = timeAxisVals(axis._splits, _incr);
+    } else if (scale.distr === 3) {
+      // For log scales, only label power-of-base values; intermediate ticks still drawn as grid
+      const filter = logAxisValFilter(axis._splits, scale.log);
+      const allVals = numAxisVals(axis._splits);
+      axis._values = allVals.map((v, i) => filter[i] ? v : '');
     } else {
       axis._values = numAxisVals(axis._splits);
     }

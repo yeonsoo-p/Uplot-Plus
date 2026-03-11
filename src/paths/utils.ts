@@ -41,8 +41,12 @@ export function findGaps(
 
   for (let i = start; dir === 1 ? i <= end : i >= end; i += step) {
     if (dataY[i] === null || dataY[i] === undefined) {
-      if (gapStart === -1)
-        gapStart = i > idx0 ? pixelForX(dataX[i - dir] as number) : pixelForX(dataX[idx0] as number);
+      if (gapStart === -1) {
+        // Use the previous non-null point's x pixel as gap start.
+        // i - dir gives the previous index in iteration order; clamp to [idx0, idx1].
+        const prevI = Math.max(idx0, Math.min(i - dir, idx1));
+        gapStart = pixelForX(dataX[prevI] as number);
+      }
     } else {
       if (gapStart !== -1) {
         gaps.push([gapStart, pixelForX(dataX[i] as number)]);

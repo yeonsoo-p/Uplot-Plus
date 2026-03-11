@@ -123,7 +123,7 @@ describe('SyncGroup', () => {
     group.leave(source);
   });
 
-  it('prevents feedback loops during publishing', () => {
+  it('prevents feedback loops — synced-to stores are blocked from echoing', () => {
     const group = getSyncGroup('loop-test');
     const store1 = makeStoreWithData([0, 1, 2, 3, 4]);
     const store2 = makeStoreWithData([0, 1, 2, 3, 4]);
@@ -131,23 +131,23 @@ describe('SyncGroup', () => {
     group.join(store1);
     group.join(store2);
 
-    // Simulate: store1 publishes, store2's listener calls pub back
-    let pubCount = 0;
-    const origPub = group.pub.bind(group);
-    store2.subscribe(() => {
-      pubCount++;
-      // This should be blocked by the publishing flag
-      origPub(store2);
-    });
-
+    // store1 publishes cursor at index 2
     store1.cursorManager.state.activeGroup = 0;
-    store1.cursorManager.state.activeDataIdx = 1;
+    store1.cursorManager.state.activeDataIdx = 2;
     group.pub(store1);
 
-    // The re-entrant pub should have been blocked
-    // pubCount may be 0 because scheduleCursorRedraw uses rAF
-    // The key test is that no infinite loop occurred
-    expect(true).toBe(true);
+    // store2 was synced-to, so its next pub should be blocked
+    store2.cursorManager.state.activeGroup = 0;
+    store2.cursorManager.state.activeDataIdx = 2;
+    const store1CursorBefore = store1.cursorManager.state.activeDataIdx;
+    group.pub(store2);
+    // store1 should NOT have been re-synced (the echo was blocked)
+    expect(store1.cursorManager.state.activeDataIdx).toBe(store1CursorBefore);
+
+    // But a fresh pub from store2 (after the block is consumed) should work
+    store2.cursorManager.state.activeDataIdx = 4;
+    group.pub(store2);
+    expect(store1.cursorManager.state.activeDataIdx).toBe(4);
 
     group.leave(store1);
     group.leave(store2);

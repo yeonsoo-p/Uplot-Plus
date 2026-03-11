@@ -128,7 +128,7 @@ export function getIncrSpace(
 }
 
 /** Default axis size in CSS pixels */
-const DEFAULT_AXIS_SIZE = 30;
+const DEFAULT_AXIS_SIZE = 50;
 
 /**
  * Compute the size of an axis in CSS pixels.

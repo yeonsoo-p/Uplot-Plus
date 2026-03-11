@@ -189,6 +189,13 @@ export function convergeSize(
   axisStates: AxisState[],
   getScale: (id: string) => ScaleState | undefined,
 ): BBox {
+  // Reset _size so convergence always runs at least 2 cycles.
+  // Without this, preserved _size from a previous redraw can cause
+  // the loop to converge immediately on cycle 1 (using wrong plotBox).
+  for (const axis of axisStates) {
+    axis._size = 0;
+  }
+
   let converged = false;
   let cycleNum = 0;
   let plotBox: BBox = { left: 0, top: 0, width: chartWidth, height: chartHeight };

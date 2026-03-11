@@ -1,6 +1,7 @@
 import type { ChartData } from '../types';
 import type { ScaleState } from '../types';
 import { closestIdx, getMinMax } from '../math/utils';
+import { BlockMinMaxTree } from './BlockMinMax';
 
 /**
  * Manages chart data and per-xGroup visible windows.
@@ -13,13 +14,36 @@ export class DataStore {
   /** Per-group visible window: groupIdx -> [i0, i1] */
   windows: Map<number, [number, number]> = new Map();
 
-  /** Cached min/max per series within a window: "group:index:i0:i1" -> [min, max] */
-  private minMaxCache: Map<string, [number, number]> = new Map();
+  /** Per-group min/max cache: groupIdx -> ("index:i0:i1" -> [min, max]) */
+  private minMaxCache: Map<number, Map<string, [number, number]>> = new Map();
+
+  /** Block min-max trees for fast range queries: "group:seriesIndex" -> tree */
+  private blockTrees: Map<string, BlockMinMaxTree> = new Map();
 
   setData(data: ChartData): void {
     this.data = data;
     this.windows.clear();
+    for (const sub of this.minMaxCache.values()) sub.clear();
     this.minMaxCache.clear();
+    this.rebuildBlockTrees();
+  }
+
+  /** Build block min-max trees for all series */
+  private rebuildBlockTrees(): void {
+    this.blockTrees.clear();
+    for (let gi = 0; gi < this.data.length; gi++) {
+      const group = this.data[gi];
+      if (!group) continue;
+      for (let si = 0; si < group.series.length; si++) {
+        const yData = group.series[si];
+        if (yData && yData.length > 0) {
+          this.blockTrees.set(
+            `${gi}:${si}`,
+            new BlockMinMaxTree(yData as ArrayLike<number | null>),
+          );
+        }
+      }
+    }
   }
 
   /**
@@ -60,13 +84,11 @@ export class DataStore {
 
       if (!prev || prev[0] !== i0 || prev[1] !== i1) {
         changed = true;
+        // Only invalidate this group's min/max cache
+        this.minMaxCache.get(gi)?.clear();
       }
 
       this.windows.set(gi, [i0, i1]);
-    }
-
-    if (changed) {
-      this.minMaxCache.clear();
     }
 
     return changed;
@@ -96,9 +118,15 @@ export class DataStore {
     sorted: 0 | 1 | -1,
     isLog: boolean,
   ): [number, number] {
-    const key = `${group}:${index}:${i0}:${i1}`;
-    const cached = this.minMaxCache.get(key);
-    if (cached != null) return cached;
+    let groupCache = this.minMaxCache.get(group);
+    const key = `${index}:${i0}:${i1}`;
+    if (groupCache) {
+      const cached = groupCache.get(key);
+      if (cached != null) return cached;
+    } else {
+      groupCache = new Map();
+      this.minMaxCache.set(group, groupCache);
+    }
 
     const grp = this.data[group];
     if (!grp) return [Infinity, -Infinity];
@@ -106,8 +134,84 @@ export class DataStore {
     const yData = grp.series[index];
     if (!yData || yData.length === 0) return [Infinity, -Infinity];
 
-    const result = getMinMax(yData as ArrayLike<number | null>, i0, i1, sorted, isLog);
-    this.minMaxCache.set(key, result);
+    let result: [number, number];
+
+    // Use block tree for unsorted, non-log data (the common case)
+    // Sorted data and log scales need special handling in getMinMax
+    const tree = (!isLog && sorted === 0) ? this.blockTrees.get(`${group}:${index}`) : undefined;
+    if (tree) {
+      result = tree.rangeMinMax(i0, i1);
+    } else {
+      result = getMinMax(yData as ArrayLike<number | null>, i0, i1, sorted, isLog);
+    }
+
+    groupCache.set(key, result);
     return result;
+  }
+
+  /** Get block tree for a series (exposed for incremental append) */
+  getBlockTree(group: number, index: number): BlockMinMaxTree | undefined {
+    return this.blockTrees.get(`${group}:${index}`);
+  }
+
+  /**
+   * Append new data points to an existing group.
+   * Much cheaper than setData() for streaming scenarios — O(newPoints) instead of O(totalPoints).
+   *
+   * Only works with regular arrays (not Float64Array) since arrays need to grow.
+   * Block trees are incrementally updated, and only the affected group's cache is invalidated.
+   */
+  appendData(
+    groupIdx: number,
+    newX: number[],
+    newSeries: (number | null)[][],
+  ): void {
+    const group = this.data[groupIdx];
+    if (!group) return;
+
+    const xArr = group.x;
+    if (!Array.isArray(xArr)) return; // Can't append to Float64Array
+
+    // Append x values
+    for (let i = 0; i < newX.length; i++) {
+      const v = newX[i];
+      if (v != null) xArr.push(v);
+    }
+
+    // Append y values for each series
+    for (let si = 0; si < group.series.length; si++) {
+      const yArr = group.series[si];
+      if (!yArr || !Array.isArray(yArr)) continue;
+
+      const newY = newSeries[si];
+      if (newY) {
+        for (let i = 0; i < newY.length; i++) {
+          yArr.push(newY[i] ?? null);
+        }
+      }
+
+      // Update block tree incrementally
+      const tree = this.blockTrees.get(`${groupIdx}:${si}`);
+      if (tree) {
+        tree.setData(yArr as ArrayLike<number | null>);
+        tree.grow(yArr.length);
+      }
+    }
+
+    // Invalidate only this group's min/max cache
+    this.minMaxCache.get(groupIdx)?.clear();
+  }
+
+  /**
+   * Convert x-arrays in chart data to Float64Array for optimal memory layout.
+   * Call before setData() when not using appendData() (Float64Array is fixed-length).
+   */
+  static toTypedX(data: ChartData): ChartData {
+    for (const group of data) {
+      if (Array.isArray(group.x)) {
+        group.x = Float64Array.from(group.x);
+      }
+    }
+    return data;
   }
 }

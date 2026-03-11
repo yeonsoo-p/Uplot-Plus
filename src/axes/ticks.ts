@@ -25,6 +25,8 @@ export function numAxisSplits(
   _foundSpace: number,
   forceMin: boolean,
 ): number[] {
+  if (foundIncr <= 0 || scaleMax < scaleMin) return [];
+
   const splits: number[] = [];
 
   const numDec = fixedDec.get(foundIncr) ?? 0;

@@ -102,8 +102,16 @@ export class ScaleManager {
         scale.min = rMin;
         scale.max = rMax;
       } else {
-        scale.min = dataMin;
-        scale.max = dataMax;
+        if (dataMin === dataMax) {
+          // Single-point or zero-width range: pad to avoid min === max
+          [scale.min, scale.max] = rangeNum(dataMin, dataMax, {
+            min: { pad: 0.1, soft: null, mode: 0 },
+            max: { pad: 0.1, soft: null, mode: 0 },
+          });
+        } else {
+          scale.min = dataMin;
+          scale.max = dataMax;
+        }
       }
       invalidateScaleCache(scale);
     }

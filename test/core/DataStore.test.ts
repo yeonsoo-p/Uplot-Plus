@@ -150,6 +150,30 @@ describe('DataStore', () => {
       expect(mx2).toBe(50);
     });
 
+    it('per-group scoping: pan group 0 does not invalidate group 1 cache', () => {
+      store.setData(multiGroupData);
+
+      // Initial window for both groups
+      store.updateWindows((gi: number) =>
+        gi === 0 ? makeScale(0, 3) : makeScale(10, 40),
+      );
+
+      // Cache min/max for both groups
+      store.getCachedMinMax(0, 0, 0, 3, 0, false);
+      store.getCachedMinMax(1, 0, 0, 3, 0, false);
+
+      // Pan only group 0 (new window)
+      store.updateWindows((gi: number) =>
+        gi === 0 ? makeScale(1, 3) : makeScale(10, 40),
+      );
+
+      // Group 1's cache should still be valid (not cleared)
+      // We can verify by checking the result is still correct
+      const [mn, mx] = store.getCachedMinMax(1, 0, 0, 3, 0, false);
+      expect(mn).toBe(100);
+      expect(mx).toBe(400);
+    });
+
     it('cache returns correct results for different ranges', () => {
       store.setData(sampleData);
       // Full range
@@ -161,6 +185,56 @@ describe('DataStore', () => {
       const [mnNarrow, mxNarrow] = store.getCachedMinMax(0, 0, 2, 5, 0, false);
       expect(mnNarrow).toBe(30);
       expect(mxNarrow).toBe(60);
+    });
+  });
+
+  describe('appendData', () => {
+    it('appends x and y values to existing group', () => {
+      const data: ChartData = [
+        { x: [1, 2, 3], series: [[10, 20, 30]] },
+      ];
+      store.setData(data);
+
+      store.appendData(0, [4, 5], [[40, 50]]);
+
+      expect(store.getXValues(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(store.getYValues(0, 0)).toEqual([10, 20, 30, 40, 50]);
+    });
+
+    it('updates block tree after append', () => {
+      const data: ChartData = [
+        { x: [1, 2, 3], series: [[10, 20, 30]] },
+      ];
+      store.setData(data);
+
+      store.appendData(0, [4], [[999]]);
+
+      // Block tree should reflect new max
+      const [mn, mx] = store.getCachedMinMax(0, 0, 0, 3, 0, false);
+      expect(mn).toBe(10);
+      expect(mx).toBe(999);
+    });
+
+    it('invalidates only affected group cache', () => {
+      store.setData(multiGroupData);
+
+      // Cache both groups
+      store.getCachedMinMax(0, 0, 0, 3, 0, false);
+      store.getCachedMinMax(1, 0, 0, 3, 0, false);
+
+      // Append to group 0 only
+      store.appendData(0, [4], [[50]]);
+
+      // Group 1 cache should still work
+      const [mn1, mx1] = store.getCachedMinMax(1, 0, 0, 3, 0, false);
+      expect(mn1).toBe(100);
+      expect(mx1).toBe(400);
+    });
+
+    it('does nothing for non-existent group', () => {
+      store.setData(sampleData);
+      // Should not throw
+      store.appendData(99, [1], [[1]]);
     });
   });
 });

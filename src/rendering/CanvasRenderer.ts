@@ -180,6 +180,17 @@ export class CanvasRenderer {
     }
   }
 
+  /** Invalidate cached paths for a specific group */
+  clearGroupCache(group: number): void {
+    const prefix = `${group}:`;
+    for (const key of [...this.pathCache.keys()]) {
+      if (key.startsWith(prefix)) {
+        this.pathCache.delete(key);
+      }
+    }
+    this.savedPlot = null;
+  }
+
   /** Invalidate all cached paths (e.g. on scale change) */
   clearCache(): void {
     this.pathCache.clear();

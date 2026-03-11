@@ -178,7 +178,7 @@ export function createChartStore(): ChartStore {
 
       if (canvas == null || width === 0 || height === 0) return;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (ctx == null) return;
 
       renderer.setContext(ctx, pxRatio);

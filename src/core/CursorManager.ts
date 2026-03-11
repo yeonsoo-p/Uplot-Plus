@@ -86,39 +86,59 @@ export class CursorManager {
       const cursorXVal = posToVal(cssX + xOff, xScale, xDim, xOff);
       const dataIdx = closestIdx(cursorXVal, xData, wi0, wi1);
 
-      const xVal = xData[dataIdx];
-      if (xVal == null) continue;
+      // Check adjacent x-indices for better snapping accuracy
+      // The nearest point in pixel space may be at dataIdx ± 1 due to y-value proximity
+      const candidates = [dataIdx];
+      if (dataIdx > wi0) candidates.push(dataIdx - 1);
+      if (dataIdx < wi1) candidates.push(dataIdx + 1);
 
-      const pxX = valToPos(xVal, xScale, xDim, xOff);
+      // Cache y-scale lookups to avoid redundant calls when multiple series share the same y-scale
+      const yScaleCache = new Map<string, ScaleState | undefined>();
 
-      // Check each series in this group
-      for (const sc of seriesConfigs) {
-        if (sc.group !== gi || sc.show === false) continue;
+      for (const di of candidates) {
+        const xVal = xData[di];
+        if (xVal == null) continue;
 
-        const yData = group.series[sc.index];
-        if (yData == null) continue;
+        const pxX = valToPos(xVal, xScale, xDim, xOff);
 
-        const yVal = yData[dataIdx];
-        if (yVal == null) continue;
+        // Check each series in this group
+        for (const sc of seriesConfigs) {
+          if (sc.group !== gi || sc.show === false) continue;
 
-        const yScaleState = getScale(sc.yScale);
-        if (yScaleState == null || yScaleState.min == null || yScaleState.max == null) continue;
+          const yData = group.series[sc.index];
+          if (yData == null) continue;
 
-        const yDim = plotBox.height;
-        const yOff = plotBox.top;
-        const pxY = valToPos(yVal, yScaleState, yDim, yOff);
+          const yVal = yData[di];
+          if (yVal == null) continue;
 
-        // Euclidean distance in CSS pixel space
-        const dx = (cssX + xOff) - pxX;
-        const dy = (cssY + yOff) - pxY;
-        const dist = dx * dx + dy * dy; // skip sqrt for comparison
+          let yScaleState = yScaleCache.get(sc.yScale);
+          if (yScaleState === undefined) {
+            yScaleState = getScale(sc.yScale);
+            yScaleCache.set(sc.yScale, yScaleState);
+          }
+          if (yScaleState == null || yScaleState.min == null || yScaleState.max == null) continue;
 
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestGroup = gi;
-          bestSeries = sc.index;
-          bestIdx = dataIdx;
+          const yDim = plotBox.height;
+          const yOff = plotBox.top;
+          const pxY = valToPos(yVal, yScaleState, yDim, yOff);
+
+          // Euclidean distance in CSS pixel space
+          const dx = (cssX + xOff) - pxX;
+          const dy = (cssY + yOff) - pxY;
+          const dist = dx * dx + dy * dy; // skip sqrt for comparison
+
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestGroup = gi;
+            bestSeries = sc.index;
+            bestIdx = di;
+
+            // Early exit on exact hit
+            if (dist === 0) break;
+          }
         }
+
+        if (bestDist === 0) break;
       }
     }
 

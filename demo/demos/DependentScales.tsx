@@ -1,0 +1,30 @@
+import React from 'react';
+import { Chart, Scale, Series, Axis } from '../../src';
+import type { ChartData } from '../../src';
+
+function generateData(): ChartData {
+  const n = 100;
+  const x = Array.from({ length: n }, (_, i) => i);
+  // Temperature in Fahrenheit
+  const tempF = x.map(i => 60 + Math.sin(i * 0.08) * 20 + (Math.random() - 0.5) * 5);
+
+  return [{ x, series: [tempF] }];
+}
+
+const fmtF = (splits: number[]) => splits.map(v => v.toFixed(0) + '°F');
+const fmtC = (splits: number[]) => splits.map(v => ((v - 32) * 5 / 9).toFixed(1) + '°C');
+
+export default function DependentScales() {
+  const data = generateData();
+
+  return (
+    <Chart width={800} height={400} data={data}>
+      <Scale id="x" auto ori={0} dir={1} time={false} />
+      <Scale id="f" auto ori={1} dir={1} />
+      <Axis scale="x" side={2} label="Day" />
+      <Axis scale="f" side={3} label="Fahrenheit" values={fmtF} stroke="#e74c3c" />
+      <Axis scale="f" side={1} label="Celsius" values={fmtC} stroke="#3498db" grid={{ show: false }} />
+      <Series group={0} index={0} yScale="f" stroke="#e74c3c" width={2} label="Temperature" />
+    </Chart>
+  );
+}

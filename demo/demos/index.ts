@@ -10,6 +10,23 @@ import CustomAxisValues from './CustomAxisValues';
 import DashPatterns from './DashPatterns';
 import Sparklines from './Sparklines';
 import MultiXAxis from './MultiXAxis';
+import SteppedLines from './SteppedLines';
+import SmoothLines from './SmoothLines';
+import BarChart from './BarChart';
+import HighLowBands from './HighLowBands';
+import FillTo from './FillTo';
+import AsinhScales from './AsinhScales';
+import DependentScales from './DependentScales';
+import ScaleDirection from './ScaleDirection';
+import SyncCursor from './SyncCursor';
+import DrawHooks from './DrawHooks';
+import StreamData from './StreamData';
+import SpanGaps from './SpanGaps';
+import LargeDataset from './LargeDataset';
+import NoData from './NoData';
+import GridOverSeries from './GridOverSeries';
+import LegendDemo from './LegendDemo';
+import TimeSeries from './TimeSeries';
 
 export interface DemoEntry {
   id: string;
@@ -84,5 +101,107 @@ export const demos: DemoEntry[] = [
     title: 'Multi X-Axis',
     description: 'uPlot+ exclusive: two data groups with independent x-ranges on one chart.',
     component: MultiXAxis,
+  },
+  {
+    id: 'stepped-lines',
+    title: 'Stepped Lines',
+    description: 'Staircase paths with step-after, step-before, and mid-step alignment.',
+    component: SteppedLines,
+  },
+  {
+    id: 'smooth-lines',
+    title: 'Smooth Lines',
+    description: 'Linear vs monotone cubic vs Catmull-Rom spline interpolation.',
+    component: SmoothLines,
+  },
+  {
+    id: 'bar-chart',
+    title: 'Bar Chart',
+    description: 'Bar path builder with multiple series for monthly revenue/cost data.',
+    component: BarChart,
+  },
+  {
+    id: 'high-low-bands',
+    title: 'High/Low Bands',
+    description: 'Band component fills the region between upper and lower confidence bounds.',
+    component: HighLowBands,
+  },
+  {
+    id: 'fill-to',
+    title: 'Fill To',
+    description: 'fillTo prop: fill to zero, fill to a constant, or fill to scale min/max.',
+    component: FillTo,
+  },
+  {
+    id: 'asinh-scales',
+    title: 'Asinh Scales',
+    description: 'Inverse hyperbolic sine scale for data spanning negative-to-positive.',
+    component: AsinhScales,
+  },
+  {
+    id: 'dependent-scales',
+    title: 'Dependent Scales',
+    description: 'Fahrenheit left axis with derived Celsius right axis.',
+    component: DependentScales,
+  },
+  {
+    id: 'scale-direction',
+    title: 'Scale Direction',
+    description: 'Reversed y-axis (dir=-1) for depth charts where values increase downward.',
+    component: ScaleDirection,
+  },
+  {
+    id: 'sync-cursor',
+    title: 'Sync Cursor',
+    description: 'Two charts sharing cursor position via syncKey. Move cursor over either chart.',
+    component: SyncCursor,
+  },
+  {
+    id: 'draw-hooks',
+    title: 'Draw Hooks',
+    description: 'onDraw for threshold lines/zones, onCursorDraw for crosshair labels.',
+    component: DrawHooks,
+  },
+  {
+    id: 'stream-data',
+    title: 'Stream Data',
+    description: 'Live streaming data via React useState with sliding window updates.',
+    component: StreamData,
+  },
+  {
+    id: 'span-gaps',
+    title: 'Span Gaps',
+    description: 'spanGaps connects series across null values instead of breaking the line.',
+    component: SpanGaps,
+  },
+  {
+    id: 'large-dataset',
+    title: 'Large Dataset',
+    description: '500,000 points rendered with minimal configuration to test performance.',
+    component: LargeDataset,
+  },
+  {
+    id: 'no-data',
+    title: 'No Data / Edge Cases',
+    description: 'Single point, two points, and all-null edge cases.',
+    component: NoData,
+  },
+  {
+    id: 'grid-over-series',
+    title: 'Grid Over Series',
+    description: 'Default grid-behind vs grid-over-series using onDraw hook.',
+    component: GridOverSeries,
+  },
+  {
+    id: 'legend',
+    title: 'Legend',
+    description: 'Legend component at top/bottom with live values and click-to-toggle.',
+    component: LegendDemo,
+  },
+  {
+    id: 'time-series',
+    title: 'Time Series',
+    description: 'Unix timestamps with HH:MM formatting — monitoring dashboard pattern.',
+    component: TimeSeries,
   },
 ];

@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import type { ChartProps } from '../types';
+import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { useChartStore } from '../hooks/useChartStore';
 import { ChartContext } from '../hooks/useChart';
 import { useInteraction } from '../hooks/useInteraction';
@@ -12,7 +13,6 @@ import { useSyncGroup } from '../sync/useSyncGroup';
  */
 export function Chart({ width, height, data, children, className, pxRatio: pxRatioOverride, onDraw, onCursorDraw, syncKey }: ChartProps) {
   const store = useChartStore();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const pxRatio = pxRatioOverride ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
@@ -23,45 +23,49 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
   // Cursor sync across charts with same key
   useSyncGroup(store, syncKey);
 
-  // Update store dimensions (assign canvas from ref before sizing,
-  // since the canvas-ref effect may not have run yet on first mount)
+  // 6e: Callback ref for canvas — single assignment point, replaces two separate effects
+  const canvasRef = useCallback((node: HTMLCanvasElement | null) => {
+    store.canvas = node;
+    if (node) store.scheduleRedraw();
+  }, [store]);
+
+  // Update store dimensions
   useEffect(() => {
-    if (canvasRef.current && store.canvas !== canvasRef.current) {
-      store.canvas = canvasRef.current;
-    }
     store.pxRatio = pxRatio;
     store.setSize(width, height);
   }, [store, width, height, pxRatio]);
 
-  // ResizeObserver: auto-detect container size changes
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      store.canvas = null;
+      store.scheduler.cancel();
+    };
+  }, [store]);
+
+  // 6g: ResizeObserver without redundant rAF wrapper
+  // store.setSize() already schedules via RenderScheduler which batches into a single RAF
   useEffect(() => {
     const el = containerRef.current;
     if (el == null || typeof ResizeObserver === 'undefined') return;
 
-    let rafId = 0;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry == null) return;
       const { width: w, height: h } = entry.contentRect;
-      // Debounce via rAF to avoid layout thrashing
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        if (w > 0 && h > 0 && (w !== store.width || h !== store.height)) {
-          store.setSize(Math.round(w), Math.round(h));
-        }
-      });
+      if (w > 0 && h > 0 && (w !== store.width || h !== store.height)) {
+        store.setSize(Math.round(w), Math.round(h));
+      }
     });
 
     observer.observe(el);
-    return () => {
-      cancelAnimationFrame(rafId);
-      observer.disconnect();
-    };
+    return () => { observer.disconnect(); };
   }, [store, containerRef]);
 
   // Update store data
   useEffect(() => {
     store.dataStore.setData(data);
+    store.renderer.clearCache();
 
     // Auto-create a single shared x-scale for all groups
     const xScaleKey = 'x';
@@ -80,32 +84,27 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
     store.scheduleRedraw();
   }, [store, data]);
 
-  // Set canvas ref on mount
-  useEffect(() => {
-    if (canvasRef.current) {
-      store.canvas = canvasRef.current;
-      store.scheduleRedraw();
-    }
+  // 6c: Ref wrapper for onDraw — register stable wrapper once, update ref on each render
+  const onDrawRef = useRef<DrawCallback | undefined>(onDraw);
+  onDrawRef.current = onDraw;
 
-    return () => {
-      store.canvas = null;
-      store.scheduler.cancel();
-    };
+  useEffect(() => {
+    if (onDrawRef.current == null) return;
+    const wrapper: DrawCallback = (dc) => { onDrawRef.current?.(dc); };
+    store.drawHooks.push(wrapper);
+    return () => { store.drawHooks = store.drawHooks.filter(h => h !== wrapper); };
   }, [store]);
 
-  // Register onDraw callback prop
-  useEffect(() => {
-    if (onDraw == null) return;
-    store.drawHooks.push(onDraw);
-    return () => { store.drawHooks = store.drawHooks.filter(h => h !== onDraw); };
-  }, [store, onDraw]);
+  // 6c: Ref wrapper for onCursorDraw
+  const onCursorDrawRef = useRef<CursorDrawCallback | undefined>(onCursorDraw);
+  onCursorDrawRef.current = onCursorDraw;
 
-  // Register onCursorDraw callback prop
   useEffect(() => {
-    if (onCursorDraw == null) return;
-    store.cursorDrawHooks.push(onCursorDraw);
-    return () => { store.cursorDrawHooks = store.cursorDrawHooks.filter(h => h !== onCursorDraw); };
-  }, [store, onCursorDraw]);
+    if (onCursorDrawRef.current == null) return;
+    const wrapper: CursorDrawCallback = (dc, cursor) => { onCursorDrawRef.current?.(dc, cursor); };
+    store.cursorDrawHooks.push(wrapper);
+    return () => { store.cursorDrawHooks = store.cursorDrawHooks.filter(h => h !== wrapper); };
+  }, [store]);
 
   return (
     <ChartContext.Provider value={store}>

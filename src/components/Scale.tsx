@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ScaleConfig } from '../types';
 import { useChart } from '../hooks/useChart';
 
@@ -7,19 +7,37 @@ export type ScaleProps = ScaleConfig;
 /**
  * Renderless component that registers a scale config with the chart store.
  * Must be a child of <Chart>.
+ *
+ * Uses a mount/update split: registers once on mount, replaces config on prop changes.
  */
 export function Scale(props: ScaleProps): null {
   const store = useChart();
+  const registeredRef = useRef(false);
+  const propsKey = JSON.stringify(props);
 
+  // Mount effect: register once with identity key only
   useEffect(() => {
-    store.registerScale(props);
+    store.registerScale({ ...props });
+    registeredRef.current = true;
     store.scheduleRedraw();
 
     return () => {
       store.unregisterScale(props.id);
+      registeredRef.current = false;
       store.scheduleRedraw();
     };
-  }, [store, props.id, props.time, props.auto, props.distr, props.min, props.max, props.dir, props.ori, props.range]);
+  }, [store, props.id]);
+
+  // Update effect: replace config when any prop changes
+  useEffect(() => {
+    if (!registeredRef.current) return;
+
+    store.scaleConfigs = store.scaleConfigs.map(s =>
+      s.id === props.id ? { ...props } : s,
+    );
+    store.scaleManager.addScale({ ...props });
+    store.scheduleRedraw();
+  }, [store, props.id, propsKey]);
 
   return null;
 }

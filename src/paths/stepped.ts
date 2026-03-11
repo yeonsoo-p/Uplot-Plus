@@ -10,7 +10,7 @@ import { lineToH, lineToV, findGaps, clipGaps } from './utils';
  *
  * Ported from uPlot/src/paths/stepped.js
  */
-export function stepped(): PathBuilder {
+export function stepped(defaultAlign?: -1 | 0 | 1): PathBuilder {
   return (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
@@ -26,7 +26,7 @@ export function stepped(): PathBuilder {
     pxRound: (v: number) => number,
     opts?: PathBuilderOpts,
   ): SeriesPaths => {
-    const align = opts?.align ?? 1;
+    const align = opts?.align ?? defaultAlign ?? 1;
     const spanGaps = opts?.spanGaps ?? false;
 
     [idx0, idx1] = nonNullIdxs(dataY, idx0, idx1);

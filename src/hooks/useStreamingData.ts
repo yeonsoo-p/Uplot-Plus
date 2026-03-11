@@ -14,11 +14,19 @@ export interface StreamingResult {
   /** Current chart data (pass to <Chart data={...}>) */
   data: ChartData;
   /**
-   * Push new data points. Oldest points beyond the window are dropped.
+   * Push new data points into group 0. Oldest points beyond the window are dropped.
    * @param x - new x values
    * @param ySeries - one array of new y values per series
    */
   push: (x: number[], ...ySeries: number[][]) => void;
+  /**
+   * Push new data points into a specific group. Oldest points beyond the window are dropped.
+   * Other groups are preserved unchanged.
+   * @param group - target group index
+   * @param x - new x values
+   * @param ySeries - one array of new y values per series
+   */
+  pushGroup: (group: number, x: number[], ...ySeries: number[][]) => void;
   /** Start the rAF loop (calls the onTick callback each frame) */
   start: () => void;
   /** Stop the rAF loop */
@@ -50,10 +58,10 @@ export function useStreamingData(
   const fpsFrames = useRef(0);
   const fpsLast = useRef(0);
 
-  const push = useCallback(
-    (x: number[], ...ySeries: number[][]) => {
+  const pushGroup = useCallback(
+    (groupIdx: number, x: number[], ...ySeries: number[][]) => {
       setData(prev => {
-        const group = prev[0];
+        const group = prev[groupIdx];
         if (group == null) return prev;
 
         const prevX = group.x as number[];
@@ -66,10 +74,19 @@ export function useStreamingData(
           return drop > 0 ? arr.slice(drop).concat(yNew) : arr.concat(yNew);
         });
 
-        return [{ x: newX, series: newSeries }];
+        const next = prev.slice();
+        next[groupIdx] = { x: newX, series: newSeries };
+        return next;
       });
     },
     [windowSize],
+  );
+
+  const push = useCallback(
+    (x: number[], ...ySeries: number[][]) => {
+      pushGroup(0, x, ...ySeries);
+    },
+    [pushGroup],
   );
 
   const start = useCallback(() => {
@@ -122,5 +139,5 @@ export function useStreamingData(
   // (consumers use push() in their own rAF or interval)
   void batchSize;
 
-  return { data, push, start, stop, running, fps };
+  return { data, push, pushGroup, start, stop, running, fps };
 }

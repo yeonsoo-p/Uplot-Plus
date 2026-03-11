@@ -232,66 +232,17 @@ Sliding-window data management for real-time charts:
 ```tsx
 import { useStreamingData } from 'uplot-plus';
 
-const { data, push, start, stop, fps } = useStreamingData(initialData, {
+const { data, push, pushGroup, start, stop, fps } = useStreamingData(initialData, {
   window: 1000,   // keep last 1000 points
   batchSize: 10,  // push 10 points per tick
 });
 
-// In your tick callback:
+// Push into group 0 (default):
 push([newX], [newY1], [newY2]);
+
+// Push into a specific group (for multi-x-axis charts):
+pushGroup(1, [newX], [newY1]);
 ```
-
-## Axis Value Formatters
-
-Pre-built formatters for common axis label patterns:
-
-```tsx
-import { fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtLabels } from 'uplot-plus';
-
-<Axis scale="y" values={fmtCompact()} />           // 1.2K, 3.5M
-<Axis scale="y" values={fmtSuffix('%')} />         // 42%
-<Axis scale="y" values={fmtSuffix('°C', 1)} />    // 23.5°C
-<Axis scale="x" values={fmtHourMin({ utc: true })} /> // 14:30
-<Axis scale="x" values={fmtMonthName()} />         // Jan, Feb, ...
-<Axis scale="x" values={fmtLabels(['Q1','Q2','Q3','Q4'])} />
-```
-
-## Color Utilities
-
-```tsx
-import { fadeGradient, withAlpha, palette } from 'uplot-plus';
-
-// Gradient that fades from color to transparent (for area fills)
-<Series fill={fadeGradient('#3498db')} />
-<Series fill={fadeGradient('#e74c3c', 1.0, 0.2)} />
-
-// Match fill to stroke with lower opacity
-<Series stroke="#2980b9" fill={withAlpha('#2980b9', 0.1)} />
-
-// Generate N distinct colors
-const colors = palette(5); // 5 visually distinct HSL colors
-```
-
-## Data Utilities
-
-### `stackGroup`
-
-Computes stacked series values and generates band configs:
-
-```tsx
-import { stackGroup, Band } from 'uplot-plus';
-
-const raw = { x: [1, 2, 3], series: [[10, 20, 30], [5, 10, 15]] };
-const { group, bands } = stackGroup(raw);
-
-<Chart data={[group]}>
-  {bands.map((b, i) => <Band key={i} {...b} />)}
-</Chart>
-```
-
-### `alignData`
-
-Aligns data across multiple x-axes for multi-group charts.
 
 ## Annotations
 
@@ -315,16 +266,16 @@ Imperative helpers are available for advanced draw hooks that need programmatic 
 import { drawHLine, drawVLine, drawLabel, drawRegion } from 'uplot-plus';
 ```
 
-## Scale Utilities
+## Utilities
 
-For advanced draw hooks that need pixel conversions:
+| Category | Functions |
+| ---------- | ----------- |
+| Axis formatters | `fmtCompact`, `fmtSuffix`, `fmtHourMin`, `fmtMonthName`, `fmtDateStr`, `fmtLabels` |
+| Color helpers | `fadeGradient`, `withAlpha`, `palette` |
+| Data transforms | `stackGroup`, `alignData` |
+| Scale math | `valToPos`, `posToVal` |
 
-```tsx
-import { valToPos, posToVal } from 'uplot-plus';
-
-const px = valToPos(dataValue, scale, dimension, offset);
-const val = posToVal(pixelPos, scale, dimension, offset);
-```
+> Full API, signatures, and examples: [docs/UTILITIES.md](docs/UTILITIES.md)
 
 ## Development
 

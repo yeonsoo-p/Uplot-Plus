@@ -1,0 +1,155 @@
+# Utility Reference
+
+Helper functions exported by uPlot+ for axis formatting, colors, data transforms, and coordinate math.
+
+## Axis Value Formatters
+
+Pre-built formatters for common axis label patterns. Each returns an `AxisValueFormatter` compatible with the `<Axis values={...}>` prop.
+
+```tsx
+import { fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtDateStr, fmtLabels } from 'uplot-plus';
+```
+
+### `fmtCompact(opts?: { decimals?: number })`
+
+Format numbers with SI suffixes: `1200` → `"1.2K"`, `2500000` → `"2.5M"`. Handles negative values and zero.
+
+```tsx
+<Axis scale="y" values={fmtCompact()} />           // 1.2K, 3.5M
+<Axis scale="y" values={fmtCompact({ decimals: 2 })} />  // 1.20K
+```
+
+### `fmtSuffix(suffix: string, decimals?: number)`
+
+Append a suffix to each formatted value.
+
+```tsx
+<Axis scale="y" values={fmtSuffix('%')} />         // 42%
+<Axis scale="y" values={fmtSuffix('°C', 1)} />    // 23.5°C
+```
+
+### `fmtHourMin(opts?: { utc?: boolean })`
+
+Format unix timestamps (seconds) as `HH:MM`.
+
+```tsx
+<Axis scale="x" values={fmtHourMin()} />               // 14:30
+<Axis scale="x" values={fmtHourMin({ utc: true })} />  // 14:30 (UTC)
+```
+
+### `fmtMonthName(opts?: { utc?: boolean; format?: 'short' | 'long' })`
+
+Format unix timestamps (seconds) as month names.
+
+```tsx
+<Axis scale="x" values={fmtMonthName()} />                     // Jan, Feb, ...
+<Axis scale="x" values={fmtMonthName({ format: 'long' })} />   // January, February, ...
+```
+
+### `fmtDateStr(opts?: Intl.DateTimeFormatOptions & { tz?: string })`
+
+Format unix timestamps (seconds) using arbitrary `Intl.DateTimeFormat` options.
+
+```tsx
+<Axis scale="x" values={fmtDateStr({ year: 'numeric', month: 'short', day: 'numeric' })} />
+```
+
+### `fmtLabels(labels: readonly string[], offset?: number)`
+
+Map numeric indices to labels from an array. Useful for categorical/ordinal axes.
+
+```tsx
+<Axis scale="x" values={fmtLabels(['Q1', 'Q2', 'Q3', 'Q4'])} />
+<Axis scale="x" values={fmtLabels(['Mon', 'Tue', 'Wed'], 1)} />  // offset by 1
+```
+
+## Color Utilities
+
+```tsx
+import { fadeGradient, withAlpha, palette } from 'uplot-plus';
+```
+
+### `fadeGradient(color: string, fromAlpha?: number, toAlpha?: number)`
+
+Create a vertical linear gradient that fades from one opacity to another. Returns a `GradientConfig` for the `<Series fill={...}>` prop. Supports hex (`#rgb`, `#rrggbb`) and `rgb()`/`rgba()` color strings.
+
+```tsx
+<Series fill={fadeGradient('#3498db')} />                  // 0.8 → 0.0
+<Series fill={fadeGradient('#e74c3c', 1.0, 0.2)} />       // 1.0 → 0.2
+```
+
+### `withAlpha(color: string, alpha: number)`
+
+Return a CSS color string with a new alpha value. Useful for matching fill to stroke.
+
+```tsx
+<Series stroke="#2980b9" fill={withAlpha('#2980b9', 0.1)} />
+```
+
+### `palette(n: number, saturation?: number, lightness?: number)`
+
+Generate N visually distinct colors using HSL golden-angle rotation.
+
+```tsx
+const colors = palette(5);                    // 5 distinct colors
+const muted = palette(5, 40, 60);            // lower saturation, higher lightness
+```
+
+## Data Utilities
+
+```tsx
+import { stackGroup, alignData } from 'uplot-plus';
+```
+
+### `stackGroup(group: XGroup, seriesIndices?: number[], groupIdx?: number)`
+
+Compute cumulative sums for stacked area/bar charts. Returns a new `XGroup` with stacked y-values and auto-generated `BandConfig[]` for fills between layers.
+
+```tsx
+import { stackGroup, Band } from 'uplot-plus';
+
+const raw = { x: [1, 2, 3], series: [[10, 20, 30], [5, 10, 15]] };
+const { group, bands } = stackGroup(raw);
+
+<Chart data={[group]}>
+  {bands.map((b, i) => <Band key={i} {...b} />)}
+</Chart>
+```
+
+### `alignData(datasets: [ArrayLike<number>, ArrayLike<number | null>][])`
+
+Align multiple datasets with different x-values to a common x-axis. Merges all unique x-values and fills gaps with `null`. Returns `ChartData` with one group containing all aligned series.
+
+```tsx
+import { alignData } from 'uplot-plus';
+
+const aligned = alignData([
+  [[1, 2, 3], [10, 20, 30]],
+  [[2, 3, 4], [15, 25, 35]],
+]);
+// Result: x=[1,2,3,4], series=[[10,20,30,null], [null,15,25,35]]
+```
+
+## Scale Utilities
+
+Low-level coordinate conversion for custom draw hooks.
+
+```tsx
+import { valToPos, posToVal } from 'uplot-plus';
+```
+
+### `valToPos(val: number, scale: ScaleState, dim: number, off: number)`
+
+Convert a data value to a CSS pixel position within a dimension.
+
+```tsx
+const px = valToPos(dataValue, scale, plotBox.width, plotBox.left);
+```
+
+### `posToVal(pos: number, scale: ScaleState, dim: number, off: number)`
+
+Convert a CSS pixel position back to a data value.
+
+```tsx
+const val = posToVal(mouseX, scale, plotBox.width, plotBox.left);
+```

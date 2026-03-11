@@ -1,0 +1,31 @@
+/** Data passed to custom tooltip renderers */
+export interface TooltipData {
+  /** X value at cursor */
+  x: number | null;
+  /** Formatted x value */
+  xLabel: string;
+  /** Series values at cursor */
+  items: TooltipItem[];
+  /** Cursor CSS position relative to chart container */
+  left: number;
+  top: number;
+}
+
+export interface TooltipItem {
+  label: string;
+  value: number | null;
+  color: string;
+  group: number;
+  index: number;
+}
+
+export interface TooltipProps {
+  /** Whether to show the tooltip (default: true) */
+  show?: boolean;
+  /** CSS class name */
+  className?: string;
+  /** Custom render function */
+  children?: (data: TooltipData) => React.ReactNode;
+  /** Offset from cursor in CSS pixels */
+  offset?: { x?: number; y?: number };
+}

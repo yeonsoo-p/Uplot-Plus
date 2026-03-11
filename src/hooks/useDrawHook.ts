@@ -14,9 +14,9 @@ export function useDrawHook(fn: DrawCallback): void {
 
   useEffect(() => {
     const wrapper: DrawCallback = (dc) => fnRef.current(dc);
-    store.drawHooks.push(wrapper);
+    store.drawHooks.add(wrapper);
     return () => {
-      store.drawHooks = store.drawHooks.filter(h => h !== wrapper);
+      store.drawHooks.delete(wrapper);
     };
   }, [store]);
 }
@@ -33,9 +33,9 @@ export function useCursorDrawHook(fn: CursorDrawCallback): void {
 
   useEffect(() => {
     const wrapper: CursorDrawCallback = (dc, cursor) => fnRef.current(dc, cursor);
-    store.cursorDrawHooks.push(wrapper);
+    store.cursorDrawHooks.add(wrapper);
     return () => {
-      store.cursorDrawHooks = store.cursorDrawHooks.filter(h => h !== wrapper);
+      store.cursorDrawHooks.delete(wrapper);
     };
   }, [store]);
 }

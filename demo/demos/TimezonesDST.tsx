@@ -1,0 +1,44 @@
+import React, { useMemo } from 'react';
+import { Chart, Scale, Series, Axis, Legend } from '../../src';
+import type { ChartData } from '../../src';
+
+export default function TimezonesDST() {
+  const data: ChartData = useMemo(() => {
+    // Spring-forward DST transition: March 10, 2024 at 2:00 AM EST -> 3:00 AM EDT
+    const startTs = new Date(2024, 2, 9, 0, 0, 0).getTime() / 1000; // March 9
+    const n = 96; // 4 days of hourly data
+    const x: number[] = [];
+    const y: number[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const ts = startTs + i * 3600;
+      x.push(ts);
+      y.push(20 + Math.sin(i * 0.26) * 10 + (Math.random() - 0.5) * 3);
+    }
+
+    return [{ x, series: [y] }];
+  }, []);
+
+  const fmtDateTime = (splits: number[]) =>
+    splits.map(s => {
+      const d = new Date(s * 1000);
+      return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:00`;
+    });
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
+        Hourly data spanning the spring-forward DST transition (March 9-12, 2024).
+        Note the time jump around March 10 at 2:00 AM.
+      </p>
+      <Chart width={800} height={400} data={data}>
+        <Scale id="x" auto ori={0} dir={1} />
+        <Scale id="y" auto ori={1} dir={1} />
+        <Axis scale="x" side={2} label="Date/Time" values={fmtDateTime} rotate={-45} />
+        <Axis scale="y" side={3} label="Temperature (C)" />
+        <Series group={0} index={0} yScale="y" stroke="#e67e22" width={2} label="Temp" />
+        <Legend />
+      </Chart>
+    </div>
+  );
+}

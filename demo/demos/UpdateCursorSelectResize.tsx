@@ -1,0 +1,58 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Chart, Scale, Series, Axis, Legend } from '../../src';
+import type { ChartData } from '../../src';
+
+const WINDOW = 100;
+
+export default function UpdateCursorSelectResize() {
+  const [data, setData] = useState<ChartData>(() => {
+    const x = Array.from({ length: WINDOW }, (_, i) => i);
+    const y = x.map(i => Math.sin(i * 0.1) * 30 + 50);
+    return [{ x, series: [y] }];
+  });
+
+  const counterRef = useRef(WINDOW);
+  const [running, setRunning] = useState(true);
+
+  useEffect(() => {
+    if (!running) return;
+
+    const id = setInterval(() => {
+      setData(prev => {
+        const group = prev[0];
+        if (!group) return prev;
+
+        const prevY = group.series[0] as number[];
+        const lastY = prevY[prevY.length - 1] ?? 50;
+        const newIdx = counterRef.current++;
+        const newX = [...(group.x as number[]).slice(1), newIdx];
+        const newY = [...prevY.slice(1), lastY + (Math.random() - 0.5) * 6];
+
+        return [{ x: newX, series: [newY] }];
+      });
+    }, 200);
+
+    return () => clearInterval(id);
+  }, [running]);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
+        <button onClick={() => setRunning(r => !r)}>
+          {running ? 'Pause' : 'Resume'}
+        </button>
+        <span style={{ fontSize: 13, color: '#666', lineHeight: '28px' }}>
+          Data updates every 200ms. Hover to test cursor stability during updates.
+        </span>
+      </div>
+      <Chart width={800} height={400} data={data}>
+        <Scale id="x" auto ori={0} dir={1} time={false} />
+        <Scale id="y" auto ori={1} dir={1} />
+        <Axis scale="x" side={2} label="Tick" />
+        <Axis scale="y" side={3} label="Value" />
+        <Series group={0} index={0} yScale="y" stroke="#16a085" width={2} label="Live" />
+        <Legend />
+      </Chart>
+    </div>
+  );
+}

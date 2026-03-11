@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import type { ChartProps } from '../types';
 import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { useChartStore } from '../hooks/useChartStore';
@@ -11,23 +11,36 @@ import { useSyncGroup } from '../sync/useSyncGroup';
  * Creates a canvas element, manages the chart store, and provides context to children.
  * Canvas drawing is completely decoupled from React's reconciliation cycle.
  */
-export function Chart({ width, height, data, children, className, pxRatio: pxRatioOverride, onDraw, onCursorDraw, syncKey }: ChartProps) {
+export function Chart({ width, height, data, children, className, pxRatio: pxRatioOverride, onDraw, onCursorDraw, syncKey, cursor }: ChartProps) {
   const store = useChartStore();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
 
   const pxRatio = pxRatioOverride ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
 
+  // Sync cursor config to store in an effect (not during render)
+  const wheelZoom = cursor?.wheelZoom ?? false;
+  const focusAlpha = cursor?.focus?.alpha ?? (cursor?.focus != null ? 0.15 : 1);
+  useEffect(() => {
+    store.wheelZoom = wheelZoom;
+    store.focusAlpha = focusAlpha;
+  }, [store, wheelZoom, focusAlpha]);
+
   // Attach mouse/touch interaction handlers
-  useInteraction(store, containerRef);
+  useInteraction(store, containerEl);
 
   // Cursor sync across charts with same key
   useSyncGroup(store, syncKey);
 
-  // 6e: Callback ref for canvas — single assignment point, replaces two separate effects
+  // Callback ref for canvas — single assignment point
   const canvasRef = useCallback((node: HTMLCanvasElement | null) => {
     store.canvas = node;
     if (node) store.scheduleRedraw();
   }, [store]);
+
+  // Callback ref for container — drives useInteraction and ResizeObserver via state
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    setContainerEl(node);
+  }, []);
 
   // Update store dimensions
   useEffect(() => {
@@ -44,11 +57,9 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
     };
   }, [store]);
 
-  // 6g: ResizeObserver without redundant rAF wrapper
-  // store.setSize() already schedules via RenderScheduler which batches into a single RAF
+  // ResizeObserver — depends on containerEl (state) so re-runs when DOM element changes
   useEffect(() => {
-    const el = containerRef.current;
-    if (el == null || typeof ResizeObserver === 'undefined') return;
+    if (containerEl == null || typeof ResizeObserver === 'undefined') return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -59,12 +70,16 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
       }
     });
 
-    observer.observe(el);
+    observer.observe(containerEl);
     return () => { observer.disconnect(); };
-  }, [store, containerRef]);
+  }, [store, containerEl]);
 
   // Update store data
+  const prevDataRef = useRef(data);
   useEffect(() => {
+    if (data === prevDataRef.current && store.dataStore.data.length > 0) return;
+    prevDataRef.current = data;
+
     store.dataStore.setData(data);
     store.renderer.clearCache();
 
@@ -85,24 +100,24 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
     store.scheduleRedraw();
   }, [store, data]);
 
-  // 6c: Ref wrapper for onDraw — register stable wrapper once, update ref on each render
+  // Ref wrapper for onDraw — register stable wrapper once, update ref on each render
   const onDrawRef = useRef<DrawCallback | undefined>(onDraw);
   onDrawRef.current = onDraw;
 
   useEffect(() => {
     const wrapper: DrawCallback = (dc) => { onDrawRef.current?.(dc); };
-    store.drawHooks.push(wrapper);
-    return () => { store.drawHooks = store.drawHooks.filter(h => h !== wrapper); };
+    store.drawHooks.add(wrapper);
+    return () => { store.drawHooks.delete(wrapper); };
   }, [store]);
 
-  // 6c: Ref wrapper for onCursorDraw
+  // Ref wrapper for onCursorDraw
   const onCursorDrawRef = useRef<CursorDrawCallback | undefined>(onCursorDraw);
   onCursorDrawRef.current = onCursorDraw;
 
   useEffect(() => {
     const wrapper: CursorDrawCallback = (dc, cursor) => { onCursorDrawRef.current?.(dc, cursor); };
-    store.cursorDrawHooks.push(wrapper);
-    return () => { store.cursorDrawHooks = store.cursorDrawHooks.filter(h => h !== wrapper); };
+    store.cursorDrawHooks.add(wrapper);
+    return () => { store.cursorDrawHooks.delete(wrapper); };
   }, [store]);
 
   return (

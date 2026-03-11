@@ -27,6 +27,8 @@ export function bars(): PathBuilder {
     const barWidthFrac = opts?.barWidth ?? 0.6;
     const extraGap = opts?.barGap ?? 0;
     const radiusFrac = opts?.barRadius ?? 0;
+    const groupIdx = opts?.barGroupIdx ?? 0;
+    const groupCount = opts?.barGroupCount ?? 1;
 
     const pixelForX = (val: number) => pxRound(valToPos(val, scaleX, xDim, xOff));
     const pixelForY = (val: number) => pxRound(valToPos(val, scaleY, yDim, yOff));
@@ -53,7 +55,10 @@ export function bars(): PathBuilder {
 
     const gapWid = colWid * (1 - barWidthFrac);
     const fullGap = Math.max(0, gapWid + extraGap);
-    const barWid = Math.max(1, pxRound(colWid - fullGap));
+    const totalBarWid = Math.max(1, pxRound(colWid - fullGap));
+
+    // For grouped bars, divide the total bar width by groupCount
+    const barWid = groupCount > 1 ? Math.max(1, pxRound(totalBarWid / groupCount)) : totalBarWid;
 
     const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
     const fillToY = pixelForY(fillToVal);
@@ -68,7 +73,12 @@ export function bars(): PathBuilder {
       const xPos = pixelForX(dataX[i] as number);
       const yPos = pixelForY(yVal);
 
-      const lft = pxRound(xPos - barWid / 2);
+      // Offset for grouped bars: center the group, then shift by groupIdx
+      const groupOffset = groupCount > 1
+        ? (groupIdx - (groupCount - 1) / 2) * barWid
+        : 0;
+
+      const lft = pxRound(xPos - barWid / 2 + groupOffset);
       const top = Math.min(yPos, fillToY);
       const btm = Math.max(yPos, fillToY);
       const barHgt = btm - top;

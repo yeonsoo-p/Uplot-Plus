@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { SeriesConfig } from '../types';
 import { useChart } from '../hooks/useChart';
+import { shallowEqual } from '../utils/shallowEqual';
 
 export type SeriesProps = SeriesConfig;
 
@@ -8,33 +9,31 @@ export type SeriesProps = SeriesConfig;
  * Renderless component that registers a series config with the chart store.
  * Must be a child of <Chart>.
  *
- * Uses a mount/update split: registers once on mount, replaces config on prop changes.
+ * Mount effect registers/unregisters based on identity keys (group, index).
+ * Sync effect updates config when any prop changes (shallow-equality bail-out).
  */
 export function Series(props: SeriesProps): null {
   const store = useChart();
-  const registeredRef = useRef(false);
-  const propsKey = JSON.stringify(props);
+  const propsRef = useRef(props);
+  propsRef.current = props;
 
-  // Mount effect: register once with identity keys only
+  // Mount/unmount: register on mount, unregister on unmount or identity change.
   useEffect(() => {
-    store.registerSeries({
-      ...props,
-      show: props.show ?? true,
-    });
-    registeredRef.current = true;
+    const p = propsRef.current;
+    store.registerSeries({ ...p, show: p.show ?? true });
     store.scheduleRedraw();
 
     return () => {
-      store.unregisterSeries(props.group, props.index);
-      registeredRef.current = false;
+      store.unregisterSeries(p.group, p.index);
       store.scheduleRedraw();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/update split: only re-mount when identity keys change, update effect handles other props
   }, [store, props.group, props.index]);
 
-  // Update effect: replace config when any prop changes
+  // Sync props to store config, skipping when nothing changed.
+  const prevPropsRef = useRef<SeriesProps | null>(null);
   useEffect(() => {
-    if (!registeredRef.current) return;
+    if (shallowEqual(prevPropsRef.current, props)) return;
+    prevPropsRef.current = props;
 
     store.seriesConfigs = store.seriesConfigs.map(s =>
       (s.group === props.group && s.index === props.index)
@@ -43,8 +42,7 @@ export function Series(props: SeriesProps): null {
     );
     store.renderer.invalidateSeries(props.group, props.index);
     store.scheduleRedraw();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- propsKey (JSON.stringify) tracks all prop changes; listing props directly would cause object-identity reruns
-  }, [store, props.group, props.index, propsKey]);
+  });
 
   return null;
 }

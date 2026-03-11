@@ -1,6 +1,16 @@
 import type { SortOrder } from './common';
 import type { PathBuilder } from '../paths/types';
 
+/** Gradient configuration for fills/strokes */
+export interface GradientConfig {
+  type: 'linear';
+  /** Gradient stops: [offset 0-1, css color string] */
+  stops: [number, string][];
+}
+
+/** Color value: plain CSS string or gradient config */
+export type ColorValue = string | GradientConfig;
+
 /** Configuration for a data series */
 export interface SeriesConfig {
   /** Which data group this series belongs to (index into ChartData[]) */
@@ -13,10 +23,10 @@ export interface SeriesConfig {
   show?: boolean;
   /** Label for legend/tooltip */
   label?: string;
-  /** Stroke color */
-  stroke?: string;
-  /** Fill color (area under curve) */
-  fill?: string;
+  /** Stroke color (string or gradient config) */
+  stroke?: ColorValue;
+  /** Fill color (string or gradient config) */
+  fill?: ColorValue;
   /** Stroke width in CSS pixels */
   width?: number;
   /** Opacity 0-1 */

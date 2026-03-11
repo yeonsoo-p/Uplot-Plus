@@ -1,0 +1,73 @@
+import React, { useMemo } from 'react';
+import { Chart, Scale, Axis, Timeline } from '../../src';
+import type { ChartData, TimelineLane } from '../../src';
+
+export default function TimelineDiscreteDemo() {
+  const data: ChartData = useMemo(() => {
+    // X values spanning 24 hours (in seconds from midnight)
+    const x: number[] = [];
+    for (let i = 0; i <= 86400; i += 3600) {
+      x.push(i);
+    }
+    // Dummy y-series (not drawn, just needed for scale auto-ranging)
+    const y = x.map(() => 0);
+    return [{ x, series: [y] }];
+  }, []);
+
+  const lanes: TimelineLane[] = useMemo(() => [
+    {
+      label: 'Server A',
+      segments: [
+        { start: 0, end: 14400, color: '#4caf50', label: 'Running' },
+        { start: 14400, end: 18000, color: '#ff9800', label: 'Idle' },
+        { start: 18000, end: 36000, color: '#4caf50', label: 'Running' },
+        { start: 36000, end: 39600, color: '#f44336', label: 'Error' },
+        { start: 39600, end: 72000, color: '#4caf50', label: 'Running' },
+        { start: 72000, end: 86400, color: '#ff9800', label: 'Idle' },
+      ],
+    },
+    {
+      label: 'Server B',
+      segments: [
+        { start: 0, end: 7200, color: '#ff9800', label: 'Idle' },
+        { start: 7200, end: 50400, color: '#4caf50', label: 'Running' },
+        { start: 50400, end: 54000, color: '#f44336', label: 'Error' },
+        { start: 54000, end: 86400, color: '#4caf50', label: 'Running' },
+      ],
+    },
+    {
+      label: 'Server C',
+      segments: [
+        { start: 0, end: 21600, color: '#4caf50', label: 'Running' },
+        { start: 21600, end: 28800, color: '#2196f3', label: 'Maintenance' },
+        { start: 28800, end: 86400, color: '#4caf50', label: 'Running' },
+      ],
+    },
+    {
+      label: 'Server D',
+      segments: [
+        { start: 0, end: 43200, color: '#4caf50', label: 'Running' },
+        { start: 43200, end: 46800, color: '#ff9800', label: 'Idle' },
+        { start: 46800, end: 86400, color: '#4caf50', label: 'Running' },
+      ],
+    },
+  ], []);
+
+  return (
+    <Chart width={900} height={200} data={data}>
+      <Scale id="x" auto ori={0} dir={1} />
+      <Scale id="y" auto ori={1} dir={1} />
+      <Axis
+        scale="x"
+        side={2}
+        label="Time of Day"
+        values={(v: number) => {
+          const h = Math.floor(v / 3600);
+          return `${h.toString().padStart(2, '0')}:00`;
+        }}
+      />
+      <Axis scale="y" side={3} show={false} size={80} />
+      <Timeline lanes={lanes} laneHeight={28} gap={4} scaleId="x" />
+    </Chart>
+  );
+}

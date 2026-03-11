@@ -58,11 +58,15 @@ export interface ChartStore {
   scheduler: RenderScheduler;
 
   // Draw callbacks (registered via useDrawHook / useCursorDrawHook / Chart props)
-  drawHooks: DrawCallback[];
-  cursorDrawHooks: CursorDrawCallback[];
+  drawHooks: Set<DrawCallback>;
+  cursorDrawHooks: Set<CursorDrawCallback>;
 
   // Focus mode: index of focused series, or null for none
   focusedSeries: number | null;
+  /** Alpha for non-focused series (0-1, default 0.15) */
+  focusAlpha: number;
+  /** Whether wheel zoom is enabled */
+  wheelZoom: boolean;
 
   // Revision counter — incremented on visibility toggles to trigger subscriber re-renders
   revision: number;
@@ -108,9 +112,11 @@ export function createChartStore(): ChartStore {
     canvas: null,
     listeners: new Set(),
     scheduler: new RenderScheduler(),
-    drawHooks: [],
-    cursorDrawHooks: [],
+    drawHooks: new Set(),
+    cursorDrawHooks: new Set(),
     focusedSeries: null,
+    focusAlpha: 0.15,
+    wheelZoom: false,
     revision: 0,
 
     registerScale(cfg: ScaleConfig) {
@@ -183,7 +189,7 @@ export function createChartStore(): ChartStore {
 
       if (canvas == null || width === 0 || height === 0) return;
 
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const ctx = canvas.getContext('2d');
       if (ctx == null) return;
 
       renderer.setContext(ctx, pxRatio);
@@ -207,7 +213,7 @@ export function createChartStore(): ChartStore {
         );
         drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
         // Fire cursor draw hooks on the overlay
-        if (store.cursorDrawHooks.length > 0) {
+        if (store.cursorDrawHooks.size > 0) {
           const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
           for (const fn of store.cursorDrawHooks) {
             try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }
@@ -293,7 +299,7 @@ export function createChartStore(): ChartStore {
         if (info == null) continue;
         // Focus mode: dim non-focused series via canvas globalAlpha
         if (store.focusedSeries != null && i !== store.focusedSeries) {
-          ctx.globalAlpha = 0.15;
+          ctx.globalAlpha = store.focusAlpha;
           renderer.drawSeries(info, store.plotBox, 1);
           ctx.globalAlpha = 1;
         } else {
@@ -339,7 +345,7 @@ export function createChartStore(): ChartStore {
             info.xScale, info.yScale,
             store.plotBox, pxRatio,
             wi0, wi1,
-            ptsCfg, ptDia, cfg.stroke ?? '#000',
+            ptsCfg, ptDia, (typeof cfg.stroke === 'string' ? cfg.stroke : null) ?? '#000',
           );
         }
       }
@@ -347,7 +353,7 @@ export function createChartStore(): ChartStore {
       ctx.restore();
 
       // 9. Fire draw hooks (persistent layer), then save snapshot
-      if (store.drawHooks.length > 0) {
+      if (store.drawHooks.size > 0) {
         const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
         for (const fn of store.drawHooks) {
           try { fn(dc); } catch { /* user hook error */ }
@@ -371,7 +377,7 @@ export function createChartStore(): ChartStore {
       drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
 
       // 12. Fire cursor draw hooks (overlay layer)
-      if (store.cursorDrawHooks.length > 0) {
+      if (store.cursorDrawHooks.size > 0) {
         const dc: DrawContext = { ctx, plotBox: store.plotBox, pxRatio };
         for (const fn of store.cursorDrawHooks) {
           try { fn(dc, store.cursorManager.state); } catch { /* user hook error */ }

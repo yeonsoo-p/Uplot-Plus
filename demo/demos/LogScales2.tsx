@@ -1,0 +1,53 @@
+import React, { useMemo } from 'react';
+import { Chart, Scale, Series, Axis, Legend } from '../../src';
+import type { ChartData } from '../../src';
+
+export default function LogScales2() {
+  const data: ChartData = useMemo(() => {
+    const n = 80;
+    const x = Array.from({ length: n }, (_, i) => i + 1);
+    const y = x.map(i => Math.pow(2, i / 8) + (Math.random() - 0.5) * Math.pow(2, i / 10));
+    return [{ x, series: [y] }];
+  }, []);
+
+  const fmtLog10 = (splits: number[]) =>
+    splits.map(v => {
+      if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+      if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+      return v.toFixed(0);
+    });
+
+  const fmtLog2 = (splits: number[]) =>
+    splits.map(v => {
+      if (v >= 1024) return (v / 1024).toFixed(0) + 'K';
+      return v.toFixed(0);
+    });
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
+        Log scale comparison: base 10 (top) vs base 2 (bottom) on exponentially growing data.
+      </p>
+      <div style={{ marginBottom: 16 }}>
+        <h4 style={{ margin: '0 0 4px' }}>Log base 10</h4>
+        <Chart width={800} height={220} data={data}>
+          <Scale id="x" auto ori={0} dir={1} time={false} />
+          <Scale id="y" auto ori={1} dir={1} distr={3} log={10} />
+          <Axis scale="x" side={2} />
+          <Axis scale="y" side={3} label="Value (log10)" values={fmtLog10} />
+          <Series group={0} index={0} yScale="y" stroke="#e74c3c" width={2} label="Base 10" />
+        </Chart>
+      </div>
+      <div>
+        <h4 style={{ margin: '0 0 4px' }}>Log base 2</h4>
+        <Chart width={800} height={220} data={data}>
+          <Scale id="x" auto ori={0} dir={1} time={false} />
+          <Scale id="y" auto ori={1} dir={1} distr={3} log={2} />
+          <Axis scale="x" side={2} />
+          <Axis scale="y" side={3} label="Value (log2)" values={fmtLog2} />
+          <Series group={0} index={0} yScale="y" stroke="#2980b9" width={2} label="Base 2" />
+        </Chart>
+      </div>
+    </div>
+  );
+}

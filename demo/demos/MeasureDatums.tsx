@@ -1,0 +1,118 @@
+import React, { useMemo, useState, useCallback } from 'react';
+import { Chart, Scale, Series, Axis } from '../../src';
+import type { ChartData, CursorDrawCallback } from '../../src';
+
+function generateData(): ChartData {
+  const n = 200;
+  const x = Array.from({ length: n }, (_, i) => i);
+  const y = x.map(i => Math.sin(i * 0.05) * 40 + 50 + (Math.random() - 0.5) * 8);
+  return [{ x, series: [y] }];
+}
+
+interface RefPoint {
+  left: number;
+  top: number;
+}
+
+export default function MeasureDatums() {
+  const data = useMemo(() => generateData(), []);
+  const [refPoint, setRefPoint] = useState<RefPoint | null>(null);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const left = e.clientX - rect.left;
+    const top = e.clientY - rect.top;
+
+    setRefPoint(prev => {
+      // Toggle: if already set, clear it; otherwise set new point
+      if (prev != null) return null;
+      return { left, top };
+    });
+  }, []);
+
+  const onCursorDraw: CursorDrawCallback = useCallback(({ ctx, plotBox, pxRatio }, cursor) => {
+    if (cursor.left < 0 || cursor.top < 0) return;
+    if (refPoint == null) return;
+
+    const rx = refPoint.left * pxRatio;
+    const ry = refPoint.top * pxRatio;
+    const cx = cursor.left * pxRatio;
+    const cy = cursor.top * pxRatio;
+
+    ctx.save();
+
+    // Draw reference point marker
+    ctx.fillStyle = '#e74c3c';
+    ctx.beginPath();
+    ctx.arc(rx, ry, 5 * pxRatio, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw dashed line from ref to cursor
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 1.5 * pxRatio;
+    ctx.setLineDash([4 * pxRatio, 3 * pxRatio]);
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+
+    // Draw dx/dy dimension lines
+    ctx.setLineDash([2 * pxRatio, 2 * pxRatio]);
+    ctx.strokeStyle = 'rgba(52, 152, 219, 0.7)';
+    ctx.lineWidth = 1 * pxRatio;
+
+    // Horizontal (dx)
+    ctx.beginPath();
+    ctx.moveTo(rx, ry);
+    ctx.lineTo(cx, ry);
+    ctx.stroke();
+
+    // Vertical (dy)
+    ctx.beginPath();
+    ctx.moveTo(cx, ry);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+
+    // Compute distances in CSS pixels
+    const dx = cursor.left - refPoint.left;
+    const dy = cursor.top - refPoint.top;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Label background
+    const label = `dx: ${dx.toFixed(0)}px  dy: ${dy.toFixed(0)}px  d: ${dist.toFixed(0)}px`;
+    ctx.font = `${11 * pxRatio}px monospace`;
+    const metrics = ctx.measureText(label);
+    const padX = 6 * pxRatio;
+    const padY = 4 * pxRatio;
+
+    const labelX = Math.min(cx + 10 * pxRatio, (plotBox.left + plotBox.width) * pxRatio - metrics.width - padX * 2);
+    const labelY = cy - 24 * pxRatio;
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(labelX, labelY, metrics.width + padX * 2, 18 * pxRatio);
+
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, labelX + padX, labelY + 13 * pxRatio);
+
+    ctx.restore();
+  }, [refPoint]);
+
+  return (
+    <div>
+      <p style={{ margin: '0 0 8px', fontSize: 13, color: '#666' }}>
+        Click to set a reference point, click again to clear. Move cursor to measure distance.
+      </p>
+      <div onClick={handleClick} style={{ cursor: 'crosshair' }}>
+        <Chart width={800} height={400} data={data} onCursorDraw={onCursorDraw}>
+          <Scale id="x" auto ori={0} dir={1} time={false} />
+          <Scale id="y" auto ori={1} dir={1} />
+          <Axis scale="x" side={2} label="Sample" />
+          <Axis scale="y" side={3} label="Value" />
+          <Series group={0} index={0} yScale="y" stroke="#2980b9" width={2} label="Signal" />
+        </Chart>
+      </div>
+    </div>
+  );
+}

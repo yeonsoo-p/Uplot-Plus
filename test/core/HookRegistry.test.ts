@@ -14,7 +14,7 @@ describe('Draw hooks on ChartStore', () => {
   it('fires drawHooks during redraw', () => {
     const store = createChartStore();
     const fn = vi.fn();
-    store.drawHooks.push(fn);
+    store.drawHooks.add(fn);
 
     // Simulate the draw hook firing
     const dc = makeDC();
@@ -27,9 +27,9 @@ describe('Draw hooks on ChartStore', () => {
   it('supports multiple draw hooks in order', () => {
     const store = createChartStore();
     const order: number[] = [];
-    store.drawHooks.push(() => order.push(1));
-    store.drawHooks.push(() => order.push(2));
-    store.drawHooks.push(() => order.push(3));
+    store.drawHooks.add(() => order.push(1));
+    store.drawHooks.add(() => order.push(2));
+    store.drawHooks.add(() => order.push(3));
 
     const dc = makeDC();
     for (const hook of store.drawHooks) hook(dc);
@@ -40,7 +40,7 @@ describe('Draw hooks on ChartStore', () => {
   it('supports cursor draw hooks', () => {
     const store = createChartStore();
     const fn = vi.fn();
-    store.cursorDrawHooks.push(fn);
+    store.cursorDrawHooks.add(fn);
 
     const dc = makeDC();
     const cursor = { left: 100, top: 50, activeGroup: 0, activeSeriesIdx: 1, activeDataIdx: 5 };
@@ -49,15 +49,15 @@ describe('Draw hooks on ChartStore', () => {
     expect(fn).toHaveBeenCalledWith(dc, cursor);
   });
 
-  it('removing a hook by filtering works', () => {
+  it('removing a hook by deleting works', () => {
     const store = createChartStore();
     const fn1 = vi.fn();
     const fn2 = vi.fn();
-    store.drawHooks.push(fn1);
-    store.drawHooks.push(fn2);
+    store.drawHooks.add(fn1);
+    store.drawHooks.add(fn2);
 
     // Remove fn1
-    store.drawHooks = store.drawHooks.filter(h => h !== fn1);
+    store.drawHooks.delete(fn1);
 
     const dc = makeDC();
     for (const hook of store.drawHooks) hook(dc);

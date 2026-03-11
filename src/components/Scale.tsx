@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { ScaleConfig } from '../types';
 import { useChart } from '../hooks/useChart';
+import { shallowEqual } from '../utils/shallowEqual';
 
 export type ScaleProps = ScaleConfig;
 
@@ -8,38 +9,38 @@ export type ScaleProps = ScaleConfig;
  * Renderless component that registers a scale config with the chart store.
  * Must be a child of <Chart>.
  *
- * Uses a mount/update split: registers once on mount, replaces config on prop changes.
+ * Mount effect registers/unregisters based on identity key (id).
+ * Sync effect updates config when any prop changes (shallow-equality bail-out).
  */
 export function Scale(props: ScaleProps): null {
   const store = useChart();
-  const registeredRef = useRef(false);
-  const propsKey = JSON.stringify(props);
+  const propsRef = useRef(props);
+  propsRef.current = props;
 
-  // Mount effect: register once with identity key only
+  // Mount/unmount: register on mount, unregister on unmount or identity change.
   useEffect(() => {
-    store.registerScale({ ...props });
-    registeredRef.current = true;
+    const p = propsRef.current;
+    store.registerScale({ ...p });
     store.scheduleRedraw();
 
     return () => {
-      store.unregisterScale(props.id);
-      registeredRef.current = false;
+      store.unregisterScale(p.id);
       store.scheduleRedraw();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/update split: only re-mount when identity key changes, update effect handles other props
   }, [store, props.id]);
 
-  // Update effect: replace config when any prop changes
+  // Sync props to store config, skipping when nothing changed.
+  const prevPropsRef = useRef<ScaleProps | null>(null);
   useEffect(() => {
-    if (!registeredRef.current) return;
+    if (shallowEqual(prevPropsRef.current, props)) return;
+    prevPropsRef.current = props;
 
     store.scaleConfigs = store.scaleConfigs.map(s =>
       s.id === props.id ? { ...props } : s,
     );
     store.scaleManager.addScale({ ...props });
     store.scheduleRedraw();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- propsKey (JSON.stringify) tracks all prop changes
-  }, [store, props.id, propsKey]);
+  });
 
   return null;
 }

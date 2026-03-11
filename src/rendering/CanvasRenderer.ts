@@ -27,11 +27,14 @@ export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D | null = null;
   private pxRatio = 1;
 
-  // --- Path cache with window-index keying and O(1) LRU via Map insertion order ---
-  private pathCache = new Map<string, SeriesPaths>();
+  // --- Two-level path cache: group -> index -> windowKey -> SeriesPaths ---
+  // Enables O(1) invalidation by group or series without string prefix scanning.
+  private pathCache = new Map<number, Map<number, Map<string, SeriesPaths>>>();
+  private pathCacheSize = 0;
 
-  // --- ImageData snapshot for cursor-only redraws ---
-  private savedPlot: ImageData | null = null;
+  // --- Offscreen canvas for cursor-only snapshot (avoids getImageData/putImageData) ---
+  private snapshotCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
+  private snapshotValid = false;
 
   // --- Context property cache (F1) ---
   private cachedFillStyle = '';
@@ -115,86 +118,115 @@ export class CanvasRenderer {
     }
   }
 
-  // --- ImageData snapshot ---
+  // --- Offscreen canvas snapshot ---
 
-  /** Save a snapshot of the current canvas (after static content is drawn) */
+  /** Save a snapshot of the current canvas using an offscreen canvas (much cheaper than getImageData) */
   saveSnapshot(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-    this.savedPlot = ctx.getImageData(0, 0, w, h);
+    const canvas = ctx.canvas;
+
+    // Lazily create or resize the offscreen canvas
+    if (this.snapshotCanvas == null ||
+        this.snapshotCanvas.width !== w ||
+        this.snapshotCanvas.height !== h) {
+      this.snapshotCanvas = typeof OffscreenCanvas !== 'undefined'
+        ? new OffscreenCanvas(w, h)
+        : document.createElement('canvas');
+      this.snapshotCanvas.width = w;
+      this.snapshotCanvas.height = h;
+    }
+
+    const snapCtx = this.snapshotCanvas.getContext('2d');
+    if (snapCtx != null && typeof snapCtx.drawImage === 'function') {
+      snapCtx.clearRect(0, 0, w, h);
+      snapCtx.drawImage(canvas, 0, 0);
+      this.snapshotValid = true;
+    }
   }
 
   /** Restore a previously saved snapshot. Returns false if no snapshot exists. */
   restoreSnapshot(ctx: CanvasRenderingContext2D): boolean {
-    if (this.savedPlot == null) return false;
-    ctx.putImageData(this.savedPlot, 0, 0);
+    if (!this.snapshotValid || this.snapshotCanvas == null || typeof ctx.drawImage !== 'function') return false;
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(this.snapshotCanvas, 0, 0);
     return true;
   }
 
   /** Invalidate the saved snapshot */
   invalidateSnapshot(): void {
-    this.savedPlot = null;
+    this.snapshotValid = false;
   }
 
-  // --- Path cache ---
+  // --- Two-level path cache ---
 
-  /** Build cache key using data window indices for stable cache hits */
-  private cacheKey(group: number, index: number, i0: number, i1: number): string {
-    return `${group}:${index}:${i0}:${i1}`;
+  private windowKey(i0: number, i1: number): string {
+    return `${i0}:${i1}`;
   }
 
-  /** Get cached paths for a series (O(1) LRU via Map delete+reinsert) */
+  /** Get cached paths for a series */
   getCachedPaths(group: number, index: number, i0: number, i1: number): SeriesPaths | undefined {
-    const key = this.cacheKey(group, index, i0, i1);
-    const paths = this.pathCache.get(key);
-    if (paths != null) {
-      // Move to end for LRU: delete and re-insert
-      this.pathCache.delete(key);
-      this.pathCache.set(key, paths);
-    }
-    return paths;
+    const groupMap = this.pathCache.get(group);
+    if (groupMap == null) return undefined;
+    const indexMap = groupMap.get(index);
+    if (indexMap == null) return undefined;
+    const key = this.windowKey(i0, i1);
+    return indexMap.get(key);
   }
 
-  /** Store paths in cache (O(1) LRU eviction) */
+  /** Store paths in cache with LRU eviction */
   setCachedPaths(group: number, index: number, i0: number, i1: number, paths: SeriesPaths): void {
-    const key = this.cacheKey(group, index, i0, i1);
-
-    // Evict oldest entries if at capacity
-    while (this.pathCache.size >= MAX_CACHE_SIZE) {
-      const oldest = this.pathCache.keys().next().value;
-      if (oldest != null) {
-        this.pathCache.delete(oldest);
-      } else {
-        break;
-      }
+    // Evict oldest entries if at capacity (simple: clear all when full)
+    if (this.pathCacheSize >= MAX_CACHE_SIZE) {
+      this.pathCache.clear();
+      this.pathCacheSize = 0;
     }
 
-    this.pathCache.set(key, paths);
+    let groupMap = this.pathCache.get(group);
+    if (groupMap == null) {
+      groupMap = new Map();
+      this.pathCache.set(group, groupMap);
+    }
+
+    let indexMap = groupMap.get(index);
+    if (indexMap == null) {
+      indexMap = new Map();
+      groupMap.set(index, indexMap);
+    }
+
+    const key = this.windowKey(i0, i1);
+    if (!indexMap.has(key)) {
+      this.pathCacheSize++;
+    }
+    indexMap.set(key, paths);
   }
 
-  /** Invalidate paths for a specific series (all windows) */
+  /** Invalidate paths for a specific series (all windows) — O(1) */
   invalidateSeries(group: number, index: number): void {
-    const prefix = `${group}:${index}:`;
-    for (const key of [...this.pathCache.keys()]) {
-      if (key.startsWith(prefix)) {
-        this.pathCache.delete(key);
-      }
+    const groupMap = this.pathCache.get(group);
+    if (groupMap == null) return;
+    const indexMap = groupMap.get(index);
+    if (indexMap != null) {
+      this.pathCacheSize -= indexMap.size;
+      groupMap.delete(index);
     }
   }
 
-  /** Invalidate cached paths for a specific group */
+  /** Invalidate cached paths for a specific group — O(1) */
   clearGroupCache(group: number): void {
-    const prefix = `${group}:`;
-    for (const key of [...this.pathCache.keys()]) {
-      if (key.startsWith(prefix)) {
-        this.pathCache.delete(key);
+    const groupMap = this.pathCache.get(group);
+    if (groupMap != null) {
+      for (const indexMap of groupMap.values()) {
+        this.pathCacheSize -= indexMap.size;
       }
+      this.pathCache.delete(group);
     }
-    this.savedPlot = null;
+    this.snapshotValid = false;
   }
 
   /** Invalidate all cached paths (e.g. on scale change) */
   clearCache(): void {
     this.pathCache.clear();
-    this.savedPlot = null;
+    this.pathCacheSize = 0;
+    this.snapshotValid = false;
   }
 
   /**
@@ -240,7 +272,7 @@ export class CanvasRenderer {
       this.setCachedPaths(group, index, i0, i1, paths);
     }
 
-    drawSeriesPath(ctx, info.config, paths, pxRatio);
+    drawSeriesPath(ctx, info.config, paths, pxRatio, plotBox);
   }
 
   /**

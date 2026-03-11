@@ -38,7 +38,7 @@ function drawOrthoLines(
 
   ctx.strokeStyle = stroke;
   ctx.lineWidth = width;
-  ctx.setLineDash(dash);
+  if (dash.length > 0) ctx.setLineDash(dash);
 
   ctx.beginPath();
 
@@ -227,7 +227,7 @@ export function drawAxesGrid(
 
       ctx.strokeStyle = borderStroke;
       ctx.lineWidth = borderWidth;
-      ctx.setLineDash(borderDash);
+      if (borderDash.length > 0) ctx.setLineDash(borderDash);
 
       ctx.beginPath();
 
@@ -240,7 +240,7 @@ export function drawAxesGrid(
       }
 
       ctx.stroke();
-      ctx.setLineDash([]);
+      if (borderDash.length > 0) ctx.setLineDash([]);
     }
   }
 }

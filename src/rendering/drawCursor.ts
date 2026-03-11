@@ -100,7 +100,8 @@ export function drawCursor(
         let pointFill = cfg.stroke;
         for (const sc of seriesConfigs) {
           if (sc.group === gi && sc.index === si) {
-            pointFill = sc.stroke ?? cfg.stroke;
+            const scStroke = sc.stroke;
+            pointFill = (typeof scStroke === 'string' ? scStroke : undefined) ?? cfg.stroke;
             break;
           }
         }

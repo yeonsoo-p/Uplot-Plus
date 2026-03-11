@@ -1,5 +1,30 @@
-import type { SeriesConfig } from '../types';
+import type { SeriesConfig, BBox } from '../types';
 import type { SeriesPaths } from '../paths/types';
+import type { GradientConfig, ColorValue } from '../types/series';
+
+/** Resolve a ColorValue to a CanvasGradient or string */
+function resolveColor(
+  ctx: CanvasRenderingContext2D,
+  value: ColorValue,
+  plotBox: BBox,
+): string | CanvasGradient {
+  if (typeof value === 'string') return value;
+  return createGradient(ctx, value, plotBox);
+}
+
+/** Create a CanvasGradient from a GradientConfig */
+function createGradient(
+  ctx: CanvasRenderingContext2D,
+  cfg: GradientConfig,
+  plotBox: BBox,
+): CanvasGradient {
+  // Linear gradient from top to bottom of plot area (default)
+  const grad = ctx.createLinearGradient(0, plotBox.top, 0, plotBox.top + plotBox.height);
+  for (const [offset, color] of cfg.stops) {
+    grad.addColorStop(offset, color);
+  }
+  return grad;
+}
 
 /**
  * Draw a single series onto the canvas context.
@@ -9,6 +34,7 @@ export function drawSeriesPath(
   config: SeriesConfig,
   paths: SeriesPaths,
   pxRatio: number,
+  plotBox?: BBox,
 ): void {
   if (config.show === false) return;
 
@@ -24,16 +50,18 @@ export function drawSeriesPath(
     ctx.clip(paths.clip);
   }
 
+  const box = plotBox ?? { left: 0, top: 0, width: ctx.canvas.width / pxRatio, height: ctx.canvas.height / pxRatio };
+
   // Draw fill
   if (config.fill && paths.fill) {
-    ctx.fillStyle = config.fill;
+    ctx.fillStyle = resolveColor(ctx, config.fill, box);
     ctx.fill(paths.fill);
   }
 
   // Draw stroke
   if (config.stroke) {
     const lineWidth = (config.width ?? 1) * pxRatio;
-    ctx.strokeStyle = config.stroke;
+    ctx.strokeStyle = resolveColor(ctx, config.stroke, box);
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = config.join ?? 'round';
     ctx.lineCap = config.cap ?? 'butt';

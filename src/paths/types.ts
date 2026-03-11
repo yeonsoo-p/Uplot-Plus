@@ -23,6 +23,10 @@ export interface PathBuilderOpts {
   barGap?: number;
   /** Corner radius for bars as fraction of bar width (0-1, default 0) */
   barRadius?: number;
+  /** For grouped bars: this series' position in the group (0-based) */
+  barGroupIdx?: number;
+  /** For grouped bars: total number of series in the group */
+  barGroupCount?: number;
 }
 
 /** Path builder function signature */

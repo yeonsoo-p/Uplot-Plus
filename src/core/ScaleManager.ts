@@ -1,7 +1,8 @@
 import type { ScaleConfig, ScaleState } from '../types';
 import type { ChartData } from '../types';
 import { createScaleState, invalidateScaleCache } from './Scale';
-import { getMinMax, rangeNum, rangeLog, autoRangePart, inf } from '../math/utils';
+import { rangeNum, rangeLog, autoRangePart, inf } from '../math/utils';
+import type { DataStore } from './DataStore';
 
 /**
  * Manages all scales for a chart.
@@ -64,7 +65,7 @@ export class ScaleManager {
   autoRange(
     data: ChartData,
     seriesScaleMap: { group: number; index: number; yScale: string }[],
-    windows: Map<number, [number, number]>,
+    dataStore: DataStore,
   ): void {
     // Auto-range x-scales: compute union of all groups sharing the same scale
     const xRanges = new Map<string, { dataMin: number; dataMax: number }>();
@@ -106,7 +107,7 @@ export class ScaleManager {
       invalidateScaleCache(scale);
     }
 
-    // Collect y-ranges per y-scale
+    // Collect y-ranges per y-scale (using cached min/max from DataStore)
     const yMins = new Map<string, number>();
     const yMaxs = new Map<string, number>();
 
@@ -117,13 +118,13 @@ export class ScaleManager {
       const yData = grp.series[index];
       if (!yData || yData.length === 0) continue;
 
-      const window = windows.get(group);
+      const window = dataStore.windows.get(group);
       const i0 = window ? window[0] : 0;
       const i1 = window ? window[1] : yData.length - 1;
 
       const yScaleState = this.scales.get(yScale);
       const isLog = yScaleState?.distr === 3;
-      const [sMin, sMax] = getMinMax(yData as ArrayLike<number | null>, i0, i1, 0, isLog);
+      const [sMin, sMax] = dataStore.getCachedMinMax(group, index, i0, i1, 0, isLog);
 
       const curMin = yMins.get(yScale);
       const curMax = yMaxs.get(yScale);

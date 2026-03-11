@@ -36,6 +36,11 @@ export function Series(props: SeriesProps): null {
     props.dash,
     props.spanGaps,
     props.paths,
+    props.sorted,
+    props.cap,
+    props.join,
+    props.fillTo,
+    props.points,
   ]);
 
   return null;

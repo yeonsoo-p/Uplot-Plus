@@ -1,7 +1,7 @@
 import type { CursorState, ScaleState, BBox } from '../types';
 import type { ChartData } from '../types/data';
 import type { SeriesConfig } from '../types/series';
-import { valToPos } from './Scale';
+import { valToPos, posToVal } from './Scale';
 import { closestIdx } from '../math/utils';
 
 /**
@@ -76,7 +76,7 @@ export class CursorManager {
       const xOff = plotBox.left;
 
       // closestIdx on the x data within the visible window
-      const cursorXVal = posToValFromPixel(cssX + xOff, xScale, xDim, xOff);
+      const cursorXVal = posToVal(cssX + xOff, xScale, xDim, xOff);
       const dataIdx = closestIdx(cursorXVal, xData, wi0, wi1);
 
       const xVal = xData[dataIdx];
@@ -119,14 +119,4 @@ export class CursorManager {
     this.state.activeSeriesIdx = bestSeries;
     this.state.activeDataIdx = bestIdx;
   }
-}
-
-/** Convert a CSS pixel position to a data value (inline to avoid circular deps) */
-function posToValFromPixel(pos: number, scale: ScaleState, dim: number, off: number): number {
-  let pct = (pos - off) / dim;
-  if (scale.dir === -1) pct = 1 - pct;
-
-  if (scale.min == null || scale.max == null) return 0;
-  // Linear only for cursor snapping (log/asinh cursor handled by valToPos already)
-  return scale.min + pct * (scale.max - scale.min);
 }

@@ -27,9 +27,11 @@ export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D | null = null;
   private pxRatio = 1;
 
-  // --- Path cache with scale-range keying and LRU eviction ---
+  // --- Path cache with window-index keying and O(1) LRU via Map insertion order ---
   private pathCache = new Map<string, SeriesPaths>();
-  private cacheOrder: string[] = [];
+
+  // --- ImageData snapshot for cursor-only redraws ---
+  private savedPlot: ImageData | null = null;
 
   // --- Context property cache (F1) ---
   private cachedFillStyle = '';
@@ -113,60 +115,67 @@ export class CanvasRenderer {
     }
   }
 
-  // --- Path cache ---
+  // --- ImageData snapshot ---
 
-  /** Build cache key incorporating scale range for invalidation */
-  private cacheKey(group: number, index: number, xMin: number | null, xMax: number | null): string {
-    return `${group}:${index}:${xMin ?? ''}:${xMax ?? ''}`;
+  /** Save a snapshot of the current canvas (after static content is drawn) */
+  saveSnapshot(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+    this.savedPlot = ctx.getImageData(0, 0, w, h);
   }
 
-  /** Get cached paths for a series */
-  getCachedPaths(group: number, index: number, xMin: number | null, xMax: number | null): SeriesPaths | undefined {
-    const key = this.cacheKey(group, index, xMin, xMax);
+  /** Restore a previously saved snapshot. Returns false if no snapshot exists. */
+  restoreSnapshot(ctx: CanvasRenderingContext2D): boolean {
+    if (this.savedPlot == null) return false;
+    ctx.putImageData(this.savedPlot, 0, 0);
+    return true;
+  }
+
+  /** Invalidate the saved snapshot */
+  invalidateSnapshot(): void {
+    this.savedPlot = null;
+  }
+
+  // --- Path cache ---
+
+  /** Build cache key using data window indices for stable cache hits */
+  private cacheKey(group: number, index: number, i0: number, i1: number): string {
+    return `${group}:${index}:${i0}:${i1}`;
+  }
+
+  /** Get cached paths for a series (O(1) LRU via Map delete+reinsert) */
+  getCachedPaths(group: number, index: number, i0: number, i1: number): SeriesPaths | undefined {
+    const key = this.cacheKey(group, index, i0, i1);
     const paths = this.pathCache.get(key);
     if (paths != null) {
-      // Move to end for LRU
-      const idx = this.cacheOrder.indexOf(key);
-      if (idx !== -1) {
-        this.cacheOrder.splice(idx, 1);
-        this.cacheOrder.push(key);
-      }
+      // Move to end for LRU: delete and re-insert
+      this.pathCache.delete(key);
+      this.pathCache.set(key, paths);
     }
     return paths;
   }
 
-  /** Store paths in cache */
-  setCachedPaths(group: number, index: number, xMin: number | null, xMax: number | null, paths: SeriesPaths): void {
-    const key = this.cacheKey(group, index, xMin, xMax);
+  /** Store paths in cache (O(1) LRU eviction) */
+  setCachedPaths(group: number, index: number, i0: number, i1: number, paths: SeriesPaths): void {
+    const key = this.cacheKey(group, index, i0, i1);
 
-    if (!this.pathCache.has(key)) {
-      // Evict oldest if at capacity
-      while (this.cacheOrder.length >= MAX_CACHE_SIZE) {
-        const oldest = this.cacheOrder.shift();
-        if (oldest != null) {
-          this.pathCache.delete(oldest);
-        }
+    // Evict oldest entries if at capacity
+    while (this.pathCache.size >= MAX_CACHE_SIZE) {
+      const oldest = this.pathCache.keys().next().value;
+      if (oldest != null) {
+        this.pathCache.delete(oldest);
+      } else {
+        break;
       }
-      this.cacheOrder.push(key);
     }
 
     this.pathCache.set(key, paths);
   }
 
-  /** Invalidate paths for a specific series (all scale ranges) */
+  /** Invalidate paths for a specific series (all windows) */
   invalidateSeries(group: number, index: number): void {
     const prefix = `${group}:${index}:`;
-    const toRemove: string[] = [];
-    for (const key of this.pathCache.keys()) {
+    for (const key of [...this.pathCache.keys()]) {
       if (key.startsWith(prefix)) {
-        toRemove.push(key);
-      }
-    }
-    for (const key of toRemove) {
-      this.pathCache.delete(key);
-      const idx = this.cacheOrder.indexOf(key);
-      if (idx !== -1) {
-        this.cacheOrder.splice(idx, 1);
+        this.pathCache.delete(key);
       }
     }
   }
@@ -174,7 +183,7 @@ export class CanvasRenderer {
   /** Invalidate all cached paths (e.g. on scale change) */
   clearCache(): void {
     this.pathCache.clear();
-    this.cacheOrder.length = 0;
+    this.savedPlot = null;
   }
 
   /**
@@ -187,10 +196,9 @@ export class CanvasRenderer {
 
     const group = info.config.group;
     const index = info.config.index;
-    const xMin = info.xScale.min;
-    const xMax = info.xScale.max;
+    const [i0, i1] = info.window;
 
-    let paths = this.getCachedPaths(group, index, xMin, xMax);
+    let paths = this.getCachedPaths(group, index, i0, i1);
 
     if (paths == null) {
       const pathBuilder = info.config.paths ?? defaultPathBuilder;
@@ -211,14 +219,14 @@ export class CanvasRenderer {
         plotBox.height,
         plotBox.left,
         plotBox.top,
-        info.window[0],
-        info.window[1],
+        i0,
+        i1,
         dir,
         pxRound,
         { fillTo, spanGaps: info.config.spanGaps },
       );
 
-      this.setCachedPaths(group, index, xMin, xMax, paths);
+      this.setCachedPaths(group, index, i0, i1, paths);
     }
 
     drawSeriesPath(ctx, info.config, paths, pxRatio);

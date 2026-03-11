@@ -5,6 +5,7 @@ import type { SelectState } from '../types/cursor';
 import { ScaleManager } from '../core/ScaleManager';
 import { DataStore } from '../core/DataStore';
 import { CursorManager } from '../core/CursorManager';
+import { RenderScheduler } from '../core/RenderScheduler';
 import { CanvasRenderer, type RenderableSeriesInfo } from '../rendering/CanvasRenderer';
 import { convergeSize } from '../axes/layout';
 import { createAxisState } from '../axes/ticks';
@@ -12,6 +13,7 @@ import { drawAxesGrid } from '../rendering/drawAxes';
 import { drawCursor } from '../rendering/drawCursor';
 import { drawSelection } from '../rendering/drawSelect';
 import { drawPoints, shouldShowPoints } from '../rendering/drawPoints';
+import { DirtyFlag } from '../types/common';
 
 /**
  * Mutable chart store — holds all chart state outside of React state.
@@ -48,8 +50,8 @@ export interface ChartStore {
   // Subscribers
   listeners: Set<() => void>;
 
-  // RAF handle
-  rafId: number | null;
+  // Render scheduler with dirty flags
+  scheduler: RenderScheduler;
 
   // Methods
   registerScale: (cfg: ScaleConfig) => void;
@@ -57,6 +59,7 @@ export interface ChartStore {
   registerSeries: (cfg: SeriesConfig) => void;
   unregisterSeries: (group: number, index: number) => void;
   scheduleRedraw: () => void;
+  scheduleCursorRedraw: () => void;
   subscribe: (fn: () => void) => () => void;
   redraw: () => void;
 }
@@ -86,7 +89,7 @@ export function createChartStore(): ChartStore {
 
     canvas: null,
     listeners: new Set(),
-    rafId: null,
+    scheduler: new RenderScheduler(),
 
     registerScale(cfg: ScaleConfig) {
       store.scaleConfigs = store.scaleConfigs.filter(s => s.id !== cfg.id);
@@ -113,11 +116,11 @@ export function createChartStore(): ChartStore {
     },
 
     scheduleRedraw() {
-      if (store.rafId != null) return;
-      store.rafId = requestAnimationFrame(() => {
-        store.rafId = null;
-        store.redraw();
-      });
+      store.scheduler.mark(DirtyFlag.Full);
+    },
+
+    scheduleCursorRedraw() {
+      store.scheduler.mark(DirtyFlag.Cursor);
     },
 
     subscribe(fn: () => void) {
@@ -126,7 +129,7 @@ export function createChartStore(): ChartStore {
     },
 
     redraw() {
-      const { scaleManager, dataStore, renderer, seriesConfigs, width, height, pxRatio, canvas } = store;
+      const { scaleManager, dataStore, renderer, seriesConfigs, width, height, pxRatio, canvas, scheduler } = store;
 
       if (canvas == null || width === 0 || height === 0) return;
 
@@ -134,6 +137,30 @@ export function createChartStore(): ChartStore {
       if (ctx == null) return;
 
       renderer.setContext(ctx, pxRatio);
+
+      const dirty = scheduler.dirty;
+      const cursorOnly = (dirty & ~(DirtyFlag.Cursor | DirtyFlag.Select)) === 0;
+
+      const getScale = (id: string) => scaleManager.getScale(id);
+
+      // --- Fast path: cursor/select only — restore snapshot and redraw overlay ---
+      if (cursorOnly && renderer.restoreSnapshot(ctx)) {
+        drawCursor(
+          ctx,
+          store.cursorManager.state,
+          store.plotBox,
+          pxRatio,
+          dataStore.data,
+          seriesConfigs,
+          getScale,
+          (gi) => scaleManager.getGroupXScaleKey(gi),
+        );
+        drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
+        for (const fn of store.listeners) fn();
+        return;
+      }
+
+      // --- Full redraw path ---
 
       // 1. Auto-range scales from data (first pass)
       // Note: group-to-xScale mappings are set in Chart.tsx's data useEffect
@@ -143,27 +170,26 @@ export function createChartStore(): ChartStore {
         yScale: s.yScale,
       }));
 
-      scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore.windows);
+      scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore);
 
-      // 3. Update data windows from x-scale ranges
-      dataStore.updateWindows((groupIdx) => {
+      // 2. Update data windows from x-scale ranges
+      const windowsChanged = dataStore.updateWindows((groupIdx) => {
         const scaleKey = scaleManager.getGroupXScaleKey(groupIdx);
         return scaleKey != null ? scaleManager.getScale(scaleKey) : undefined;
       });
 
-      // 4. Re-range with windows (second pass for y-scales)
-      scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore.windows);
+      // 3. Re-range with windows (second pass for y-scales) — skip if windows unchanged
+      if (windowsChanged) {
+        scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore);
+      }
 
-      // 5. Rebuild axis states from configs (if configs changed)
+      // 4. Rebuild axis states from configs (if configs changed)
       syncAxisStates(store);
 
-      // 6. Convergence loop: calculate axis sizes → compute plot rect
-      const getScale = (id: string) => scaleManager.getScale(id);
-
+      // 5. Convergence loop: calculate axis sizes → compute plot rect
       if (store.axisStates.length > 0) {
         store.plotBox = convergeSize(width, height, store.axisStates, getScale);
       } else {
-        // No axes: use full canvas with small margin
         const margin = 10;
         store.plotBox = {
           left: margin,
@@ -173,15 +199,15 @@ export function createChartStore(): ChartStore {
         };
       }
 
-      // 7. Clear canvas
+      // 6. Clear canvas
       ctx.clearRect(0, 0, width * pxRatio, height * pxRatio);
 
-      // 8. Draw grid lines (behind series)
+      // 7. Draw grid lines (behind series)
       if (store.axisStates.length > 0) {
         drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio);
       }
 
-      // 9. Draw series (clipped to plot area)
+      // 8. Draw series (clipped to plot area)
       const renderList: RenderableSeriesInfo[] = [];
       for (const cfg of seriesConfigs) {
         const xScaleKey = scaleManager.getGroupXScaleKey(cfg.group);
@@ -201,8 +227,6 @@ export function createChartStore(): ChartStore {
       }
 
       // Draw series in a clipped region with ctx.scale for HiDPI correctness.
-      // Path builders produce coordinates in CSS pixel space; ctx.scale maps them
-      // to physical pixels. Pass pxRatio=1 so lineWidth/dash aren't double-scaled.
       ctx.save();
       ctx.scale(pxRatio, pxRatio);
       ctx.beginPath();
@@ -220,7 +244,7 @@ export function createChartStore(): ChartStore {
 
       ctx.restore();
 
-      // 9b. Draw data points (hollow circles) when zoomed in enough
+      // 8b. Draw data points (hollow circles) when zoomed in enough
       for (const info of renderList) {
         const cfg = info.config;
         if (cfg.show === false) continue;
@@ -241,6 +265,9 @@ export function createChartStore(): ChartStore {
         }
       }
 
+      // 9. Save snapshot of static content (before cursor/selection overlay)
+      renderer.saveSnapshot(ctx, width * pxRatio, height * pxRatio);
+
       // 10. Draw cursor crosshair + point
       drawCursor(
         ctx,
@@ -260,6 +287,8 @@ export function createChartStore(): ChartStore {
       for (const fn of store.listeners) fn();
     },
   };
+
+  store.scheduler.onRedraw(() => store.redraw());
 
   return store;
 }

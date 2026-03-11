@@ -60,23 +60,14 @@ export function Chart({ width, height, data, children, className, pxRatio: pxRat
   useEffect(() => {
     if (canvasRef.current) {
       store.canvas = canvasRef.current;
-
-      canvasRef.current.width = width * pxRatio;
-      canvasRef.current.height = height * pxRatio;
-      canvasRef.current.style.width = `${width}px`;
-      canvasRef.current.style.height = `${height}px`;
-
       store.scheduleRedraw();
     }
 
     return () => {
       store.canvas = null;
-      if (store.rafId != null) {
-        cancelAnimationFrame(store.rafId);
-        store.rafId = null;
-      }
+      store.scheduler.cancel();
     };
-  }, [store, width, height, pxRatio]);
+  }, [store]);
 
   return (
     <ChartContext.Provider value={store}>

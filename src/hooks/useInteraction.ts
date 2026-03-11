@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { ChartStore } from './useChartStore';
 import type { SelectState } from '../types/cursor';
 import { posToVal, invalidateScaleCache } from '../core/Scale';
+import { DirtyFlag } from '../types/common';
 
 /**
  * Hook that attaches mouse/touch listeners to the chart container
@@ -47,7 +48,7 @@ export function useInteraction(
 
       if (!isInPlot(cx, cy) && dragStartRef.current == null) {
         store.cursorManager.hide();
-        store.scheduleRedraw();
+        store.scheduleCursorRedraw();
         return;
       }
 
@@ -80,7 +81,12 @@ export function useInteraction(
         store.selectState = sel;
       }
 
-      store.scheduleRedraw();
+      // Cursor move (and optional drag) only needs cursor+select redraw
+      if (dragStartRef.current != null) {
+        store.scheduler.mark(DirtyFlag.Cursor | DirtyFlag.Select);
+      } else {
+        store.scheduleCursorRedraw();
+      }
     }
 
     function onMouseDown(e: MouseEvent): void {
@@ -131,7 +137,7 @@ export function useInteraction(
         store.selectState = sel;
       }
 
-      store.scheduleRedraw();
+      store.scheduleCursorRedraw();
     }
 
     function onDblClick(_e: MouseEvent): void {

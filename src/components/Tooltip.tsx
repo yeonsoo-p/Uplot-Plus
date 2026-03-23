@@ -114,6 +114,7 @@ export function Tooltip({
     position: 'absolute',
     left: posLeft,
     top: posTop,
+    whiteSpace: 'nowrap',
     pointerEvents: 'none',
     zIndex: 100,
   };

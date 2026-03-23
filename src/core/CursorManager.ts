@@ -63,6 +63,18 @@ export class CursorManager {
     let bestSeries = -1;
     let bestIdx = -1;
 
+    // Pre-group series configs by group index for O(1) lookup
+    const groupedConfigs = new Map<number, SeriesConfig[]>();
+    for (const sc of seriesConfigs) {
+      if (sc.show === false) continue;
+      let arr = groupedConfigs.get(sc.group);
+      if (arr == null) {
+        arr = [];
+        groupedConfigs.set(sc.group, arr);
+      }
+      arr.push(sc);
+    }
+
     for (let gi = 0; gi < data.length; gi++) {
       const group = data[gi];
       if (group == null) continue;
@@ -103,8 +115,7 @@ export class CursorManager {
         const pxX = valToPos(xVal, xScale, xDim, xOff);
 
         // Check each series in this group
-        for (const sc of seriesConfigs) {
-          if (sc.group !== gi || sc.show === false) continue;
+        for (const sc of groupedConfigs.get(gi) ?? []) {
 
           const yData = group.series[sc.index];
           if (yData == null) continue;

@@ -25,6 +25,18 @@ export function useDrawHook(fn: DrawCallback): void {
  * Register a draw callback that fires on the cursor overlay
  * (redrawn every frame, including cursor-only fast path).
  * Uses a ref wrapper so the callback can be an inline function.
+ *
+ * **Performance note:** This callback fires on *every* cursor move frame
+ * (60-120 Hz). Keep the callback cheap. If your drawing is expensive,
+ * cache previous cursor state and skip redundant work:
+ * ```ts
+ * const lastIdx = useRef(-1);
+ * useCursorDrawHook((dc, cursor) => {
+ *   if (cursor.activeDataIdx === lastIdx.current) return;
+ *   lastIdx.current = cursor.activeDataIdx;
+ *   // expensive drawing here
+ * });
+ * ```
  */
 export function useCursorDrawHook(fn: CursorDrawCallback): void {
   const store = useChart();

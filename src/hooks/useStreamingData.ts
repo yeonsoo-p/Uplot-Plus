@@ -15,6 +15,7 @@ export interface StreamingResult {
   data: ChartData;
   /**
    * Push new data points into group 0. Oldest points beyond the window are dropped.
+   * Multiple calls within the same animation frame are batched into a single React update.
    * @param x - new x values
    * @param ySeries - one array of new y values per series
    */
@@ -22,6 +23,7 @@ export interface StreamingResult {
   /**
    * Push new data points into a specific group. Oldest points beyond the window are dropped.
    * Other groups are preserved unchanged.
+   * Multiple calls within the same animation frame are batched into a single React update.
    * @param group - target group index
    * @param x - new x values
    * @param ySeries - one array of new y values per series
@@ -37,11 +39,19 @@ export interface StreamingResult {
   fps: number;
 }
 
+interface PendingGroup {
+  x: number[];
+  series: number[][];
+}
+
 /**
  * Hook for streaming/real-time chart data with a sliding window.
  *
  * Manages a requestAnimationFrame loop and FPS counter.
  * Call `push()` from your own tick callback, or use it standalone.
+ *
+ * Multiple push() calls within the same animation frame are batched
+ * into a single React state update, avoiding redundant re-renders.
  */
 export function useStreamingData(
   initialData: ChartData,
@@ -58,28 +68,62 @@ export function useStreamingData(
   const fpsFrames = useRef(0);
   const fpsLast = useRef(0);
 
+  // Pending buffer for rAF-batched pushes
+  const pendingRef = useRef<Map<number, PendingGroup>>(new Map());
+  const batchRafRef = useRef(0);
+  const windowSizeRef = useRef(windowSize);
+  windowSizeRef.current = windowSize;
+
   const pushGroup = useCallback(
     (groupIdx: number, x: number[], ...ySeries: number[][]) => {
-      setData(prev => {
-        const group = prev[groupIdx];
-        if (group == null) return prev;
+      // Accumulate into pending buffer
+      let pending = pendingRef.current.get(groupIdx);
+      if (pending == null) {
+        pending = { x: [], series: ySeries.map(() => []) };
+        pendingRef.current.set(groupIdx, pending);
+      }
+      pending.x.push(...x);
+      for (let i = 0; i < ySeries.length; i++) {
+        let arr = pending.series[i];
+        if (arr == null) {
+          arr = [];
+          pending.series[i] = arr;
+        }
+        arr.push(...(ySeries[i] ?? []));
+      }
 
-        const prevX = group.x as number[];
-        const drop = Math.max(0, prevX.length + x.length - windowSize);
-        const newX = drop > 0 ? prevX.slice(drop).concat(x) : prevX.concat(x);
+      // Schedule flush on next rAF (coalesces multiple pushes per frame)
+      if (batchRafRef.current === 0) {
+        batchRafRef.current = requestAnimationFrame(() => {
+          batchRafRef.current = 0;
+          const batched = pendingRef.current;
+          pendingRef.current = new Map();
+          const ws = windowSizeRef.current;
 
-        const newSeries = group.series.map((s, i) => {
-          const arr = s as number[];
-          const yNew = ySeries[i] ?? [];
-          return drop > 0 ? arr.slice(drop).concat(yNew) : arr.concat(yNew);
+          setData(prev => {
+            const next = prev.slice();
+            for (const [gi, { x: bx, series: bs }] of batched) {
+              const group = next[gi];
+              if (group == null) continue;
+
+              const prevX = group.x as number[];
+              const drop = Math.max(0, prevX.length + bx.length - ws);
+              const newX = drop > 0 ? prevX.slice(drop).concat(bx) : prevX.concat(bx);
+
+              const newSeries = group.series.map((s, i) => {
+                const arr = s as number[];
+                const yNew = bs[i] ?? [];
+                return drop > 0 ? arr.slice(drop).concat(yNew) : arr.concat(yNew);
+              });
+
+              next[gi] = { x: newX, series: newSeries };
+            }
+            return next;
+          });
         });
-
-        const next = prev.slice();
-        next[groupIdx] = { x: newX, series: newSeries };
-        return next;
-      });
+      }
     },
-    [windowSize],
+    [],
   );
 
   const push = useCallback(
@@ -129,6 +173,15 @@ export function useStreamingData(
       }
     };
   }, [running]);
+
+  // Cleanup batch rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (batchRafRef.current !== 0) {
+        cancelAnimationFrame(batchRafRef.current);
+      }
+    };
+  }, []);
 
   // Auto-start on mount
   useEffect(() => {

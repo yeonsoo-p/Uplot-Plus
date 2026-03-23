@@ -18,6 +18,15 @@ export interface RenderableSeriesInfo {
 /** Maximum number of cached path entries before full cache clear */
 const MAX_CACHE_SIZE = 64;
 
+/** Doubly-linked list node for O(1) LRU promotion */
+interface LruNode {
+  group: number;
+  index: number;
+  key: string;
+  prev: LruNode | null;
+  next: LruNode | null;
+}
+
 /**
  * Imperative canvas renderer.
  * Handles clearing, drawing series, and (later) axes, cursor, selection.
@@ -32,8 +41,36 @@ export class CanvasRenderer {
   private pathCache = new Map<number, Map<number, Map<string, SeriesPaths>>>();
   private pathCacheSize = 0;
 
-  // LRU tracking: flat list of composite keys in access order (oldest first)
-  private lruOrder: { group: number; index: number; key: string }[] = [];
+  // --- Band path cache: keyed by group:upper:lower:i0:i1 ---
+  private bandCache = new Map<string, Path2D>();
+
+  // LRU tracking: doubly-linked list + Map for O(1) promotion and eviction
+  private lruHead: LruNode | null = null; // oldest
+  private lruTail: LruNode | null = null; // newest
+  private lruMap = new Map<string, LruNode>();
+
+  private lruKey(group: number, index: number, key: string): string {
+    return `${group}:${index}:${key}`;
+  }
+
+  /** Unlink a node from the doubly-linked list */
+  private lruUnlink(node: LruNode): void {
+    if (node.prev != null) node.prev.next = node.next;
+    else this.lruHead = node.next;
+    if (node.next != null) node.next.prev = node.prev;
+    else this.lruTail = node.prev;
+    node.prev = null;
+    node.next = null;
+  }
+
+  /** Append a node to the tail (most-recently-used) */
+  private lruAppend(node: LruNode): void {
+    node.prev = this.lruTail;
+    node.next = null;
+    if (this.lruTail != null) this.lruTail.next = node;
+    else this.lruHead = node;
+    this.lruTail = node;
+  }
 
   // --- Offscreen canvas for cursor-only snapshot (avoids getImageData/putImageData) ---
   private snapshotCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
@@ -171,14 +208,14 @@ export class CanvasRenderer {
     if (groupMap == null) return undefined;
     const indexMap = groupMap.get(index);
     if (indexMap == null) return undefined;
-    const key = this.windowKey(i0, i1);
-    const paths = indexMap.get(key);
+    const wk = this.windowKey(i0, i1);
+    const paths = indexMap.get(wk);
     if (paths != null) {
-      // Promote to most-recently-used
-      const idx = this.lruOrder.findIndex(e => e.group === group && e.index === index && e.key === key);
-      if (idx >= 0) {
-        const entry = this.lruOrder.splice(idx, 1)[0];
-        if (entry != null) this.lruOrder.push(entry);
+      // O(1) promote to most-recently-used
+      const node = this.lruMap.get(this.lruKey(group, index, wk));
+      if (node != null && node !== this.lruTail) {
+        this.lruUnlink(node);
+        this.lruAppend(node);
       }
     }
     return paths;
@@ -189,17 +226,25 @@ export class CanvasRenderer {
     // LRU eviction: remove oldest 25% when at capacity
     if (this.pathCacheSize >= MAX_CACHE_SIZE) {
       const evictCount = MAX_CACHE_SIZE >> 2; // 25%
-      const toEvict = this.lruOrder.splice(0, evictCount);
-      for (const entry of toEvict) {
-        const gm = this.pathCache.get(entry.group);
-        if (gm == null) continue;
-        const im = gm.get(entry.index);
-        if (im == null) continue;
-        im.delete(entry.key);
-        this.pathCacheSize--;
-        if (im.size === 0) gm.delete(entry.index);
-        if (gm.size === 0) this.pathCache.delete(entry.group);
+      let cur = this.lruHead;
+      for (let i = 0; i < evictCount && cur != null; i++) {
+        const next = cur.next;
+        const gm = this.pathCache.get(cur.group);
+        if (gm != null) {
+          const im = gm.get(cur.index);
+          if (im != null) {
+            im.delete(cur.key);
+            this.pathCacheSize--;
+            if (im.size === 0) gm.delete(cur.index);
+            if (gm.size === 0) this.pathCache.delete(cur.group);
+          }
+        }
+        this.lruMap.delete(this.lruKey(cur.group, cur.index, cur.key));
+        cur = next;
       }
+      this.lruHead = cur;
+      if (cur != null) cur.prev = null;
+      else this.lruTail = null;
     }
 
     let groupMap = this.pathCache.get(group);
@@ -214,12 +259,15 @@ export class CanvasRenderer {
       groupMap.set(index, indexMap);
     }
 
-    const key = this.windowKey(i0, i1);
-    if (!indexMap.has(key)) {
+    const wk = this.windowKey(i0, i1);
+    const lk = this.lruKey(group, index, wk);
+    if (!indexMap.has(wk)) {
       this.pathCacheSize++;
-      this.lruOrder.push({ group, index, key });
+      const node: LruNode = { group, index, key: wk, prev: null, next: null };
+      this.lruAppend(node);
+      this.lruMap.set(lk, node);
     }
-    indexMap.set(key, paths);
+    indexMap.set(wk, paths);
   }
 
   /** Invalidate paths for a specific series (all windows) */
@@ -229,8 +277,16 @@ export class CanvasRenderer {
     const indexMap = groupMap.get(index);
     if (indexMap != null) {
       this.pathCacheSize -= indexMap.size;
+      // Remove LRU nodes for all window keys of this series
+      for (const wk of indexMap.keys()) {
+        const lk = this.lruKey(group, index, wk);
+        const node = this.lruMap.get(lk);
+        if (node != null) {
+          this.lruUnlink(node);
+          this.lruMap.delete(lk);
+        }
+      }
       groupMap.delete(index);
-      this.lruOrder = this.lruOrder.filter(e => !(e.group === group && e.index === index));
     }
   }
 
@@ -238,11 +294,24 @@ export class CanvasRenderer {
   clearGroupCache(group: number): void {
     const groupMap = this.pathCache.get(group);
     if (groupMap != null) {
-      for (const indexMap of groupMap.values()) {
+      for (const [index, indexMap] of groupMap.entries()) {
         this.pathCacheSize -= indexMap.size;
+        for (const wk of indexMap.keys()) {
+          const lk = this.lruKey(group, index, wk);
+          const node = this.lruMap.get(lk);
+          if (node != null) {
+            this.lruUnlink(node);
+            this.lruMap.delete(lk);
+          }
+        }
       }
       this.pathCache.delete(group);
-      this.lruOrder = this.lruOrder.filter(e => e.group !== group);
+    }
+    // Clear band paths for this group
+    for (const bk of this.bandCache.keys()) {
+      if (bk.startsWith(`${group}:`)) {
+        this.bandCache.delete(bk);
+      }
     }
     this.snapshotValid = false;
   }
@@ -251,8 +320,25 @@ export class CanvasRenderer {
   clearCache(): void {
     this.pathCache.clear();
     this.pathCacheSize = 0;
-    this.lruOrder.length = 0;
+    this.lruHead = null;
+    this.lruTail = null;
+    this.lruMap.clear();
+    this.bandCache.clear();
     this.snapshotValid = false;
+  }
+
+  // --- Band path cache ---
+
+  private bandKey(group: number, upper: number, lower: number, i0: number, i1: number): string {
+    return `${group}:${upper}:${lower}:${i0}:${i1}`;
+  }
+
+  getCachedBandPath(group: number, upper: number, lower: number, i0: number, i1: number): Path2D | undefined {
+    return this.bandCache.get(this.bandKey(group, upper, lower, i0, i1));
+  }
+
+  setCachedBandPath(group: number, upper: number, lower: number, i0: number, i1: number, path: Path2D): void {
+    this.bandCache.set(this.bandKey(group, upper, lower, i0, i1), path);
   }
 
   /**

@@ -2,6 +2,9 @@ import type { SeriesConfig, BBox } from '../types';
 import type { SeriesPaths } from '../paths/types';
 import type { GradientConfig, ColorValue } from '../types/series';
 
+/** Cache gradients by config identity + plotBox dimensions to avoid recreation every frame */
+const gradientCache = new WeakMap<GradientConfig, { grad: CanvasGradient; top: number; height: number }>();
+
 /** Resolve a ColorValue to a CanvasGradient or string */
 function resolveColor(
   ctx: CanvasRenderingContext2D,
@@ -9,20 +12,24 @@ function resolveColor(
   plotBox: BBox,
 ): string | CanvasGradient {
   if (typeof value === 'string') return value;
-  return createGradient(ctx, value, plotBox);
+  return getCachedGradient(ctx, value, plotBox);
 }
 
-/** Create a CanvasGradient from a GradientConfig */
-function createGradient(
+/** Get or create a cached CanvasGradient */
+function getCachedGradient(
   ctx: CanvasRenderingContext2D,
   cfg: GradientConfig,
   plotBox: BBox,
 ): CanvasGradient {
-  // Linear gradient from top to bottom of plot area (default)
+  const cached = gradientCache.get(cfg);
+  if (cached != null && cached.top === plotBox.top && cached.height === plotBox.height) {
+    return cached.grad;
+  }
   const grad = ctx.createLinearGradient(0, plotBox.top, 0, plotBox.top + plotBox.height);
   for (const [offset, color] of cfg.stops) {
     grad.addColorStop(offset, color);
   }
+  gradientCache.set(cfg, { grad, top: plotBox.top, height: plotBox.height });
   return grad;
 }
 

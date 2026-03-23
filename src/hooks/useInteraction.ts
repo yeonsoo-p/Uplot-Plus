@@ -232,7 +232,6 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
           );
           if (idx >= 0 && store.focusedSeries !== idx) {
             store.focusedSeries = idx;
-            store.renderer.clearCache();
             store.scheduleRedraw();
           }
         }

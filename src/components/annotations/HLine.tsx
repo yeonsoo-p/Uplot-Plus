@@ -2,6 +2,10 @@ import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawHLine } from '../../annotations';
 import { useLayoutEffect, useRef } from 'react';
 
+// Performance: each annotation instance registers its own useDrawHook callback.
+// For 50+ annotations, consider using a single parent component with one useDrawHook
+// that iterates over all annotation configs (see Timeline component for this pattern).
+
 export interface HLineProps {
   /** Y data value where the line is drawn */
   value: number;

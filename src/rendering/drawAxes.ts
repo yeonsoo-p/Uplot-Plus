@@ -168,21 +168,29 @@ export function drawAxesGrid(
 
       const angle = axis._rotate * -PI / 180;
 
-      for (let i = 0; i < values.length; i++) {
-        const val = values[i];
+      if (angle !== 0) {
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
 
-        if (val == null || val === '')
-          continue;
+        for (let i = 0; i < values.length; i++) {
+          const val = values[i];
 
-        const off = canOffs[i] ?? 0;
+          if (val == null || val === '')
+            continue;
 
-        if (angle !== 0) {
-          ctx.save();
-          ctx.translate(off, finalPos);
-          ctx.rotate(angle);
+          const off = canOffs[i] ?? 0;
+          ctx.setTransform(cos, sin, -sin, cos, off, finalPos);
           ctx.fillText(val, 0, 0);
-          ctx.restore();
-        } else {
+        }
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      } else {
+        for (let i = 0; i < values.length; i++) {
+          const val = values[i];
+
+          if (val == null || val === '')
+            continue;
+
+          const off = canOffs[i] ?? 0;
           const x = ori === Orientation.Horizontal ? off : finalPos;
           const y = ori === Orientation.Horizontal ? finalPos : off;
           ctx.fillText(val, x, y);

@@ -13,7 +13,7 @@ import { drawAxesGrid } from '../rendering/drawAxes';
 import { drawCursor } from '../rendering/drawCursor';
 import { drawSelection } from '../rendering/drawSelect';
 import { drawPoints, shouldShowPoints } from '../rendering/drawPoints';
-import { drawBand } from '../rendering/drawBands';
+import { buildBandPath, drawBandPath } from '../rendering/drawBands';
 import type { BandConfig } from '../types/bands';
 import { DirtyFlag } from '../types/common';
 import type { DrawContext, DrawCallback, CursorDrawCallback } from '../types/hooks';
@@ -339,11 +339,16 @@ export function createChartStore(): ChartStore {
       }
 
       // 8b. Draw bands (shaded area between series, inside clip)
+      const seriesCfgMap = new Map<string, SeriesConfig>();
+      for (const cfg of seriesConfigs) {
+        seriesCfgMap.set(`${cfg.group}-${cfg.index}`, cfg);
+      }
+
       for (const band of store.bandConfigs) {
         const xScaleKey = scaleManager.getGroupXScaleKey(band.group);
         const xScale = xScaleKey != null ? scaleManager.getScale(xScaleKey) : undefined;
-        const upperCfg = seriesConfigs.find(s => s.group === band.group && s.index === band.series[0]);
-        const lowerCfg = seriesConfigs.find(s => s.group === band.group && s.index === band.series[1]);
+        const upperCfg = seriesCfgMap.get(`${band.group}-${band.series[0]}`);
+        const lowerCfg = seriesCfgMap.get(`${band.group}-${band.series[1]}`);
 
         if (xScale == null || upperCfg == null || lowerCfg == null) continue;
 
@@ -351,13 +356,24 @@ export function createChartStore(): ChartStore {
         if (yScale == null) continue;
 
         const [i0, i1] = dataStore.getWindow(band.group);
-        drawBand(
-          ctx, band,
-          dataStore.getXValues(band.group),
-          dataStore.getYValues(band.group, band.series[0]),
-          dataStore.getYValues(band.group, band.series[1]),
-          xScale, yScale, store.plotBox, pxRatio, i0, i1,
-        );
+        const upper = band.series[0];
+        const lower = band.series[1];
+
+        let bandPath = renderer.getCachedBandPath(band.group, upper, lower, i0, i1);
+        if (bandPath == null) {
+          bandPath = buildBandPath(
+            dataStore.getXValues(band.group),
+            dataStore.getYValues(band.group, upper),
+            dataStore.getYValues(band.group, lower),
+            xScale, yScale, store.plotBox, pxRatio, i0, i1,
+          ) ?? undefined;
+          if (bandPath != null) {
+            renderer.setCachedBandPath(band.group, upper, lower, i0, i1, bandPath);
+          }
+        }
+        if (bandPath != null) {
+          drawBandPath(ctx, band, bandPath);
+        }
       }
 
       // 8c. Draw data points (inside clip)

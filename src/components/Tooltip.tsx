@@ -2,9 +2,6 @@ import React, { useSyncExternalStore, useCallback, useRef } from 'react';
 import { useChart } from '../hooks/useChart';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 
-/** Estimated tooltip width for edge-flip detection (CSS px) */
-const TOOLTIP_FLIP_WIDTH = 160;
-
 interface TooltipSnapshot {
   left: number;
   top: number;
@@ -26,6 +23,7 @@ export function Tooltip({
 }: TooltipProps): React.ReactElement | null {
   const store = useChart();
   const snapRef = useRef<TooltipSnapshot>({ left: -10, top: -10, activeGroup: -1, activeDataIdx: -1, revision: -1 });
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   const subscribe = useCallback(
     (cb: () => void) => store.subscribe(cb),
@@ -97,26 +95,32 @@ export function Tooltip({
   const offX = offset.x ?? 12;
   const offY = offset.y ?? -12;
 
-  // Flip tooltip to left side when near right edge
-  const flipX = (snap.left + plotBox.left + offX + TOOLTIP_FLIP_WIDTH) > (plotBox.left + plotBox.width);
-  const flipY = (snap.top + plotBox.top + offY) < plotBox.top;
+  // Measure actual tooltip dimensions from previous frame
+  const measuredWidth = tooltipRef.current?.offsetWidth ?? 0;
+  const measuredHeight = tooltipRef.current?.offsetHeight ?? 0;
 
-  const posLeft = flipX ? tooltipData.left - offX : tooltipData.left + offX;
-  const posTop = flipY ? tooltipData.top + Math.abs(offY) : tooltipData.top + offY;
+  // Cursor position in container coordinates
+  const cursorLeft = snap.left + plotBox.left;
+  const cursorTop = snap.top + plotBox.top;
+
+  const plotRight = plotBox.left + plotBox.width;
+  const plotBottom = plotBox.top + plotBox.height;
+
+  // Position at cursor + offset, clamped within plot boundaries
+  const posLeft = Math.max(plotBox.left, Math.min(cursorLeft + offX, plotRight - measuredWidth));
+  const posTop = Math.max(plotBox.top, Math.min(cursorTop + offY, plotBottom - measuredHeight));
+
+  const baseStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: posLeft,
+    top: posTop,
+    pointerEvents: 'none',
+    zIndex: 100,
+  };
 
   if (children) {
     return (
-      <div
-        className={className}
-        style={{
-          position: 'absolute',
-          left: posLeft,
-          top: posTop,
-          transform: flipX ? 'translateX(-100%)' : undefined,
-          pointerEvents: 'none',
-          zIndex: 100,
-        }}
-      >
+      <div ref={tooltipRef} className={className} style={baseStyle}>
         {children(tooltipData)}
       </div>
     );
@@ -124,14 +128,10 @@ export function Tooltip({
 
   return (
     <div
+      ref={tooltipRef}
       className={className}
       style={{
-        position: 'absolute',
-        left: posLeft,
-        top: posTop,
-        transform: flipX ? 'translateX(-100%)' : undefined,
-        pointerEvents: 'none',
-        zIndex: 100,
+        ...baseStyle,
         background: 'rgba(0,0,0,0.85)',
         color: '#fff',
         padding: '6px 10px',

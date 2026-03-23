@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { ScaleConfig, SeriesConfig, BBox } from '../types';
+import type { CursorConfig } from '../types/chart';
 import type { AxisConfig, AxisState } from '../types/axes';
 import type { SelectState } from '../types/cursor';
 import { ScaleManager } from '../core/ScaleManager';
@@ -87,8 +88,10 @@ export interface ChartStore {
   focusedSeries: number | null;
   /** Alpha for non-focused series (0-1, default 0.15) */
   focusAlpha: number;
-  /** Whether wheel zoom is enabled */
-  wheelZoom: boolean;
+  /** Wheel zoom configuration */
+  wheelZoom: CursorConfig['wheelZoom'];
+  /** Chart title drawn on canvas */
+  title: string | undefined;
 
   // Revision counter — incremented on visibility toggles to trigger subscriber re-renders
   revision: number;
@@ -145,6 +148,7 @@ export function createChartStore(): ChartStore {
     focusedSeries: null,
     focusAlpha: 0.15,
     wheelZoom: false,
+    title: undefined,
     revision: 0,
     eventCallbacks: {},
     _prevScaleRanges: new Map(),
@@ -281,7 +285,8 @@ export function createChartStore(): ChartStore {
 
       // 5. Convergence loop: calculate axis sizes → compute plot rect
       if (store.axisStates.length > 0) {
-        store.plotBox = convergeSize(width, height, store.axisStates, getScale);
+        const titleHeight = store.title != null ? 20 : 0;
+        store.plotBox = convergeSize(width, height, store.axisStates, getScale, titleHeight);
       } else {
         const margin = 10;
         store.plotBox = {
@@ -297,7 +302,7 @@ export function createChartStore(): ChartStore {
 
       // 7. Draw grid lines (behind series)
       if (store.axisStates.length > 0) {
-        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio);
+        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio, store.title);
       }
 
       // 8. Draw series (clipped to plot area)

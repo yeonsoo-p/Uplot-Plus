@@ -223,8 +223,8 @@ describe('hasData', () => {
 
 // ---- rangeNum ----
 describe('rangeNum', () => {
-  it('returns [0, 100] for zero range at zero', () => {
-    expect(rangeNum(0, 0, 0.1)).toEqual([0, 100]);
+  it('returns [-1, 1] for zero range at zero', () => {
+    expect(rangeNum(0, 0, 0.1)).toEqual([-1, 1]);
   });
 
   it('adds padding to normal range', () => {

@@ -18,8 +18,7 @@ export default function LegendDemo() {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>Legend at bottom (default)</h4>
-        <Chart width={800} height={250} data={data}>
+        <Chart width={800} height={250} data={data} title="Legend at bottom (default)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />
@@ -32,8 +31,7 @@ export default function LegendDemo() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>Legend at top — click series to toggle</h4>
-        <Chart width={800} height={250} data={data}>
+        <Chart width={800} height={250} data={data} title="Legend at top — click series to toggle">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />

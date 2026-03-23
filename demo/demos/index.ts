@@ -67,6 +67,7 @@ import ZoomWheel from './ZoomWheel';
 import ZoomTouch from './ZoomTouch';
 import ZoomVariations from './ZoomVariations';
 import ZoomFetch from './ZoomFetch';
+import ZoomModifierKeys from './ZoomModifierKeys';
 import YScaleDrag from './YScaleDrag';
 import ZoomRangerDemo from './ZoomRanger';
 import ZoomRangerGrips from './ZoomRangerGrips';
@@ -196,6 +197,7 @@ export const demos: DemoEntry[] = [
   { id: 'zoom-touch', title: 'Touch Zoom', description: 'Two-finger pinch to zoom on touch devices.', category: 'Zoom & Interaction', component: ZoomTouch, sourceFile: 'ZoomTouch' },
   { id: 'zoom-variations', title: 'Zoom Variations', description: 'Drag zoom, wheel zoom, and double-click reset combined.', category: 'Zoom & Interaction', component: ZoomVariations, sourceFile: 'ZoomVariations' },
   { id: 'zoom-fetch', title: 'Zoom Fetch', description: 'Zoom triggers simulated data re-fetch with loading indicator.', category: 'Zoom & Interaction', component: ZoomFetch, sourceFile: 'ZoomFetch' },
+  { id: 'zoom-modifier-keys', title: 'Modifier Key Zoom', description: 'Shift+scroll for X zoom, Alt+scroll for Y zoom.', category: 'Zoom & Interaction', component: ZoomModifierKeys, sourceFile: 'ZoomModifierKeys' },
   { id: 'y-scale-drag', title: 'Y-Scale Drag', description: 'Click and drag on y-axis gutters to pan the scale range.', category: 'Zoom & Interaction', component: YScaleDrag, sourceFile: 'YScaleDrag' },
   { id: 'zoom-ranger', title: 'Zoom Ranger', description: 'Overview mini-chart with draggable selection controlling detail chart zoom.', category: 'Zoom & Interaction', component: ZoomRangerDemo, sourceFile: 'ZoomRanger' },
   { id: 'zoom-ranger-grips', title: 'Zoom Ranger (Grips)', description: 'Zoom ranger with visible grip handles on selection edges.', category: 'Zoom & Interaction', component: ZoomRangerGrips, sourceFile: 'ZoomRangerGrips' },

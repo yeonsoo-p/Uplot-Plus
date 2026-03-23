@@ -85,6 +85,7 @@ export function drawAxesGrid(
   getScale: (id: string) => ScaleState | undefined,
   plotBox: BBox,
   pxRatio: number,
+  title?: string,
 ): void {
   const plotLft = round(plotBox.left * pxRatio);
   const plotTop = round(plotBox.top * pxRatio);
@@ -251,5 +252,15 @@ export function drawAxesGrid(
       ctx.stroke();
       if (borderDash.length > 0) ctx.setLineDash([]);
     }
+  }
+
+  // Draw chart title centered over plot area
+  if (title != null) {
+    const titleFont = scaleFontPx('bold 14px system-ui, sans-serif', pxRatio);
+    ctx.font = titleFont;
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(title, round(plotLft + plotWid / 2), round(4 * pxRatio));
   }
 }

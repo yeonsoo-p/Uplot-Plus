@@ -25,8 +25,7 @@ export default function ZoomRangerXYDemo() {
 
   return (
     <div>
-      <h4 style={{ margin: '0 0 8px' }}>Detail view (controlled by ranger below)</h4>
-      <Chart width={800} height={300} data={data} cursor={{ wheelZoom: true }}>
+      <Chart width={800} height={300} data={data} cursor={{ wheelZoom: 'xy' }} title="Detail view (controlled by ranger below)">
         <Scale id="x" auto={range == null} min={range?.[0]} max={range?.[1]} />
         <Scale id="y"  />
         <Scale id="y2"  />

@@ -27,8 +27,7 @@ export default function NiceScale() {
         Auto-range produces &quot;nice&quot; round tick numbers for different data magnitudes.
       </p>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Small range (~2-20)</h4>
-        <Chart width={800} height={180} data={data1}>
+        <Chart width={800} height={180} data={data1} title="Small range (~2-20)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />
@@ -37,8 +36,7 @@ export default function NiceScale() {
         </Chart>
       </div>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Medium range (~3700-6200)</h4>
-        <Chart width={800} height={180} data={data2}>
+        <Chart width={800} height={180} data={data2} title="Medium range (~3700-6200)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />
@@ -47,8 +45,7 @@ export default function NiceScale() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ margin: '0 0 4px' }}>Tiny range (~0.004-0.056)</h4>
-        <Chart width={800} height={180} data={data3}>
+        <Chart width={800} height={180} data={data3} title="Tiny range (~0.004-0.056)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />

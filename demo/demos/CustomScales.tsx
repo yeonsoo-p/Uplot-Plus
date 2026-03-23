@@ -17,8 +17,7 @@ export default function CustomScales() {
         Data ranges ~20-80 but scale is fixed to 0-100.
       </p>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Fixed scale: 0 to 100</h4>
-        <Chart width={800} height={220} data={data}>
+        <Chart width={800} height={220} data={data} title="Fixed scale: 0 to 100">
           <Scale id="x" />
           <Scale id="y" auto={false} min={0} max={100} />
           <Axis scale="x" label="Index" />
@@ -27,8 +26,7 @@ export default function CustomScales() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ margin: '0 0 4px' }}>Auto scale (for comparison)</h4>
-        <Chart width={800} height={220} data={data}>
+        <Chart width={800} height={220} data={data} title="Auto scale (for comparison)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" label="Index" />

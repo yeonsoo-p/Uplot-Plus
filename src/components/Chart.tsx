@@ -12,7 +12,7 @@ import { useSyncGroup } from '../sync/useSyncGroup';
  * Canvas drawing is completely decoupled from React's reconciliation cycle.
  */
 export function Chart({
-  width, height, data, children, className, pxRatio: pxRatioOverride,
+  width, height, data, children, className, pxRatio: pxRatioOverride, title,
   onDraw, onCursorDraw, syncKey, cursor,
   onClick, onContextMenu, onDblClick, onCursorMove, onCursorLeave,
   onScaleChange, onSelect,
@@ -23,12 +23,18 @@ export function Chart({
   const pxRatio = pxRatioOverride ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
 
   // Sync cursor config to store in an effect (not during render)
-  const wheelZoom = cursor?.wheelZoom ?? false;
+  // wheelZoom can be an object, so we use a serialized key for the dependency array
+  const wheelZoom = cursor?.wheelZoom;
+  const wheelZoomKey = typeof wheelZoom === 'object' ? JSON.stringify(wheelZoom) : wheelZoom;
   const focusAlpha = cursor?.focus?.alpha ?? (cursor?.focus != null ? 0.15 : 1);
   useEffect(() => {
     store.wheelZoom = wheelZoom;
     store.focusAlpha = focusAlpha;
-  }, [store, wheelZoom, focusAlpha]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- wheelZoomKey is the stable serialization of wheelZoom
+  }, [store, wheelZoomKey, focusAlpha]);
+
+  // Sync title to store
+  store.title = title;
 
   // Sync event callback props to store (direct assignment to mutable store object)
   store.eventCallbacks.onClick = onClick;

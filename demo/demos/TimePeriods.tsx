@@ -55,8 +55,7 @@ export default function TimePeriods() {
         Time series at different granularities: hourly, daily, and monthly.
       </p>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Hourly (48h)</h4>
-        <Chart width={800} height={160} data={hourly}>
+        <Chart width={800} height={160} data={hourly} title="Hourly (48h)">
           <Scale id="x"  />
           <Scale id="y"  />
           <Axis scale="x" values={fmtHour} />
@@ -65,8 +64,7 @@ export default function TimePeriods() {
         </Chart>
       </div>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Daily (60d)</h4>
-        <Chart width={800} height={160} data={daily}>
+        <Chart width={800} height={160} data={daily} title="Daily (60d)">
           <Scale id="x"  />
           <Scale id="y"  />
           <Axis scale="x" values={fmtDay} />
@@ -75,8 +73,7 @@ export default function TimePeriods() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ margin: '0 0 4px' }}>Monthly (3yr)</h4>
-        <Chart width={800} height={160} data={monthly}>
+        <Chart width={800} height={160} data={monthly} title="Monthly (3yr)">
           <Scale id="x"  />
           <Scale id="y"  />
           <Axis scale="x" values={fmtMonth} />

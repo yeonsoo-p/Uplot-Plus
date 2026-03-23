@@ -29,8 +29,7 @@ export default function LogScales2() {
         Log scale comparison: base 10 (top) vs base 2 (bottom) on exponentially growing data.
       </p>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>Log base 10</h4>
-        <Chart width={800} height={220} data={data}>
+        <Chart width={800} height={220} data={data} title="Log base 10">
           <Scale id="x" />
           <Scale id="y"  distr={Distribution.Log} log={10} />
           <Axis scale="x" />
@@ -39,8 +38,7 @@ export default function LogScales2() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ margin: '0 0 4px' }}>Log base 2</h4>
-        <Chart width={800} height={220} data={data}>
+        <Chart width={800} height={220} data={data} title="Log base 2">
           <Scale id="x" />
           <Scale id="y"  distr={Distribution.Log} log={2} />
           <Axis scale="x" />

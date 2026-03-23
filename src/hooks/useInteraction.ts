@@ -422,11 +422,35 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
     }
 
     function onWheel(e: WheelEvent): void {
-      if (!store.wheelZoom) return;
+      const wz = store.wheelZoom;
+      if (!wz) return;
+
+      // Resolve which axes to zoom based on config + modifier keys
+      let zoomX = false;
+      let zoomY = false;
+
+      if (wz === true || wz === 'x') {
+        zoomX = true;
+      } else if (wz === 'y') {
+        zoomY = true;
+      } else if (wz === 'xy') {
+        zoomX = true;
+        zoomY = true;
+      } else if (typeof wz === 'object') {
+        if (wz.x) {
+          const xKey = typeof wz.x === 'object' ? wz.x.key : undefined;
+          zoomX = xKey == null || e[`${xKey}Key`];
+        }
+        if (wz.y) {
+          const yKey = typeof wz.y === 'object' ? wz.y.key : undefined;
+          zoomY = yKey == null || e[`${yKey}Key`];
+        }
+      }
+
+      if (!zoomX && !zoomY) return;
 
       const coords = getPlotCoords(e);
-      if (coords == null) return;
-      if (!isInPlot(coords.cx, coords.cy)) return;
+      if (coords == null || !isInPlot(coords.cx, coords.cy)) return;
 
       e.preventDefault();
 
@@ -434,10 +458,17 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       const plotBox = store.plotBox;
 
       for (const scale of store.scaleManager.getAllScales()) {
-        if (scale.ori !== Orientation.Horizontal) continue;
         if (scale.min == null || scale.max == null) continue;
 
-        const cursorVal = posToVal(coords.cx + plotBox.left, scale, plotBox.width, plotBox.left);
+        const isX = scale.ori === Orientation.Horizontal;
+        if (isX && !zoomX) continue;
+        if (!isX && !zoomY) continue;
+
+        const dim = isX ? plotBox.width : plotBox.height;
+        const off = isX ? plotBox.left : plotBox.top;
+        const cursorPos = isX ? coords.cx + plotBox.left : coords.cy + plotBox.top;
+        const cursorVal = posToVal(cursorPos, scale, dim, off);
+
         const newMin = cursorVal - (cursorVal - scale.min) * factor;
         const newMax = cursorVal + (scale.max - cursorVal) * factor;
 

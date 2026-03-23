@@ -48,8 +48,7 @@ export default function GridOverSeries() {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>Default (grid behind series)</h4>
-        <Chart width={800} height={200} data={data}>
+        <Chart width={800} height={200} data={data} title="Default (grid behind series)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />
@@ -59,8 +58,7 @@ export default function GridOverSeries() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ fontSize: 13, color: '#555', marginBottom: 4 }}>Grid over series (via onDraw hook)</h4>
-        <Chart width={800} height={200} data={data} onDraw={gridOverlay}>
+        <Chart width={800} height={200} data={data} onDraw={gridOverlay} title="Grid over series (via onDraw hook)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" grid={{ show: false }} />

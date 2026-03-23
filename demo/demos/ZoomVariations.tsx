@@ -21,10 +21,10 @@ export default function ZoomVariations() {
     <div>
       <p style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>
         <strong>Drag</strong> to zoom a region &middot;{' '}
-        <strong>Scroll wheel</strong> to zoom in/out &middot;{' '}
+        <strong>Scroll wheel</strong> to zoom both axes &middot;{' '}
         <strong>Double-click</strong> to reset zoom
       </p>
-      <Chart width={800} height={400} data={data} cursor={{ wheelZoom: true }}>
+      <Chart width={800} height={400} data={data} cursor={{ wheelZoom: 'xy' }}>
         <Scale id="x"  />
         <Scale id="y"  />
         <Axis scale="x" label="X" />

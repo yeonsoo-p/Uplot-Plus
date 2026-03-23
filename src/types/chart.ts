@@ -8,10 +8,29 @@ export interface FocusConfig {
   alpha?: number;
 }
 
+/** Modifier key for axis-specific wheel zoom */
+export interface WheelZoomAxisConfig {
+  /** Modifier key required to activate zoom on this axis. If omitted, no modifier needed. */
+  key?: 'shift' | 'alt' | 'ctrl';
+}
+
+/** Object form of wheelZoom: configure each axis independently with optional modifier keys */
+export interface WheelZoomConfig {
+  x?: boolean | WheelZoomAxisConfig;
+  y?: boolean | WheelZoomAxisConfig;
+}
+
 /** Cursor/interaction configuration */
 export interface CursorConfig {
-  /** Enable mouse wheel zoom on x-axis (default: false) */
-  wheelZoom?: boolean;
+  /**
+   * Enable mouse wheel zoom (default: false).
+   * - `true` or `'x'`: zoom x-axis only (no modifier key needed)
+   * - `'y'`: zoom y-axis only
+   * - `'xy'`: zoom both axes simultaneously
+   * - `{ x, y }`: configure each axis independently with optional modifier keys
+   *   e.g. `{ x: { key: 'shift' }, y: { key: 'alt' } }`
+   */
+  wheelZoom?: boolean | 'x' | 'y' | 'xy' | WheelZoomConfig;
   /** Focus mode: dims non-closest series on hover */
   focus?: FocusConfig;
 }
@@ -36,6 +55,8 @@ export interface ChartProps {
   onCursorDraw?: CursorDrawCallback;
   /** Sync key — charts with the same key synchronize their cursors. */
   syncKey?: string;
+  /** Chart title displayed above the plot area */
+  title?: string;
   /** Cursor and interaction config */
   cursor?: CursorConfig;
 

@@ -16,8 +16,7 @@ export default function ScalePadding() {
         Scale with range padding adds extra space around the data range (10% on each side).
       </p>
       <div style={{ marginBottom: 16 }}>
-        <h4 style={{ margin: '0 0 4px' }}>With padding (10%)</h4>
-        <Chart width={800} height={200} data={data}>
+        <Chart width={800} height={200} data={data} title="With padding (10%)">
           <Scale id="x" />
           <Scale
             id="y"
@@ -35,8 +34,7 @@ export default function ScalePadding() {
         </Chart>
       </div>
       <div>
-        <h4 style={{ margin: '0 0 4px' }}>Without padding (default)</h4>
-        <Chart width={800} height={200} data={data}>
+        <Chart width={800} height={200} data={data} title="Without padding (default)">
           <Scale id="x" />
           <Scale id="y"  />
           <Axis scale="x" />

@@ -124,11 +124,12 @@ export function calcPlotRect(
   chartWidth: number,
   chartHeight: number,
   axisStates: AxisState[],
+  titleHeight = 0,
 ): BBox {
   let plotWidCss = chartWidth;
-  let plotHgtCss = chartHeight;
+  let plotHgtCss = chartHeight - titleHeight;
   let plotLftCss = 0;
-  let plotTopCss = 0;
+  let plotTopCss = titleHeight;
 
   for (const axis of axisStates) {
     if (!axis._show)
@@ -212,6 +213,7 @@ export function convergeSize(
   chartHeight: number,
   axisStates: AxisState[],
   getScale: (id: string) => ScaleState | undefined,
+  titleHeight = 0,
 ): BBox {
   // Reset _size so convergence always runs at least 2 cycles.
   // Without this, preserved _size from a previous redraw can cause
@@ -238,12 +240,12 @@ export function convergeSize(
     converged = cycleNum === CYCLE_LIMIT || axesConverged;
 
     if (!converged) {
-      plotBox = calcPlotRect(chartWidth, chartHeight, axisStates);
+      plotBox = calcPlotRect(chartWidth, chartHeight, axisStates, titleHeight);
     }
   }
 
   // Final calcPlotRect with converged axis sizes
-  plotBox = calcPlotRect(chartWidth, chartHeight, axisStates);
+  plotBox = calcPlotRect(chartWidth, chartHeight, axisStates, titleHeight);
 
   // Compute axis positions from plot edges
   calcAxesRects(axisStates, plotBox);

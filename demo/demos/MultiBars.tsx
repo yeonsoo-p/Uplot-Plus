@@ -54,16 +54,19 @@ export default function MultiBars() {
           group={0} index={0} yScale="y"
           stroke="#2980b9" fill="rgba(41,128,185,0.75)" width={0}
           label="Widgets" paths={groupedBars(0, 3)} fillTo={0}
+          cursor={{ show: false }} points={{ show: false }}
         />
         <Series
           group={0} index={1} yScale="y"
           stroke="#27ae60" fill="rgba(39,174,96,0.75)" width={0}
           label="Gadgets" paths={groupedBars(1, 3)} fillTo={0}
+          cursor={{ show: false }} points={{ show: false }}
         />
         <Series
           group={0} index={2} yScale="y"
           stroke="#8e44ad" fill="rgba(142,68,173,0.75)" width={0}
           label="Gizmos" paths={groupedBars(2, 3)} fillTo={0}
+          cursor={{ show: false }} points={{ show: false }}
         />
       </Chart>
     </div>

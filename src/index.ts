@@ -9,7 +9,6 @@ export { Tooltip } from './components/Tooltip';
 export { ZoomRanger } from './components/ZoomRanger';
 export { Timeline } from './components/Timeline';
 export { Sparkline } from './components/Sparkline';
-export { ResponsiveChart } from './components/ResponsiveChart';
 
 // Annotation components (declarative)
 export { HLine, VLine, Region, AnnotationLabel } from './components/annotations';
@@ -50,7 +49,6 @@ export type { ZoomRangerProps } from './components/ZoomRanger';
 export type { TimelineProps, TimelineLane, TimelineSegment } from './types/timeline';
 export type { CandlestickOpts } from './paths/candlestick';
 export type { SparklineProps } from './components/Sparkline';
-export type { ResponsiveChartProps } from './components/ResponsiveChart';
 export type { HLineProps, VLineProps, RegionProps, AnnotationLabelProps } from './components/annotations';
 export type { StreamingOptions, StreamingResult } from './hooks/useStreamingData';
 

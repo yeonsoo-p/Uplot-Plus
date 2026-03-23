@@ -85,6 +85,7 @@ import AddDelSeries from './AddDelSeries';
 // --- Layout & Live Data ---
 import Sparklines from './Sparklines';
 import ResizeDemo from './ResizeDemo';
+import ResponsiveDemo from './ResponsiveDemo';
 import ScrollSync from './ScrollSync';
 import StreamData from './StreamData';
 import RealtimeSine from './RealtimeSine';
@@ -213,6 +214,7 @@ export const demos: DemoEntry[] = [
   // --- Layout & Live Data ---
   { id: 'sparklines', title: 'Sparklines', description: 'Tiny 150x30 charts with hidden axes, embedded in a table.', category: 'Layout & Live Data', component: Sparklines, sourceFile: 'Sparklines' },
   { id: 'resize-demo', title: 'Resize', description: 'Dynamically resize chart with width/height sliders.', category: 'Layout & Live Data', component: ResizeDemo, sourceFile: 'ResizeDemo' },
+  { id: 'responsive-demo', title: 'Responsive', description: 'Auto-size chart to container via ResizeObserver.', category: 'Layout & Live Data', component: ResponsiveDemo, sourceFile: 'ResponsiveDemo' },
   { id: 'scroll-sync', title: 'Scroll Sync', description: 'Multiple synced charts in a scrollable container.', category: 'Layout & Live Data', component: ScrollSync, sourceFile: 'ScrollSync' },
   { id: 'stream-data', title: 'Stream Data', description: '3-series 60fps streaming with 2000-point sliding window and FPS counter.', category: 'Layout & Live Data', component: StreamData, sourceFile: 'StreamData' },
   { id: 'realtime-sine', title: 'Real-Time Sine', description: '10,000-point scrolling sine waves at 60fps — inspired by webgl-plot-react.', category: 'Layout & Live Data', component: RealtimeSine, sourceFile: 'RealtimeSine' },

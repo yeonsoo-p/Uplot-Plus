@@ -40,6 +40,7 @@ export function Scale(props: ScaleProps): null {
       s.id === props.id ? { ...props } : s,
     );
     store.scaleManager.addScale({ ...props });
+    store.renderer.clearCache();
     store.scheduleRedraw();
   });
 

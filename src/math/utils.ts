@@ -304,7 +304,7 @@ export function rangeNum(
   const maxLim = min(hardMax, _newMax > _softMax && _max <= _softMax ? _softMax : max(_softMax, _newMax));
 
   if (minLim === maxLim && minLim === 0)
-    return [0, 100];
+    return [-1, 1];
 
   return [minLim, maxLim];
 }

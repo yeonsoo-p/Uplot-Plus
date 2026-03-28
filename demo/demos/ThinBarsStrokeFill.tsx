@@ -18,40 +18,12 @@ export default function ThinBarsStrokeFill() {
         Bar chart variations: stroke-only, fill-only, and stroke+fill with different widths.
       </p>
       <Chart width={800} height={400} data={data} xlabel="Item" ylabel="Value">
-        {/* Stroke only */}
-        <Series
-          group={0}
-          index={0}
-          label="Stroke Only"
-          paths={groupedBars(0, 3)}
-          fillTo={0}
-          cursor={{ show: false }}
-          points={{ show: false }}
-        />
-        {/* Fill only */}
-        <Series
-          group={0}
-          index={1}
-          stroke="transparent"
-          fill="rgba(52, 152, 219, 0.6)"
-          label="Fill Only"
-          paths={groupedBars(1, 3)}
-          fillTo={0}
-          cursor={{ show: false }}
-          points={{ show: false }}
-        />
-        {/* Stroke + Fill */}
-        <Series
-          group={0}
-          index={2}
-          stroke="#27ae60"
-          fill="rgba(39, 174, 96, 0.3)"
-          label="Stroke + Fill"
-          paths={groupedBars(2, 3)}
-          fillTo={0}
-          cursor={{ show: false }}
-          points={{ show: false }}
-        />
+        {/* Stroke only (auto-fill from palette) */}
+        <Series group={0} index={0} label="Stroke Only" paths={groupedBars(0, 3)} />
+        {/* Fill only — explicit transparent stroke + custom fill */}
+        <Series group={0} index={1} stroke="transparent" fill="rgba(52, 152, 219, 0.6)" label="Fill Only" paths={groupedBars(1, 3)} />
+        {/* Stroke + Fill — explicit low-alpha fill */}
+        <Series group={0} index={2} stroke="#27ae60" fill="rgba(39, 174, 96, 0.3)" label="Stroke + Fill" paths={groupedBars(2, 3)} />
         <Legend />
       </Chart>
     </div>

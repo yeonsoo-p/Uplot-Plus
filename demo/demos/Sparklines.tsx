@@ -5,7 +5,7 @@ import type { ChartData } from '../../src';
 function randomWalk(n: number, start: number): number[] {
   const vals: number[] = [start];
   for (let i = 1; i < n; i++) {
-    vals.push(vals[i - 1] + (Math.random() - 0.5) * 4);
+    vals.push((vals[i - 1] ?? start) + (Math.random() - 0.5) * 4);
   }
   return vals;
 }

@@ -4,7 +4,7 @@ import { Chart, Series, withAlpha } from '../../src';
 function generateData() {
   const xs = Array.from({ length: 30 }, (_, i) => i + 1);
   const vals = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  const pick = () => vals[Math.floor(Math.random() * vals.length)];
+  const pick = () => vals[Math.floor(Math.random() * vals.length)] ?? 0;
 
   return [{
     x: xs,

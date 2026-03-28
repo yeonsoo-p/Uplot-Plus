@@ -36,10 +36,11 @@ export default function TooltipsClosest() {
             // Find the item with the smallest absolute distance to the cursor y
             // Since we only have values (not pixel positions), pick the non-null item closest to cursor
             const validItems = data.items.filter(item => item.value != null);
-            if (validItems.length === 0) return null;
+            const first = validItems[0] ?? data.items[0];
+            if (first == null) return null;
 
             // Pick the closest by finding min distance from cursor top to each value
-            let closest = validItems[0]!;
+            let closest = first;
             let minDist = Infinity;
             for (const item of validItems) {
               if (item.value != null) {

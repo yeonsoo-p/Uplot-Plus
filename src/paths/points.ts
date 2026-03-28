@@ -1,3 +1,4 @@
+import { POINTS_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
 import { Orientation, Direction } from '../types';
@@ -11,7 +12,7 @@ import { valToPos } from '../core/Scale';
  * Ported from uPlot/src/paths/points.js
  */
 export function points(ptSize = 4): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -57,4 +58,6 @@ export function points(ptSize = 4): PathBuilder {
       gaps: null,
     };
   };
+  fn.defaults = POINTS_DEFAULTS;
+  return fn;
 }

@@ -9,9 +9,10 @@ export default function ZoomWheel() {
     const y2 = new Float64Array(N);
 
     for (let i = 0; i < N; i++) {
-      x[i] = i * 0.1;
-      y1[i] = Math.sin(x[i]!) * Math.exp(-x[i]! * 0.02);
-      y2[i] = Math.cos(x[i]! * 0.7) * 0.8;
+      const xi = i * 0.1;
+      x[i] = xi;
+      y1[i] = Math.sin(xi) * Math.exp(-xi * 0.02);
+      y2[i] = Math.cos(xi * 0.7) * 0.8;
     }
 
     return [{ x, series: [y1, y2] }];

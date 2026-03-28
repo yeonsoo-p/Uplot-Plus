@@ -21,20 +21,22 @@ function highlightTsx(source: string): string {
 function highlightLine(line: string): string {
   let result = '';
   let i = 0;
+  // charAt returns '' for out-of-bounds (no undefined). Alias for cleaner indexing.
+  const ch = (idx: number) => line.charAt(idx);
 
   while (i < line.length) {
     // Line comment
-    if (line[i] === '/' && line[i + 1] === '/') {
+    if (ch(i) === '/' && ch(i + 1) === '/') {
       result += `<span class="hl-comment">${escapeHtml(line.slice(i))}</span>`;
       return result;
     }
 
     // String (single or double quote)
-    if (line[i] === "'" || line[i] === '"') {
-      const quote = line[i];
+    if (ch(i) === "'" || ch(i) === '"') {
+      const quote = ch(i);
       let j = i + 1;
-      while (j < line.length && line[j] !== quote) {
-        if (line[j] === '\\') j++;
+      while (j < line.length && ch(j) !== quote) {
+        if (ch(j) === '\\') j++;
         j++;
       }
       j++; // include closing quote
@@ -44,10 +46,10 @@ function highlightLine(line: string): string {
     }
 
     // Template literal
-    if (line[i] === '`') {
+    if (ch(i) === '`') {
       let j = i + 1;
-      while (j < line.length && line[j] !== '`') {
-        if (line[j] === '\\') j++;
+      while (j < line.length && ch(j) !== '`') {
+        if (ch(j) === '\\') j++;
         j++;
       }
       j++;
@@ -57,32 +59,32 @@ function highlightLine(line: string): string {
     }
 
     // Number
-    if (/\d/.test(line[i]) && (i === 0 || /[\s,(\[{=:+\-*/<>!&|]/.test(line[i - 1]))) {
+    if (/\d/.test(ch(i)) && (i === 0 || /[\s,(\[{=:+\-*/<>!&|]/.test(ch(i - 1)))) {
       let j = i;
-      while (j < line.length && /[\d._eExXa-fA-F]/.test(line[j])) j++;
+      while (j < line.length && /[\d._eExXa-fA-F]/.test(ch(j))) j++;
       result += `<span class="hl-number">${escapeHtml(line.slice(i, j))}</span>`;
       i = j;
       continue;
     }
 
     // JSX tag (opening/closing)
-    if (line[i] === '<' && (line[i + 1] === '/' || /[A-Z]/.test(line[i + 1]))) {
+    if (ch(i) === '<' && (ch(i + 1) === '/' || /[A-Z]/.test(ch(i + 1)))) {
       let j = i + 1;
-      if (line[j] === '/') j++;
+      if (ch(j) === '/') j++;
       const start = j;
-      while (j < line.length && /[\w.]/.test(line[j])) j++;
+      while (j < line.length && /[\w.]/.test(ch(j))) j++;
       const tagName = line.slice(start, j);
       if (tagName.length > 0) {
-        result += `<span class="hl-tag">&lt;${line[i + 1] === '/' ? '/' : ''}${escapeHtml(tagName)}</span>`;
+        result += `<span class="hl-tag">&lt;${ch(i + 1) === '/' ? '/' : ''}${escapeHtml(tagName)}</span>`;
         i = j;
         continue;
       }
     }
 
     // Word (keyword or identifier)
-    if (/[a-zA-Z_$]/.test(line[i])) {
+    if (/[a-zA-Z_$]/.test(ch(i))) {
       let j = i;
-      while (j < line.length && /[\w$]/.test(line[j])) j++;
+      while (j < line.length && /[\w$]/.test(ch(j))) j++;
       const word = line.slice(i, j);
       if (KEYWORDS.has(word)) {
         result += `<span class="hl-keyword">${escapeHtml(word)}</span>`;
@@ -94,13 +96,13 @@ function highlightLine(line: string): string {
     }
 
     // Closing JSX > or />
-    if ((line[i] === '/' && line[i + 1] === '>') || (line[i] === '>' && i > 0)) {
-      result += `<span class="hl-tag">${escapeHtml(line[i] === '/' ? '/>' : '>')}</span>`;
-      i += line[i] === '/' ? 2 : 1;
+    if ((ch(i) === '/' && ch(i + 1) === '>') || (ch(i) === '>' && i > 0)) {
+      result += `<span class="hl-tag">${escapeHtml(ch(i) === '/' ? '/>' : '>')}</span>`;
+      i += ch(i) === '/' ? 2 : 1;
       continue;
     }
 
-    result += escapeHtml(line[i]);
+    result += escapeHtml(ch(i));
     i++;
   }
 

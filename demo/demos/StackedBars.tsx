@@ -28,9 +28,9 @@ export default function StackedBars() {
       </p>
       <Chart width={800} height={400} data={data} title="Stacked Bars" ylabel="Sales">
         <Axis scale="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
-        <Series group={0} index={0} stroke="#3498db" fill="rgba(52,152,219,0.5)" label="Product A" paths={stackedBars()} fillTo={0} />
-        <Series group={0} index={1} stroke="#2ecc71" fill="rgba(46,204,113,0.5)" label="Product B" paths={stackedBars()} fillTo={0} />
-        <Series group={0} index={2} stroke="#e74c3c" fill="rgba(231,76,60,0.5)" label="Product C" paths={stackedBars()} fillTo={0} />
+        <Series group={0} index={0} stroke="#3498db" label="Product A" paths={stackedBars()} />
+        <Series group={0} index={1} stroke="#2ecc71" label="Product B" paths={stackedBars()} />
+        <Series group={0} index={2} stroke="#e74c3c" label="Product C" paths={stackedBars()} />
         {bands.map((b: BandConfig, i: number) => (
           <Band
             key={i}

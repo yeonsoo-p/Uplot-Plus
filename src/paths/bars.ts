@@ -1,8 +1,14 @@
+import { BAR_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 export type { PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
 import { Orientation, Direction } from '../types';
 import { valToPos } from '../core/Scale';
+
+function withBarDefaults(fn: PathBuilder): PathBuilder {
+  fn.defaults = BAR_DEFAULTS;
+  return fn;
+}
 
 /**
  * Bar/column chart path builder.
@@ -11,7 +17,7 @@ import { valToPos } from '../core/Scale';
  * Ported from uPlot/src/paths/bars.js
  */
 export function bars(): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -106,6 +112,7 @@ export function bars(): PathBuilder {
       gaps: null,
     };
   };
+  return withBarDefaults(fn);
 }
 
 /**
@@ -114,7 +121,7 @@ export function bars(): PathBuilder {
  */
 export function groupedBars(groupIdx: number, groupCount: number): PathBuilder {
   const inner = bars();
-  return (dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts) => {
+  const fn: PathBuilder = (dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts) => {
     const merged: PathBuilderOpts = {
       ...opts,
       barGroupIdx: groupIdx,
@@ -122,6 +129,7 @@ export function groupedBars(groupIdx: number, groupCount: number): PathBuilder {
     };
     return inner(dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, merged);
   };
+  return withBarDefaults(fn);
 }
 
 /**
@@ -130,7 +138,7 @@ export function groupedBars(groupIdx: number, groupCount: number): PathBuilder {
  * Use with stackGroup() to transform data into cumulative values and generate Band configs.
  */
 export function stackedBars(): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -215,6 +223,7 @@ export function stackedBars(): PathBuilder {
       gaps: null,
     };
   };
+  return withBarDefaults(fn);
 }
 
 /** Draw a rounded rectangle with radius only on the value end (top for positive, bottom for negative). */

@@ -6,6 +6,16 @@ import { posToVal, valToPos, invalidateScaleCache } from '../core/Scale';
 import { Side, Orientation, sideOrientation, DirtyFlag } from '../types/common';
 import { clamp } from '../math/utils';
 
+/** Minimum drag distance (CSS pixels) to trigger a zoom selection */
+const MIN_DRAG_PX = 5;
+
+/** Wheel deltaY multiplier for zoom factor calculation */
+const WHEEL_ZOOM_SENSITIVITY = 0.001;
+
+/** Clamp bounds for the wheel zoom factor per event */
+const WHEEL_ZOOM_MIN = 0.1;
+const WHEEL_ZOOM_MAX = 10;
+
 interface CoordSource {
   clientX: number;
   clientY: number;
@@ -313,7 +323,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       if (dragStart == null) return;
 
       // Minimum drag width to trigger zoom (5 CSS pixels)
-      if (selectState.width > 5) {
+      if (selectState.width > MIN_DRAG_PX) {
         didDrag = true;
 
         // Fire onSelect callback — if it returns false, skip zoom
@@ -453,7 +463,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
 
       e.preventDefault();
 
-      const factor = clamp(1 - e.deltaY * 0.001, 0.1, 10);
+      const factor = clamp(1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY, WHEEL_ZOOM_MIN, WHEEL_ZOOM_MAX);
       const plotBox = store.plotBox;
 
       for (const scale of store.scaleManager.getAllScales()) {

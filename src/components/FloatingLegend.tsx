@@ -1,4 +1,4 @@
-import React, { useSyncExternalStore, useCallback, useRef, useState, useEffect } from 'react';
+import React, { useSyncExternalStore, useCallback, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { useChart } from '../hooks/useChart';
 import { Panel, SeriesRow, formatSeriesValue } from './overlay/SeriesPanel';
 import { clamp } from '../math/utils';
@@ -31,18 +31,28 @@ interface Snapshot {
   plotHeight: number;
 }
 
+/** Padding from plot edges for corner-anchored positions */
+const CORNER_PAD = 8;
+
+/**
+ * Resolve initial position for draggable mode.
+ * When panelW/panelH are available (after first render), positions are exact.
+ * On first render (panelW/panelH = 0), top-left is always correct;
+ * other corners get corrected by the layout effect.
+ */
 function resolveInitialPos(
   position: FloatingLegendProps['position'],
   plotBox: { left: number; top: number; width: number; height: number },
+  panelW: number,
+  panelH: number,
 ): { x: number; y: number } {
   if (position != null && typeof position === 'object') return position;
-  const pad = 8;
   switch (position) {
-    case 'top-left':     return { x: plotBox.left + pad, y: plotBox.top + pad };
-    case 'bottom-left':  return { x: plotBox.left + pad, y: plotBox.top + plotBox.height - 60 };
-    case 'bottom-right': return { x: plotBox.left + plotBox.width - 140, y: plotBox.top + plotBox.height - 60 };
+    case 'top-left':     return { x: plotBox.left + CORNER_PAD, y: plotBox.top + CORNER_PAD };
+    case 'bottom-left':  return { x: plotBox.left + CORNER_PAD, y: plotBox.top + plotBox.height - panelH - CORNER_PAD };
+    case 'bottom-right': return { x: plotBox.left + plotBox.width - panelW - CORNER_PAD, y: plotBox.top + plotBox.height - panelH - CORNER_PAD };
     case 'top-right':
-    default:             return { x: plotBox.left + plotBox.width - 140, y: plotBox.top + pad };
+    default:             return { x: plotBox.left + plotBox.width - panelW - CORNER_PAD, y: plotBox.top + CORNER_PAD };
   }
 }
 
@@ -98,11 +108,24 @@ export function FloatingLegend({
 
   const snap = useSyncExternalStore(subscribe, getSnapshot);
 
-  // Initialize draggable position once plot box is known
+  // Initialize draggable position once plot box is known (top-left anchor; corrected after measure)
   if (mode === 'draggable' && !initialized.current && snap.plotWidth > 0) {
     initialized.current = true;
-    if (pos == null) setPos(resolveInitialPos(position, store.plotBox));
+    if (pos == null) setPos(resolveInitialPos(position, store.plotBox, 0, 0));
   }
+
+  // After first render, re-resolve position using measured panel dimensions
+  useLayoutEffect(() => {
+    if (mode !== 'draggable' || !initialized.current || panelRef.current == null) return;
+    const el = panelRef.current;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (w === 0 && h === 0) return;
+    // Only correct once — skip if user has already dragged
+    if (typeof position === 'object') return;
+    setPos(resolveInitialPos(position, store.plotBox, w, h));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized.current]);
 
   // Toggle handler — only fires if no drag occurred
   const handleToggle = useCallback((group: number, index: number) => {

@@ -7,7 +7,7 @@ function initData() {
   const x = Array.from({ length: 50 }, (_, i) => i);
   const y1 = x.map(i => Math.sin(i * 0.1) * 30 + 50);
   const y2 = x.map(i => Math.cos(i * 0.1) * 20 + 50);
-  return { x, series: [y1, y2] };
+  return [{ x, series: [y1, y2] }];
 }
 
 export default function StreamingHookDemo() {

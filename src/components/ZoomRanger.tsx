@@ -7,6 +7,15 @@ import { clamp } from '../math/utils';
 import { Axis } from './Axis';
 import { normalizeData } from '../core/normalizeData';
 
+/** Grip hit-target width in CSS pixels */
+const GRIP_THRESHOLD_PX = 8;
+
+/** Minimum selection width as a fraction of the full range */
+const MIN_SELECTION_FRAC = 0.01;
+
+/** Default initial selection range when no initialRange prop is provided */
+const DEFAULT_SELECTION: [number, number] = [0.25, 0.75];
+
 export interface ZoomRangerProps {
   /** Chart width in CSS pixels */
   width: number;
@@ -61,7 +70,7 @@ export function ZoomRanger({
         }
       }
     }
-    return [0.25, 0.75];
+    return DEFAULT_SELECTION;
   });
 
   // Fire onRangeChange when selection changes
@@ -104,7 +113,7 @@ export function ZoomRanger({
 
     const frac = getFrac(e.clientX);
     const rectWidth = el.getBoundingClientRect().width;
-    const edgeThreshold = rectWidth > 0 ? 8 / rectWidth : 0;
+    const edgeThreshold = rectWidth > 0 ? GRIP_THRESHOLD_PX / rectWidth : 0;
 
     let mode: 'move' | 'left' | 'right';
     if (Math.abs(frac - selFrac[0]) < edgeThreshold) {
@@ -145,10 +154,10 @@ export function ZoomRanger({
       const newLeft = clamp(drag.startFrac[0] + delta, 0, 1 - selWidth);
       setSelFrac([newLeft, newLeft + selWidth]);
     } else if (drag.mode === 'left') {
-      const newLeft = clamp(drag.startFrac[0] + delta, 0, drag.startFrac[1] - 0.01);
+      const newLeft = clamp(drag.startFrac[0] + delta, 0, drag.startFrac[1] - MIN_SELECTION_FRAC);
       setSelFrac([newLeft, drag.startFrac[1]]);
     } else {
-      const newRight = clamp(drag.startFrac[1] + delta, drag.startFrac[0] + 0.01, 1);
+      const newRight = clamp(drag.startFrac[1] + delta, drag.startFrac[0] + MIN_SELECTION_FRAC, 1);
       setSelFrac([drag.startFrac[0], newRight]);
     }
   }, [getFrac]);

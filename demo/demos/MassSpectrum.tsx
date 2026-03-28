@@ -69,12 +69,8 @@ export default function MassSpectrum() {
         group={0}
         index={0}
         stroke="#2c3e50"
-        fill="rgba(44, 62, 80, 0.5)"
         label="Intensity"
-        paths={bars(0.4)}
-        fillTo={1}
-        cursor={{ show: false }}
-        points={{ show: false }}
+        paths={bars()}
       />
     </Chart>
   );

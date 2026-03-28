@@ -1,4 +1,5 @@
 import type { SeriesConfig, ScaleState, BBox } from '../types';
+import { Distribution } from '../types';
 import type { SeriesPaths } from '../paths/types';
 import { linear } from '../paths/linear';
 import { drawSeriesPath } from './drawSeries';
@@ -15,17 +16,8 @@ export interface RenderableSeriesInfo {
   window: [number, number];
 }
 
-/** Maximum number of cached path entries before full cache clear */
+/** Maximum number of cached path entries before LRU eviction */
 const MAX_CACHE_SIZE = 64;
-
-/** Doubly-linked list node for O(1) LRU promotion */
-interface LruNode {
-  group: number;
-  index: number;
-  key: string;
-  prev: LruNode | null;
-  next: LruNode | null;
-}
 
 /**
  * Imperative canvas renderer.
@@ -36,10 +28,9 @@ export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D | null = null;
   private pxRatio = 1;
 
-  // --- Two-level path cache: group -> index -> windowKey -> SeriesPaths ---
-  // Enables O(1) invalidation by group or series without string prefix scanning.
-  private pathCache = new Map<number, Map<number, Map<string, SeriesPaths>>>();
-  private pathCacheSize = 0;
+  // --- Flat path cache: composite key "group:index:i0:i1" -> SeriesPaths ---
+  // JS Map iteration order = insertion order, so delete+re-insert gives LRU for free.
+  private pathCache = new Map<string, SeriesPaths>();
 
   // --- Band path cache: keyed by group:upper:lower:i0:i1 ---
   private bandCache = new Map<string, Path2D>();
@@ -47,119 +38,16 @@ export class CanvasRenderer {
   // Scale-stamp: fingerprint of all active scale ranges. Auto-clears cache on zoom.
   private scaleStamp = '';
 
-  // LRU tracking: doubly-linked list + Map for O(1) promotion and eviction
-  private lruHead: LruNode | null = null; // oldest
-  private lruTail: LruNode | null = null; // newest
-  private lruMap = new Map<string, LruNode>();
-
-  private lruKey(group: number, index: number, key: string): string {
-    return `${group}:${index}:${key}`;
-  }
-
-  /** Unlink a node from the doubly-linked list */
-  private lruUnlink(node: LruNode): void {
-    if (node.prev != null) node.prev.next = node.next;
-    else this.lruHead = node.next;
-    if (node.next != null) node.next.prev = node.prev;
-    else this.lruTail = node.prev;
-    node.prev = null;
-    node.next = null;
-  }
-
-  /** Append a node to the tail (most-recently-used) */
-  private lruAppend(node: LruNode): void {
-    node.prev = this.lruTail;
-    node.next = null;
-    if (this.lruTail != null) this.lruTail.next = node;
-    else this.lruHead = node;
-    this.lruTail = node;
-  }
-
   // --- Offscreen canvas for cursor-only snapshot (avoids getImageData/putImageData) ---
   private snapshotCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
   private snapshotValid = false;
 
-  // --- Context property cache (F1) ---
-  private cachedFillStyle = '';
-  private cachedStrokeStyle = '';
-  private cachedLineWidth = -1;
-  private cachedFont = '';
-  private cachedTextAlign = '';
-  private cachedTextBaseline = '';
-  private cachedGlobalAlpha = -1;
 
   setContext(ctx: CanvasRenderingContext2D, pxRatio: number): void {
     this.ctx = ctx;
     this.pxRatio = pxRatio;
-    this.resetPropertyCache();
   }
 
-  /** Reset cached property values (after context change) */
-  private resetPropertyCache(): void {
-    this.cachedFillStyle = '';
-    this.cachedStrokeStyle = '';
-    this.cachedLineWidth = -1;
-    this.cachedFont = '';
-    this.cachedTextAlign = '';
-    this.cachedTextBaseline = '';
-    this.cachedGlobalAlpha = -1;
-  }
-
-  /** Set fillStyle only if changed */
-  setFillStyle(ctx: CanvasRenderingContext2D, val: string): void {
-    if (val !== this.cachedFillStyle) {
-      ctx.fillStyle = val;
-      this.cachedFillStyle = val;
-    }
-  }
-
-  /** Set strokeStyle only if changed */
-  setStrokeStyle(ctx: CanvasRenderingContext2D, val: string): void {
-    if (val !== this.cachedStrokeStyle) {
-      ctx.strokeStyle = val;
-      this.cachedStrokeStyle = val;
-    }
-  }
-
-  /** Set lineWidth only if changed */
-  setLineWidth(ctx: CanvasRenderingContext2D, val: number): void {
-    if (val !== this.cachedLineWidth) {
-      ctx.lineWidth = val;
-      this.cachedLineWidth = val;
-    }
-  }
-
-  /** Set font only if changed */
-  setFont(ctx: CanvasRenderingContext2D, val: string): void {
-    if (val !== this.cachedFont) {
-      ctx.font = val;
-      this.cachedFont = val;
-    }
-  }
-
-  /** Set textAlign only if changed */
-  setTextAlign(ctx: CanvasRenderingContext2D, val: CanvasTextAlign): void {
-    if (val !== this.cachedTextAlign) {
-      ctx.textAlign = val;
-      this.cachedTextAlign = val;
-    }
-  }
-
-  /** Set textBaseline only if changed */
-  setTextBaseline(ctx: CanvasRenderingContext2D, val: CanvasTextBaseline): void {
-    if (val !== this.cachedTextBaseline) {
-      ctx.textBaseline = val;
-      this.cachedTextBaseline = val;
-    }
-  }
-
-  /** Set globalAlpha only if changed */
-  setGlobalAlpha(ctx: CanvasRenderingContext2D, val: number): void {
-    if (val !== this.cachedGlobalAlpha) {
-      ctx.globalAlpha = val;
-      this.cachedGlobalAlpha = val;
-    }
-  }
 
   // --- Offscreen canvas snapshot ---
 
@@ -221,142 +109,77 @@ export class CanvasRenderer {
     }
   }
 
-  // --- Two-level path cache ---
+  // --- Flat path cache (insertion-ordered Map = built-in LRU) ---
 
-  private windowKey(i0: number, i1: number): string {
-    return `${i0}:${i1}`;
+  private cacheKey(group: number, index: number, i0: number, i1: number): string {
+    return `${group}:${index}:${i0}:${i1}`;
+  }
+
+  /** Promote a key to most-recently-used (delete + re-insert preserves Map insertion order) */
+  private promote(key: string, paths: SeriesPaths): void {
+    this.pathCache.delete(key);
+    this.pathCache.set(key, paths);
   }
 
   /** Get cached paths for a series, promoting to most-recently-used.
    *  Falls back to a superset window match if exact key misses. */
   getCachedPaths(group: number, index: number, i0: number, i1: number): SeriesPaths | undefined {
-    const groupMap = this.pathCache.get(group);
-    if (groupMap == null) return undefined;
-    const indexMap = groupMap.get(index);
-    if (indexMap == null) return undefined;
-    const wk = this.windowKey(i0, i1);
-    let paths = indexMap.get(wk);
-
-    // Superset fallback: check if any cached window fully contains the requested range
-    if (paths == null) {
-      for (const [cachedWk, cachedPaths] of indexMap) {
-        const sep = cachedWk.indexOf(':');
-        const ci0 = +cachedWk.slice(0, sep);
-        const ci1 = +cachedWk.slice(sep + 1);
-        if (ci0 <= i0 && ci1 >= i1) {
-          paths = cachedPaths;
-          // Promote the superset entry
-          const node = this.lruMap.get(this.lruKey(group, index, cachedWk));
-          if (node != null && node !== this.lruTail) {
-            this.lruUnlink(node);
-            this.lruAppend(node);
-          }
-          break;
-        }
-      }
-    } else {
-      // O(1) promote to most-recently-used
-      const node = this.lruMap.get(this.lruKey(group, index, wk));
-      if (node != null && node !== this.lruTail) {
-        this.lruUnlink(node);
-        this.lruAppend(node);
+    const key = this.cacheKey(group, index, i0, i1);
+    const paths = this.pathCache.get(key);
+    if (paths != null) {
+      this.promote(key, paths);
+      return paths;
+    }
+    // Superset fallback: check if any cached window for this series fully contains the requested range
+    const prefix = `${group}:${index}:`;
+    for (const [ck, cachedPaths] of this.pathCache) {
+      if (!ck.startsWith(prefix)) continue;
+      const rest = ck.slice(prefix.length);
+      const sep = rest.indexOf(':');
+      const ci0 = +rest.slice(0, sep);
+      const ci1 = +rest.slice(sep + 1);
+      if (ci0 <= i0 && ci1 >= i1) {
+        this.promote(ck, cachedPaths);
+        return cachedPaths;
       }
     }
-    return paths;
+    return undefined;
   }
 
   /** Store paths in cache, evicting oldest 25% when at capacity.
    *  Callers may pass padded i0/i1 (wider than the visible window) for "runway" during panning. */
   setCachedPaths(group: number, index: number, i0: number, i1: number, paths: SeriesPaths): void {
-    // LRU eviction: remove oldest 25% when at capacity
-    if (this.pathCacheSize >= MAX_CACHE_SIZE) {
+    if (this.pathCache.size >= MAX_CACHE_SIZE) {
       const evictCount = MAX_CACHE_SIZE >> 2; // 25%
-      let cur = this.lruHead;
-      for (let i = 0; i < evictCount && cur != null; i++) {
-        const next = cur.next;
-        const gm = this.pathCache.get(cur.group);
-        if (gm != null) {
-          const im = gm.get(cur.index);
-          if (im != null) {
-            im.delete(cur.key);
-            this.pathCacheSize--;
-            if (im.size === 0) gm.delete(cur.index);
-            if (gm.size === 0) this.pathCache.delete(cur.group);
-          }
-        }
-        this.lruMap.delete(this.lruKey(cur.group, cur.index, cur.key));
-        cur = next;
+      const iter = this.pathCache.keys();
+      for (let i = 0; i < evictCount; i++) {
+        const oldest = iter.next().value;
+        if (oldest != null) this.pathCache.delete(oldest);
       }
-      this.lruHead = cur;
-      if (cur != null) cur.prev = null;
-      else this.lruTail = null;
     }
-
-    let groupMap = this.pathCache.get(group);
-    if (groupMap == null) {
-      groupMap = new Map();
-      this.pathCache.set(group, groupMap);
-    }
-
-    let indexMap = groupMap.get(index);
-    if (indexMap == null) {
-      indexMap = new Map();
-      groupMap.set(index, indexMap);
-    }
-
-    const wk = this.windowKey(i0, i1);
-    const lk = this.lruKey(group, index, wk);
-    if (!indexMap.has(wk)) {
-      this.pathCacheSize++;
-      const node: LruNode = { group, index, key: wk, prev: null, next: null };
-      this.lruAppend(node);
-      this.lruMap.set(lk, node);
-    }
-    indexMap.set(wk, paths);
+    const key = this.cacheKey(group, index, i0, i1);
+    // Delete first so re-insert moves to end (most-recently-used)
+    this.pathCache.delete(key);
+    this.pathCache.set(key, paths);
   }
 
   /** Invalidate paths for a specific series (all windows) */
   invalidateSeries(group: number, index: number): void {
-    const groupMap = this.pathCache.get(group);
-    if (groupMap == null) return;
-    const indexMap = groupMap.get(index);
-    if (indexMap != null) {
-      this.pathCacheSize -= indexMap.size;
-      // Remove LRU nodes for all window keys of this series
-      for (const wk of indexMap.keys()) {
-        const lk = this.lruKey(group, index, wk);
-        const node = this.lruMap.get(lk);
-        if (node != null) {
-          this.lruUnlink(node);
-          this.lruMap.delete(lk);
-        }
-      }
-      groupMap.delete(index);
+    const prefix = `${group}:${index}:`;
+    for (const key of this.pathCache.keys()) {
+      if (key.startsWith(prefix)) this.pathCache.delete(key);
     }
   }
 
   /** Invalidate cached paths for a specific group */
   clearGroupCache(group: number): void {
-    const groupMap = this.pathCache.get(group);
-    if (groupMap != null) {
-      for (const [index, indexMap] of groupMap.entries()) {
-        this.pathCacheSize -= indexMap.size;
-        for (const wk of indexMap.keys()) {
-          const lk = this.lruKey(group, index, wk);
-          const node = this.lruMap.get(lk);
-          if (node != null) {
-            this.lruUnlink(node);
-            this.lruMap.delete(lk);
-          }
-        }
-      }
-      this.pathCache.delete(group);
+    const prefix = `${group}:`;
+    for (const key of this.pathCache.keys()) {
+      if (key.startsWith(prefix)) this.pathCache.delete(key);
     }
     // Clear band paths for this group
     for (const bk of this.bandCache.keys()) {
-      if (bk.startsWith(`${group}:`)) {
-        this.bandCache.delete(bk);
-      }
+      if (bk.startsWith(prefix)) this.bandCache.delete(bk);
     }
     this.invalidateSnapshot();
   }
@@ -364,10 +187,6 @@ export class CanvasRenderer {
   /** Invalidate all cached paths (e.g. on scale change) */
   clearCache(): void {
     this.pathCache.clear();
-    this.pathCacheSize = 0;
-    this.lruHead = null;
-    this.lruTail = null;
-    this.lruMap.clear();
     this.bandCache.clear();
     this.invalidateSnapshot();
   }
@@ -413,9 +232,15 @@ export class CanvasRenderer {
       const pi1 = Math.min(dataLen - 1, i1 + pad);
 
       const fillToCfg = info.config.fillTo;
-      const fillTo = typeof fillToCfg === 'function'
-        ? fillToCfg(info.yScale.min ?? 0, info.yScale.max ?? 0)
-        : fillToCfg;
+      let fillTo: number | undefined;
+      if (typeof fillToCfg === 'function') {
+        fillTo = fillToCfg(info.yScale.min ?? 0, info.yScale.max ?? 0);
+      } else if (fillToCfg === 0 && info.yScale.distr === Distribution.Log) {
+        // Log scales can't represent 0; use 1 as the natural bar floor
+        fillTo = 1;
+      } else {
+        fillTo = fillToCfg;
+      }
 
       paths = pathBuilder(
         info.dataX,
@@ -466,6 +291,5 @@ export class CanvasRenderer {
     }
 
     ctx.restore();
-    this.resetPropertyCache();
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { SeriesConfig } from '../types';
 import { useChart } from '../hooks/useChart';
 import { shallowEqual } from '../utils/shallowEqual';
+import { withAlpha } from '../colors';
 
 /** Series component props — yScale defaults to 'y' if omitted. */
 export type SeriesProps = Omit<SeriesConfig, 'yScale'> & { yScale?: string };
@@ -13,13 +14,24 @@ const DEFAULT_COLORS = [
   '#2980b9', '#27ae60', '#f1c40f', '#8e44ad', '#d35400',
 ];
 
-/** Apply defaults for yScale, show, and stroke. */
+/** Apply defaults for yScale, show, stroke, and auto-fill. Path builder defaults (e.g. bars) are merged under user props. */
 function resolveDefaults(p: SeriesProps, colorIndex: number): SeriesConfig {
+  const pathDefaults = p.paths?.defaults;
+  const stroke = p.stroke ?? DEFAULT_COLORS[colorIndex % DEFAULT_COLORS.length] ?? '#000';
+
+  // Resolve fill: 'auto' sentinel → withAlpha(stroke, 0.5)
+  const rawFill = p.fill ?? pathDefaults?.fill;
+  const fill = rawFill === 'auto' && typeof stroke === 'string'
+    ? withAlpha(stroke, 0.5)
+    : rawFill === 'auto' ? undefined : rawFill;
+
   return {
+    ...pathDefaults,
     ...p,
     yScale: p.yScale ?? 'y',
     show: p.show ?? true,
-    stroke: p.stroke ?? DEFAULT_COLORS[colorIndex % DEFAULT_COLORS.length],
+    stroke,
+    fill,
   };
 }
 

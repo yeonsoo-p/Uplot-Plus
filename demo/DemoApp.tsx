@@ -4,7 +4,7 @@ import { SourceHighlight } from './SourceHighlight';
 
 function getHashDemo(): string {
   const hash = window.location.hash.slice(1);
-  return demos.find(d => d.id === hash)?.id ?? demos[0].id;
+  return demos.find(d => d.id === hash)?.id ?? demos[0]?.id ?? '';
 }
 
 export function DemoApp() {
@@ -26,7 +26,8 @@ export function DemoApp() {
         seen.add(d.category);
         cats.push({ name: d.category, items: [] });
       }
-      cats[cats.length - 1].items.push(d);
+      const last = cats[cats.length - 1];
+      if (last != null) last.items.push(d);
     }
     return cats;
   }, []);
@@ -53,7 +54,8 @@ export function DemoApp() {
     });
   };
 
-  const active = demos.find(d => d.id === activeId) ?? demos[0];
+  const active = demos.find(d => d.id === activeId) ?? demos[0] ?? { id: '', title: '', description: '', category: '', component: () => null, sourceFile: '' };
+
   const Component = active.component;
   const source = getDemoSource(active);
 

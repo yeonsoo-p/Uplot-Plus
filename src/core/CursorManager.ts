@@ -17,10 +17,13 @@ export interface SyncTarget {
  * Computes the closest data point across all visible series/groups
  * using pixel-space Euclidean distance.
  */
+/** Off-screen position used to hide the cursor */
+const CURSOR_HIDDEN = -10;
+
 export class CursorManager {
   state: CursorState = {
-    left: -10,
-    top: -10,
+    left: CURSOR_HIDDEN,
+    top: CURSOR_HIDDEN,
     activeGroup: -1,
     activeSeriesIdx: -1,
     activeDataIdx: -1,
@@ -55,8 +58,8 @@ export class CursorManager {
 
   /** Hide the cursor (move off-screen) */
   hide(): void {
-    this.state.left = -10;
-    this.state.top = -10;
+    this.state.left = CURSOR_HIDDEN;
+    this.state.top = CURSOR_HIDDEN;
     this.state.activeGroup = -1;
     this.state.activeSeriesIdx = -1;
     this.state.activeDataIdx = -1;

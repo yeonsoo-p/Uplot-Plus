@@ -39,13 +39,8 @@ export default function BarsValuesAutosize() {
           group={0}
           index={0}
           stroke="#2980b9"
-          fill="rgba(41, 128, 185, 0.6)"
-          width={0}
           label="Sales"
           paths={bars()}
-          fillTo={0}
-          cursor={{ show: false }}
-          points={{ show: false }}
         />
       </Chart>
     </div>

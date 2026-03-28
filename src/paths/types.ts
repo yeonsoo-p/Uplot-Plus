@@ -1,5 +1,6 @@
 import type { ScaleState } from '../types';
 import type { Direction } from '../types';
+import type { SeriesConfig } from '../types/series';
 
 /** Result of a path builder */
 export interface SeriesPaths {
@@ -31,7 +32,7 @@ export interface PathBuilderOpts {
 }
 
 /** Path builder function signature */
-export type PathBuilder = (
+export type PathBuilderFn = (
   dataX: ArrayLike<number>,
   dataY: ArrayLike<number | null>,
   scaleX: ScaleState,
@@ -46,3 +47,13 @@ export type PathBuilder = (
   pxRound: (v: number) => number,
   opts?: PathBuilderOpts,
 ) => SeriesPaths;
+
+/** Path builder with optional default SeriesConfig overrides (e.g. bars set width=0) */
+export type PathBuilder = PathBuilderFn & {
+  defaults?: Partial<Pick<SeriesConfig, 'width' | 'fill' | 'fillTo' | 'points' | 'cursor'>>;
+};
+
+/** Shared default sets for path builder families */
+export const LINE_DEFAULTS: PathBuilder['defaults'] = { width: 1 };
+export const BAR_DEFAULTS: PathBuilder['defaults'] = { width: 0, fill: 'auto', fillTo: 0, points: { show: false }, cursor: { show: false } };
+export const POINTS_DEFAULTS: PathBuilder['defaults'] = { width: 0, cursor: { show: false } };

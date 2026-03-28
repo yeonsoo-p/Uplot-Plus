@@ -1,3 +1,4 @@
+import { LINE_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
 import { Orientation, Direction, Distribution } from '../types';
@@ -32,7 +33,7 @@ const drawAccV = _drawAcc(lineToV);
  * Ported from uPlot/src/paths/linear.js
  */
 export function linear(): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -194,4 +195,6 @@ export function linear(): PathBuilder {
 
     return _paths;
   };
+  fn.defaults = LINE_DEFAULTS;
+  return fn;
 }

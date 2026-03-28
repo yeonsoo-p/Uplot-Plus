@@ -19,8 +19,8 @@ export default function LinePaths() {
         <Series group={0} index={1} label="monotoneCubic" paths={monotoneCubic()} />
         <Series group={0} index={2} label="catmullRom" paths={catmullRom()} />
         <Series group={0} index={3} label="stepped" paths={stepped(1)} />
-        <Series group={0} index={4} stroke="#9b59b6" fill="rgba(155,89,182,0.4)" width={0} label="bars" paths={bars()} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
-        <Series group={0} index={5} width={0} label="points" paths={points()} points={{ show: true, size: 8, fill: '#1abc9c' }} />
+        <Series group={0} index={4} stroke="#9b59b6" label="bars" paths={bars()} />
+        <Series group={0} index={5} label="points" paths={points()} points={{ show: true, size: 8, fill: '#1abc9c' }} />
         <Legend />
       </Chart>
     </div>

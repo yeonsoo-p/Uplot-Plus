@@ -31,7 +31,10 @@ export default function EventCallbacks() {
   }, []);
 
   const onContextMenu = useCallback((info: ChartEventInfo) => {
-    setMenu({ x: info.srcEvent.clientX, y: info.srcEvent.clientY, info });
+    const e = info.srcEvent;
+    const x = 'clientX' in e ? e.clientX : 0;
+    const y = 'clientY' in e ? e.clientY : 0;
+    setMenu({ x, y, info });
   }, []);
 
   const handleZoomIn = () => {

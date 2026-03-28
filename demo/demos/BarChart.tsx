@@ -19,8 +19,8 @@ export default function BarChart() {
     <Chart width={800} height={400} data={data}>
       <Axis scale="x" label="Month" values={fmtLabels(MONTHS)} />
       <Axis scale="y" label="Amount" values={fmtWrap('$', 'K')} />
-      <Series group={0} index={0} stroke="#2980b9" fill="rgba(41,128,185,0.7)" width={0} label="Revenue" paths={groupedBars(0, 2)} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
-      <Series group={0} index={1} stroke="#e74c3c" fill="rgba(231,76,60,0.7)" width={0} label="Costs" paths={groupedBars(1, 2)} fillTo={0} cursor={{ show: false }} points={{ show: false }} />
+      <Series group={0} index={0} stroke="#2980b9" label="Revenue" paths={groupedBars(0, 2)} />
+      <Series group={0} index={1} stroke="#e74c3c" label="Costs" paths={groupedBars(1, 2)} />
     </Chart>
   );
 }

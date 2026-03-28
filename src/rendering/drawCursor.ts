@@ -4,6 +4,12 @@ import type { SeriesConfig } from '../types/series';
 import { valToPos } from '../core/Scale';
 import { round } from '../math/utils';
 
+/** Stroke width for the point indicator outline (CSS pixels) */
+const POINT_STROKE_WIDTH = 2;
+
+/** Fill color for the point indicator center */
+const POINT_FILL = '#fff';
+
 export interface CursorDrawConfig {
   /** Crosshair line color */
   stroke?: string;
@@ -119,10 +125,10 @@ export function drawCursor(
             const py = round(valToPos(yVal, yScale, plotBox.height, plotBox.top) * pr);
             const r = cfg.pointRadius * pr;
 
-            const strokeW = round(2 * pr);
+            const strokeW = round(POINT_STROKE_WIDTH * pr);
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = POINT_FILL;
             ctx.fill();
             ctx.strokeStyle = pointFill;
             ctx.lineWidth = strokeW;

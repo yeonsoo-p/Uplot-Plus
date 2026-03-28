@@ -43,7 +43,6 @@ export default function ScatterPlot() {
         group={0}
         index={0}
         fill="rgba(231, 76, 60, 0.6)"
-        width={0}
         label="Cluster A"
         paths={points(5)}
       />
@@ -51,7 +50,6 @@ export default function ScatterPlot() {
         group={1}
         index={0}
         fill="rgba(52, 152, 219, 0.6)"
-        width={0}
         label="Cluster B"
         paths={points(6)}
       />

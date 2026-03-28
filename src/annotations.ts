@@ -2,6 +2,9 @@ import type { DrawContext } from './types/hooks';
 import type { ScaleState } from './types';
 import { valToPos } from './core/Scale';
 
+/** Vertical offset (px) above the data point for label text baseline */
+const LABEL_OFFSET_Y = 4;
+
 export interface AnnotationStyle {
   stroke?: string;
   width?: number;
@@ -70,7 +73,7 @@ export function drawLabel(
   ctx.font = style.font ?? '12px sans-serif';
   ctx.fillStyle = style.fill ?? '#000';
   ctx.textBaseline = 'bottom';
-  ctx.fillText(text, x, y - 4);
+  ctx.fillText(text, x, y - LABEL_OFFSET_Y);
 }
 
 /** Draw a shaded region between two y-values.

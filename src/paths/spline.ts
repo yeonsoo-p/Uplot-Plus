@@ -1,3 +1,4 @@
+import { LINE_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
 import { Orientation, Direction } from '../types';
@@ -12,7 +13,7 @@ import { lineToH, lineToV, findGaps, clipGaps } from './utils';
 export function splineInterp(
   interp: SplineInterpFn,
 ): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -89,6 +90,8 @@ export function splineInterp(
 
     return _paths;
   };
+  fn.defaults = LINE_DEFAULTS;
+  return fn;
 }
 
 /** Interpolation function type used by splineInterp */

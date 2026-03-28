@@ -70,6 +70,7 @@ function createContextStub(): Record<string, unknown> {
     clearRect(_x: number, _y: number, _w: number, _h: number) { /* noop */ },
     fillRect(_x: number, _y: number, _w: number, _h: number) { /* noop */ },
     strokeRect(_x: number, _y: number, _w: number, _h: number) { /* noop */ },
+    drawImage() { /* noop */ },
 
     // Text
     fillText(_text: string, _x: number, _y: number) { /* noop */ },

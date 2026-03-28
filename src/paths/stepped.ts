@@ -1,3 +1,4 @@
+import { LINE_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
 import { Orientation, Direction } from '../types';
@@ -12,7 +13,7 @@ import { lineToH, lineToV, findGaps, clipGaps } from './utils';
  * Ported from uPlot/src/paths/stepped.js
  */
 export function stepped(defaultAlign?: -1 | 0 | 1): PathBuilder {
-  return (
+  const fn: PathBuilder = (
     dataX: ArrayLike<number>,
     dataY: ArrayLike<number | null>,
     scaleX: ScaleState,
@@ -106,4 +107,6 @@ export function stepped(defaultAlign?: -1 | 0 | 1): PathBuilder {
 
     return _paths;
   };
+  fn.defaults = LINE_DEFAULTS;
+  return fn;
 }

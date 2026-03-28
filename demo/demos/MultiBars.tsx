@@ -24,24 +24,9 @@ export default function MultiBars() {
       <Chart width={800} height={400} data={data}>
         <Axis scale="x" label="Quarter" values={fmtPrefix('Q')} />
         <Axis scale="y" label="Revenue" values={fmtWrap('$', 'K')} />
-        <Series
-          group={0} index={0}
-          stroke="#2980b9" fill="rgba(41,128,185,0.75)" width={0}
-          label="Widgets" paths={groupedBars(0, 3)} fillTo={0}
-          cursor={{ show: false }} points={{ show: false }}
-        />
-        <Series
-          group={0} index={1}
-          stroke="#27ae60" fill="rgba(39,174,96,0.75)" width={0}
-          label="Gadgets" paths={groupedBars(1, 3)} fillTo={0}
-          cursor={{ show: false }} points={{ show: false }}
-        />
-        <Series
-          group={0} index={2}
-          stroke="#8e44ad" fill="rgba(142,68,173,0.75)" width={0}
-          label="Gizmos" paths={groupedBars(2, 3)} fillTo={0}
-          cursor={{ show: false }} points={{ show: false }}
-        />
+        <Series group={0} index={0} stroke="#2980b9" label="Widgets" paths={groupedBars(0, 3)} />
+        <Series group={0} index={1} stroke="#27ae60" label="Gadgets" paths={groupedBars(1, 3)} />
+        <Series group={0} index={2} stroke="#8e44ad" label="Gizmos" paths={groupedBars(2, 3)} />
       </Chart>
     </div>
   );

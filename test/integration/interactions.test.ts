@@ -186,7 +186,7 @@ describe('Interaction: drag-to-zoom', () => {
   beforeEach(() => { h = setup(); });
   afterEach(() => { h.cleanup(); });
 
-  it('drag >5px triggers zoom (x-scale range narrows)', () => {
+  it('drag >5px triggers zoom (x-scale range narrows around drag region)', () => {
     const xScale = h.store.scaleManager.getScale('x');
     expect(xScale?.min).toBe(0);
     expect(xScale?.max).toBe(100);
@@ -204,6 +204,12 @@ describe('Interaction: drag-to-zoom', () => {
     expect(xScale!.min!).toBeGreaterThan(0);
     expect(xScale!.max!).toBeLessThan(100);
     expect(xScale!.max! - xScale!.min!).toBeLessThan(100);
+
+    // Zoom region should correspond to the drag range:
+    // plot x=100 → data ~14.3, plot x=400 → data ~57.1 (100/700*100 and 400/700*100)
+    const dragMidData = (100 / 700 * 100 + 400 / 700 * 100) / 2; // ~35.7
+    const zoomMid = (xScale!.min! + xScale!.max!) / 2;
+    expect(zoomMid).toBeCloseTo(dragMidData, 0);
   });
 
   it('drag <5px does NOT trigger zoom', () => {

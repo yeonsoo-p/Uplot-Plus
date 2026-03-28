@@ -105,7 +105,7 @@ describe('drawVLine', () => {
 });
 
 describe('drawLabel', () => {
-  it('renders text at data coordinates', () => {
+  it('renders text at correct data coordinates', () => {
     const { dc, ctx } = makeDC();
     const xScale = makeScale('x', 0, 100);
     const yScale = makeScale('y', 0, 100, Orientation.Vertical);
@@ -115,6 +115,10 @@ describe('drawLabel', () => {
     expect(ctx.fillText).toHaveBeenCalled();
     const callArgs = ctx.fillText.mock.calls[0];
     expect(callArgs?.[0]).toBe('Test Label');
+    // x = valToPos(50, {Horizontal,Forward}, width=400, left=50) = 50 + 0.5*400 = 250
+    // y = valToPos(50, {Vertical,Forward}, height=300, top=20) - LABEL_OFFSET_Y(4) = 170 - 4 = 166
+    expect(callArgs?.[1]).toBe(250);
+    expect(callArgs?.[2]).toBe(166);
   });
 
   it('applies custom font and fill', () => {

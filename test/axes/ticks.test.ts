@@ -45,12 +45,9 @@ describe('numAxisSplits', () => {
 
 // ---- numAxisVals ----
 describe('numAxisVals', () => {
-  it('formats splits as strings containing the numeric values', () => {
+  it('formats splits as exact string representations', () => {
     const vals = numAxisVals([0, 5, 10]);
-    expect(vals).toHaveLength(3);
-    expect(vals[0]).toContain('0');
-    expect(vals[1]).toContain('5');
-    expect(vals[2]).toContain('10');
+    expect(vals).toEqual(['0', '5', '10']);
   });
 
   it('formats large numbers with locale formatting', () => {
@@ -60,9 +57,7 @@ describe('numAxisVals', () => {
 
   it('formats decimals', () => {
     const vals = numAxisVals([0.1, 0.5, 1.0]);
-    expect(vals).toHaveLength(3);
-    expect(vals[0]).toContain('0');
-    expect(vals[1]).toContain('5');
+    expect(vals).toEqual(['0.1', '0.5', '1']);
   });
 });
 

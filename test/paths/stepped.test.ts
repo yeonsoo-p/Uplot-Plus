@@ -77,16 +77,30 @@ describe('stepped path builder', () => {
     ]);
   });
 
-  it('align=0 adds midpoint steps (more lineTo calls than align=1)', () => {
+  it('align=0 produces midpoint steps at halfway x between consecutive points', () => {
     const sx = makeScale('x', 0, 2);
     const sy: ScaleState = { ...makeScale('y', 0, 10), ori: Orientation.Vertical, dir: Direction.Forward };
     const resultMid = builder([0, 1, 2], [0, 10, 0], sx, sy, 200, 100, 0, 0, 0, 2, 1, pxRound, { align: 0 });
-    const resultAfter = builder([0, 1, 2], [0, 10, 0], sx, sy, 200, 100, 0, 0, 0, 2, 1, pxRound, { align: 1 });
 
-    const midCount = getLineToCalls(resultMid.stroke).length;
-    const afterCount = getLineToCalls(resultAfter.stroke).length;
-    // align=0 adds 3 lineTos per transition vs 2 for align=1
-    expect(midCount).toBeGreaterThan(afterCount);
+    const lineToPoints = getLineToCalls(resultMid.stroke);
+    // pixelForX: 0→0, 1→100, 2→200; pixelForY: 0→100, 10→0
+    // align=0: step at midpoint x between consecutive points
+    // Transition from (0,100) to (100,0):
+    //   midX = (0+100)/2 = 50, horizontal to (50,100), vertical to (50,0), horizontal to (100,0)
+    // Transition from (100,0) to (200,100):
+    //   midX = (100+200)/2 = 150, horizontal to (150,0), vertical to (150,100), horizontal to (200,100)
+    expect(lineToPoints).toEqual([
+      [0, 100],    // initial moveTo echoed as lineTo
+      [0, 100],    // i=0: self step (first horizontal)
+      [0, 100],    // i=0: self step (first vertical)
+      [0, 100],    // i=0: arrive at (0, 100)
+      [50, 100],   // i=1: horizontal to midpoint at old y
+      [50, 0],     // i=1: vertical to new y at midpoint
+      [100, 0],    // i=1: horizontal to new x
+      [150, 0],    // i=2: horizontal to midpoint at old y
+      [150, 100],  // i=2: vertical to new y at midpoint
+      [200, 100],  // i=2: horizontal to new x
+    ]);
   });
 
   it('handles gaps — produces clip path with rect calls for visible regions', () => {

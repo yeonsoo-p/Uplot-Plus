@@ -2,7 +2,7 @@ import type { ScaleConfig, ScaleState } from '../types';
 import type { ChartData } from '../types';
 import { Distribution } from '../types';
 import { createScaleState, invalidateScaleCache } from './Scale';
-import { rangeNum, rangeLog, autoRangePart, inf } from '../math/utils';
+import { rangeNum, rangeLog, rangeAsinh, autoRangePart, inf } from '../math/utils';
 import type { DataStore } from './DataStore';
 
 /**
@@ -189,6 +189,8 @@ export class ScaleManager {
 
       if (scale.distr === Distribution.Log) {
         [rMin, rMax] = rangeLog(dataMin, dataMax, scale.log, false);
+      } else if (scale.distr === Distribution.Asinh) {
+        [rMin, rMax] = rangeAsinh(dataMin, dataMax, scale.log, false);
       } else {
         const rangeCfg = scale.range ?? { min: autoRangePart, max: autoRangePart };
         [rMin, rMax] = rangeNum(dataMin, dataMax, {

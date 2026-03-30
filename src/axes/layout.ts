@@ -9,6 +9,7 @@ import {
   numAxisVals,
   logAxisSplits,
   logAxisValFilter,
+  asinhAxisSplits,
   computeAxisSize,
 } from './ticks';
 import { timeIncrs } from '../time/timeIncrs';
@@ -89,6 +90,8 @@ export function axesCalc(
       axis._splits = timeAxisSplits(min, max, _incr);
     } else if (scale.distr === Distribution.Log) {
       axis._splits = logAxisSplits(min, max, scale.log);
+    } else if (scale.distr === Distribution.Asinh) {
+      axis._splits = asinhAxisSplits(min, max, scale.asinh);
     } else {
       const forceMin = scale.distr === Distribution.Ordinal || scale._discrete;
       axis._splits = numAxisSplits(min, max, _incr, _space, forceMin);
@@ -104,6 +107,8 @@ export function axesCalc(
       const filter = logAxisValFilter(axis._splits, scale.log);
       const allVals = numAxisVals(axis._splits);
       axis._values = allVals.map((v, i) => filter[i] ? v : '');
+    } else if (scale.distr === Distribution.Asinh) {
+      axis._values = numAxisVals(axis._splits);
     } else {
       axis._values = numAxisVals(axis._splits);
     }

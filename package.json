@@ -32,8 +32,7 @@
     "lint": "eslint src/ demo/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "build:demo": "vite build demo",
-    "bench": "vite serve bench --config bench/vite.config.ts"
+    "build:demo": "vite build demo"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { timeAxisVals, findTimeIncr } from '@/time/timeVals';
-import { timeIncrs, HOUR, DAY, YEAR, MIN } from '@/time/timeIncrs';
+import { timeIncrs, HOUR, DAY, YEAR } from '@/time/timeIncrs';
 
 describe('timeAxisVals', () => {
   it('formats hourly splits as HH:MM', () => {

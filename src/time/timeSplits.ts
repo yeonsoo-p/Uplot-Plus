@@ -8,7 +8,6 @@ export function timeAxisSplits(
   minSec: number,
   maxSec: number,
   incr: number,
-  _tz?: string,
 ): number[] {
   const splits: number[] = [];
 

@@ -2,7 +2,6 @@
  * Time increment constants (in seconds) for time-scale axes.
  * Covers sub-second to multi-year intervals.
  */
-
 export const SEC = 1;
 export const MIN = 60;
 export const HOUR = 3600;
@@ -17,7 +16,7 @@ export const YEAR = 31536000;   // 365 days
  */
 export const timeIncrs: readonly number[] = [
   // Seconds
-  1,
+  SEC,
   5,
   10,
   15,

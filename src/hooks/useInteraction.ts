@@ -611,6 +611,9 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
     // -----------------------------------------------------------------------
 
     function onMouseDown(e: MouseEvent): void {
+      // Ensure container has focus for keyboard events
+      if (document.activeElement !== el) el.focus();
+
       const ctx = buildContext(e);
 
       // Gutter hit overrides plot-area classification
@@ -629,7 +632,8 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       const fn = dispatch(actionStr, e, ctx, false);  // string keys only — mousedown is for drags
       if (fn == null) return;
 
-      e.preventDefault();
+      // Prevent default for non-left-button or gutter drags (but not left-click — would suppress click event)
+      if (e.button !== 0 || axisHit != null) e.preventDefault();
       const cont = fn(store, e, ctx);
       if (cont != null) {
         activeDrag = cont;

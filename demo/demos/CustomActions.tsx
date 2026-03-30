@@ -71,7 +71,7 @@ export default function CustomActions() {
       (store) => {
         const cursor = store.cursorManager.state;
         if (cursor.activeDataIdx >= 0) {
-          addLog(`Q+click: highlighted point idx=${cursor.activeDataIdx}`);
+          addLog(`Q+click: nearest point idx=${cursor.activeDataIdx}`);
         }
       },
     ],
@@ -85,7 +85,7 @@ export default function CustomActions() {
         <b>Shift+click</b> toggles stroke width.{' '}
         <b>Ctrl+click</b> logs data point.{' '}
         <b>Shift+X</b> resets widths.{' '}
-        <b>Hold Q + click</b> highlights point (custom function matcher).{' '}
+        <b>Hold Q + click</b> logs nearest point (custom function matcher).{' '}
         <b>Middle-drag</b> pans.
       </p>
       <Chart width={800} height={400} data={data} actions={actions} xlabel="Sample" ylabel="Value">

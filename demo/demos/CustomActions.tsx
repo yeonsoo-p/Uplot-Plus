@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Chart, Series, Legend } from '../../src';
 import type { ActionEntry } from '../../src';
 
@@ -15,8 +15,8 @@ export default function CustomActions() {
   const [thickSeries, setThickSeries] = useState<Set<number>>(new Set());
   const [log, setLog] = useState<string[]>([]);
 
-  // Track Q key state for the custom Q+click chord
-  const [qHeld, setQHeld] = useState(false);
+  // Track Q key state via ref — synchronous, no render cycle delay
+  const qHeld = useRef(false);
 
   const addLog = useCallback((msg: string) => {
     setLog(prev => [msg, ...prev].slice(0, 8));
@@ -64,10 +64,10 @@ export default function CustomActions() {
     }],
     // String → string: middle-drag pans
     ['middleDrag', 'panXY'],
-    // Track Q key state for chord detection
-    ['keyQ', () => { setQHeld(true); }],
+    // Track Q key state for chord detection (ref — no render delay)
+    ['keyQ', () => { qHeld.current = true; }],
     // True custom: function → function (Q held + left click = highlight nearest point)
-    [(e, ctx) => qHeld && e instanceof MouseEvent && ctx.action === 'leftClick',
+    [(e, ctx) => qHeld.current && e instanceof MouseEvent && ctx.action === 'leftClick',
       (store) => {
         const cursor = store.cursorManager.state;
         if (cursor.activeDataIdx >= 0) {
@@ -75,11 +75,11 @@ export default function CustomActions() {
         }
       },
     ],
-  ], [addLog, qHeld]);
+  ], [addLog]);
 
   return (
     <div
-      onKeyUp={(e) => { if (e.key === 'q' || e.key === 'Q') setQHeld(false); }}
+      onKeyUp={(e) => { if (e.key === 'q' || e.key === 'Q') qHeld.current = false; }}
     >
       <p style={{ margin: '0 0 8px', fontSize: 13, color: '#666' }}>
         <b>Shift+click</b> toggles stroke width.{' '}

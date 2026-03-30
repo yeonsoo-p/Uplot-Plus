@@ -20,7 +20,7 @@ export default function ZoomTouch() {
       <p style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>
         Use two-finger pinch to zoom on touch devices. Drag to zoom on desktop. Double-tap to reset.
       </p>
-      <Chart width={800} height={400} data={data} cursor={{ wheelZoom: true }}>
+      <Chart width={800} height={400} data={data} >
         <Series group={0} index={0} label="Signal" />
       </Chart>
     </div>

@@ -175,9 +175,9 @@ export function linear(): PathBuilder {
       const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
       const fillToY = pixelForY(fillToVal);
 
-      // Close fill to plot edges for clean clipping when zoomed
-      let frX = xOff;
-      let toX = xOff + xDim;
+      // Close fill to data extent (not plot edges) to avoid triangular overshoots
+      let frX = pixelForX(dataX[idx0] as number);
+      let toX = pixelForX(dataX[idx1] as number);
 
       if (dir === Direction.Backward)
         [toX, frX] = [frX, toX];

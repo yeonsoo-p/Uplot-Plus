@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Chart, Scale, Axis } from '../../src';
-import type { ChartData, DrawCallback } from '../../src';
+import { Chart, Scale, Axis, Heatmap, fmtSuffix } from '../../src';
+import type { ChartData } from '../../src';
 
 const HOURS = 24;
 const BUCKETS = 15;
@@ -26,79 +26,21 @@ function generateHeatmapData(): { grid: number[][]; chartData: ChartData } {
   return { grid, chartData: [{ x, series: [y] }] };
 }
 
-function heatColor(t: number): string {
-  // 0 = green, 0.5 = yellow, 1 = red
-  const clamped = Math.max(0, Math.min(1, t));
-  if (clamped < 0.5) {
-    const f = clamped * 2;
-    const r = Math.round(f * 255);
-    const g = 200;
-    return `rgb(${r},${g},50)`;
-  }
-  const f = (clamped - 0.5) * 2;
-  const r = 255;
-  const g = Math.round((1 - f) * 200);
-  return `rgb(${r},${g},50)`;
-}
+const fmtHour = (splits: number[]) => splits.map(v => {
+  const h = Math.round(v);
+  return (h < 0 || h > 23) ? '' : `${h}:00`;
+});
 
-const fmtHour = (splits: number[]) =>
-  splits.map(v => {
-    const h = Math.round(v);
-    if (h < 0 || h > 23) return '';
-    return `${h}:00`;
-  });
-
-const fmtLatency = (splits: number[]) =>
-  splits.map(v => `${Math.round(v)}ms`);
-
-export default function Heatmap() {
+export default function HeatmapDemo() {
   const { grid, chartData } = useMemo(() => generateHeatmapData(), []);
 
-  // Find max value for normalization
-  const maxVal = useMemo(() => {
-    let m = 0;
-    for (const row of grid) {
-      for (const v of row) {
-        if (v > m) m = v;
-      }
-    }
-    return m;
-  }, [grid]);
-
-  const onDraw: DrawCallback = ({ ctx, valToX, valToY }) => {
-    const bucketHeight = MAX_LATENCY / BUCKETS;
-
-    for (let h = 0; h < HOURS; h++) {
-      const row = grid[h];
-      if (row == null) continue;
-
-      const x0 = valToX(h);
-      const x1 = valToX(h + 1);
-      if (x0 == null || x1 == null) continue;
-      const cellW = x1 - x0;
-
-      for (let b = 0; b < BUCKETS; b++) {
-        const val = row[b] ?? 0;
-        const latLo = b * bucketHeight;
-        const latHi = (b + 1) * bucketHeight;
-
-        const y0 = valToY(latHi, 'y');
-        const y1 = valToY(latLo, 'y');
-        if (y0 == null || y1 == null) continue;
-        const cellH = y1 - y0;
-
-        ctx.fillStyle = heatColor(val / maxVal);
-        ctx.fillRect(x0, y0, cellW, cellH);
-      }
-    }
-  };
-
   return (
-    <Chart width={800} height={400} data={chartData} onDraw={onDraw}>
+    <Chart width={800} height={400} data={chartData}>
       <Scale id="x" auto={false} min={0} max={HOURS} />
       <Scale id="y" auto={false} min={0} max={MAX_LATENCY} />
       <Axis scale="x" label="Hour" values={fmtHour} />
-      <Axis scale="y" label="Latency" values={fmtLatency} />
+      <Axis scale="y" label="Latency" values={fmtSuffix('ms')} />
+      <Heatmap grid={grid} xRange={[0, 24]} yRange={[0, 300]} />
     </Chart>
   );
 }

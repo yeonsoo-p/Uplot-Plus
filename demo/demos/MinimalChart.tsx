@@ -43,7 +43,6 @@ export default function MinimalChart() {
       <div>
         <h4 style={{ margin: '0 0 8px' }}>Full control with explicit children</h4>
         <Chart width={800} height={200} data={[{ x, series: [y1, y2] }]} xlabel="Time (s)" ylabel="Temperature">
-          <Scale id="y" />
           <Series group={0} index={0} label="Indoor" />
           <Series group={0} index={1} label="Outdoor" />
         </Chart>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Scale, Series, Axis, Side } from '../../src';
+import { Chart, Scale, Series, Axis, Side, fmtSuffix } from '../../src';
 
 function generateData() {
   const n = 200;
@@ -22,9 +22,6 @@ function generateData() {
   return [{ x, series: [cpu, ram, tcp] }];
 }
 
-const fmtPct = (splits: number[]) => splits.map(v => v.toFixed(1) + '%');
-const fmtMB = (splits: number[]) => splits.map(v => v.toFixed(2) + ' MB');
-
 export default function MissingData() {
   const data = generateData();
 
@@ -32,8 +29,8 @@ export default function MissingData() {
     <Chart width={800} height={400} data={data}>
       <Scale id="pct"  />
       <Scale id="mb"  />
-      <Axis scale="pct" values={fmtPct} />
-      <Axis scale="mb" side={Side.Right} values={fmtMB} grid={{ show: false }} />
+      <Axis scale="pct" values={fmtSuffix('%', 1)} />
+      <Axis scale="mb" side={Side.Right} values={fmtSuffix(' MB', 2)} grid={{ show: false }} />
       <Series group={0} index={0} yScale="pct" stroke="red" fill="rgba(255,0,0,0.05)" label="CPU" />
       <Series group={0} index={1} yScale="pct" stroke="blue" fill="rgba(0,0,255,0.05)" label="RAM" />
       <Series group={0} index={2} yScale="mb" stroke="green" fill="rgba(0,255,0,0.05)" label="TCP Out" />

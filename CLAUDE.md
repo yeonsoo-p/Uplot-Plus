@@ -11,12 +11,14 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 ├── src/
 │   ├── components/    Chart, Series, Scale, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel,
 │   │                  ZoomRanger, Timeline, Sparkline, ResponsiveChart, annotations/{HLine,VLine,Region,AnnotationLabel}
-│   ├── core/          DataStore, ScaleManager, CursorManager, RenderScheduler, Scale
-│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect
+│   ├── core/          DataStore, ScaleManager, CursorManager, RenderScheduler, Scale, BlockMinMax, normalizeData
+│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect, drawBands, drawPoints
 │   ├── hooks/         useChart, useDrawHook, useCursorDrawHook, useStreamingData (public); useInteraction, useChartStore (internal)
 │   ├── math/          utils, increments, stack, align
 │   ├── axes/          ticks, layout
-│   ├── paths/         linear, stepped, bars, monotoneCubic, catmullRom, points, candlestick
+│   ├── paths/         linear, stepped, bars, monotoneCubic, catmullRom, points, candlestick (draw callback)
+│   ├── sync/          SyncGroup, useSyncGroup
+│   ├── utils/         shallowEqual
 │   ├── types/         all type definitions (common, scales, axes, hooks, bands, etc.)
 │   ├── time/          timeIncrs, timeSplits, timeVals, fmtDate
 │   ├── annotations.ts Annotation drawing helpers (drawHLine, drawVLine, drawLabel, drawRegion)
@@ -24,7 +26,7 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 │   ├── colors.ts      Color utilities (fadeGradient, withAlpha, palette)
 │   └── index.ts       public API exports
 ├── test/              Vitest test suite
-├── demo/              demo app (vite dev server, 99 examples)
+├── demo/              demo app (vite dev server, 101examples)
 └── dist/              build output (gitignored)
 ```
 
@@ -50,15 +52,15 @@ npm run test        # Vitest
 
 ## Features
 
-- **17 components**: Chart, Scale, Series, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel, ZoomRanger, Timeline, Sparkline, ResponsiveChart, HLine, VLine, Region, AnnotationLabel
-- **9 path builders**: linear (with pixel-level decimation), stepped, bars, groupedBars, stackedBars, monotoneCubic, catmullRom, points, candlestick
+- **20 components**: Chart, Scale, Series, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel, ZoomRanger, Timeline, Sparkline, BoxWhisker, Candlestick, Heatmap, Vector, HLine, VLine, Region, AnnotationLabel
+- **8 path builders**: linear (with pixel-level decimation), stepped, bars, groupedBars, stackedBars, monotoneCubic, catmullRom, points
 - **Default injection**: Chart auto-creates missing x/y scales, axes, and series colors — minimal config: just `<Chart data={data}><Series group={0} index={0} /></Chart>`
 - **Annotations**: declarative `<HLine>`, `<VLine>`, `<Region>`, `<AnnotationLabel>` components; also imperative drawHLine/drawVLine/drawLabel/drawRegion
 - **Axis formatters**: fmtCompact (K/M/B), fmtSuffix (°C, %), fmtPrefix ($), fmtWrap (prefix+suffix), fmtHourMin, fmtMonthName, fmtDateStr, fmtLabels
 - **Color utilities**: fadeGradient, withAlpha, palette
 - **Time formatting**: Intl.DateTimeFormat-based formatters, 26 standard time increments, round-boundary tick alignment
 - **Cursor sync**: multiple charts share cursor state via `syncKey`
-- **Interactions**: wheel/touch zoom (x, y, or both with modifier keys), drag-to-zoom, Y-scale dragging, focus mode
+- **Action map**: `Map<ActionKey, ReactionValue>` maps gestures to reactions. Built-in strings for drag/click/dblclick/wheel/gutter/hover/touch + built-in reactions (zoomX/Y/XY, panX/Y/XY, reset, none). Users pass `actions` prop as `[action, reaction]` tuples — merged with defaults internally. Both sides support custom functions. `focus(alpha)` factory for hover-to-focus.
 - **Data utilities**: stackGroup (stacked areas/bars), alignData (multi-x-axis alignment)
 - **Hooks**: useChart, useDrawHook, useCursorDrawHook, useStreamingData (with batchSize)
 - **Scale types**: linear, ordinal, log (any base), asinh
@@ -83,7 +85,7 @@ npm run test        # Vitest
 - **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
 - **Coverage**: math (utils, increments, stack, align), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, interactions, resize, mount, focus)
 - **Interaction tests**: `setupInteraction()` extracted from `useInteraction` hook for direct DOM event testing without React Testing Library
-- **Demos**: 99 interactive examples covering all chart types, interactions, and edge cases
+- **Demos**: 101interactive examples covering all chart types, interactions, and edge cases
 
 ## Reference Code
 

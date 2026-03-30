@@ -90,8 +90,8 @@ export function stepped(defaultAlign?: -1 | 0 | 1): PathBuilder {
       const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
       const fillToY = pixelForY(fillToVal);
 
-      let frX = xOff;
-      let toX = xOff + xDim;
+      let frX = pixelForX(dataX[idx0] as number);
+      let toX = pixelForX(dataX[idx1] as number);
       if (dir === Direction.Backward) [toX, frX] = [frX, toX];
 
       lineTo(fill, toX, fillToY);

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Chart, Scale, Series, Axis, bars, Distribution } from '../../src';
+import { Chart, Scale, Series, Axis, bars, Distribution, fmtSuffix } from '../../src';
 
 function generateMassSpecData() {
   // Mass spectrum: sharp peaks at specific m/z values
@@ -47,8 +47,6 @@ function generateMassSpecData() {
   return [{ x, series: [y] }];
 }
 
-const fmtMz = (splits: number[]) => splits.map(v => v.toFixed(0));
-
 const fmtIntensity = (splits: number[]) =>
   splits.map(v => {
     if (v === 0) return '0';
@@ -63,7 +61,7 @@ export default function MassSpectrum() {
   return (
     <Chart width={800} height={400} data={data}>
       <Scale id="y"  distr={Distribution.Log} log={10} />
-      <Axis scale="x" label="m/z" values={fmtMz} />
+      <Axis scale="x" label="m/z" values={fmtSuffix('')} />
       <Axis scale="y" label="Intensity" values={fmtIntensity} />
       <Series
         group={0}

@@ -62,7 +62,6 @@ export default function EventCallbacks() {
           width={800}
           height={400}
           data={data}
-          cursor={{ wheelZoom: true }}
           onClick={onClick}
           onContextMenu={onContextMenu}
           onScaleChange={onScaleChange}

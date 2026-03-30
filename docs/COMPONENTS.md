@@ -15,6 +15,10 @@ Complete props reference for all uPlot+ React components, organized by hierarchy
 ├── <HoverLabel>                 Nearest series info on hover delay (HTML overlay)
 ├── <Tooltip>                    Cursor tooltip (HTML overlay)
 ├── <Timeline>                   Event lanes (canvas draw hook)
+├── <BoxWhisker>                 Box-and-whisker plot (canvas draw hook)
+├── <Candlestick>                OHLC financial candlestick (canvas draw hook)
+├── <Heatmap>                    2D colored grid (canvas draw hook)
+├── <Vector>                     Directional arrows overlay (canvas draw hook)
 ├── <HLine>                      Horizontal line annotation (canvas draw hook)
 ├── <VLine>                      Vertical line annotation (canvas draw hook)
 ├── <Region>                     Shaded region annotation (canvas draw hook)
@@ -22,7 +26,6 @@ Complete props reference for all uPlot+ React components, organized by hierarchy
 
 <ZoomRanger>                     Overview mini-chart (standalone, wraps Chart internally)
 <Sparkline>                      Compact inline chart (standalone, wraps Chart internally)
-<ResponsiveChart>                Auto-sizing wrapper (standalone, wraps Chart internally)
 ```
 
 **Renderless components** return `null` — they register configuration with the chart store via `useEffect` and do not produce DOM elements. Canvas operations are imperative, not driven by React re-renders.
@@ -53,7 +56,7 @@ Root container. Creates two canvas layers (persistent data + cursor overlay), in
 | `ylabel` | `string` | `'Y Axis'` | Label for auto-generated y-axis |
 | `pxRatio` | `number` | `devicePixelRatio` | Device pixel ratio override |
 | `syncKey` | `string` | — | Sync cursor across charts with the same key |
-| `cursor` | `CursorConfig` | — | Cursor/interaction config |
+| `actions` | `ActionList` | `DEFAULT_ACTIONS` | Gesture→reaction overrides (merged with defaults) |
 | `onDraw` | `DrawCallback` | — | Custom draw on persistent layer |
 | `onCursorDraw` | `CursorDrawCallback` | — | Custom draw on cursor overlay |
 | `onClick` | `(info: ChartEventInfo) => void` | — | Click within plot area |
@@ -66,27 +69,28 @@ Root container. Creates two canvas layers (persistent data + cursor overlay), in
 | `onReady` | `(ref: ChartRef) => void` | — | Fires after initial render |
 | `chartRef` | `React.Ref<ChartRef>` | — | Imperative chart access |
 
-**`CursorConfig`:**
+**`actions`** — array of `[ActionKey, ReactionValue]` tuples, merged with `DEFAULT_ACTIONS` internally. Override specific gestures without repeating defaults:
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `wheelZoom` | `boolean \| 'x' \| 'y' \| 'xy' \| WheelZoomConfig` | `false` | Wheel zoom — `true` for x-only, `'xy'` for both, or object for modifier keys |
-| `focus` | `FocusConfig` | — | Focus mode: dims non-closest series |
+```tsx
+// Wheel zoom on both axes + disable dblclick reset
+<Chart actions={[['wheel', 'zoomXY'], ['leftDblclick', 'none']]} />
 
-**`WheelZoomConfig`** (advanced):
+// Shift+wheel zooms Y, alt+wheel zooms X, plain wheel disabled
+<Chart actions={[['shiftWheel', 'zoomY'], ['altWheel', 'zoomX'], ['wheel', 'none']]} />
 
-```ts
-{ x?: boolean | { key?: 'shift' | 'alt' | 'ctrl' },
-  y?: boolean | { key?: 'shift' | 'alt' | 'ctrl' } }
+// Focus mode via hover action
+import { focus } from 'uplot-plus';
+<Chart actions={[['hover', focus(0.15)]]} />
+
+// Custom function matcher → function reaction
+<Chart actions={[
+  [(e, ctx) => e instanceof MouseEvent && e.shiftKey, (store, e, ctx) => { /* custom */ }],
+]} />
 ```
 
-Example: `wheelZoom={{ x: true, y: { key: 'shift' } }}` — x-axis zooms by default, y-axis only with Shift held.
+Built-in action strings: `{mod?}{Button}{Type}` — e.g. `leftDrag`, `shiftMiddleClick`, `ctrlRightDrag`, `wheel`, `shiftWheel`, `xGutterDrag`, `yGutterDrag`, `hover`, `touchDrag`, `pinch`.
 
-**`FocusConfig`:**
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `alpha` | `number` | `0.15` | Opacity for non-focused series |
+Built-in reaction strings: `zoomX`, `zoomY`, `zoomXY`, `panX`, `panY`, `panXY`, `reset`, `none`.
 
 **`ChartRef`** (imperative handle via `chartRef`):
 
@@ -236,7 +240,6 @@ Use the `fadeGradient()` and `withAlpha()` helpers from `uplot-plus` to create t
 | `monotoneCubic()` | `monotoneCubic` | Smooth curves preserving monotonicity. |
 | `catmullRom()` | `catmullRom` | Centripetal Catmull-Rom splines. |
 | `points()` | `points` | Scatter plots (points only, no lines). |
-| `drawCandlesticks()` | `drawCandlesticks` | OHLC financial candlesticks. |
 
 ```tsx
 import { Series, bars, withAlpha, fadeGradient } from 'uplot-plus';
@@ -631,6 +634,121 @@ const lanes = [
 
 ---
 
+### `<BoxWhisker>`
+
+Box-and-whisker plot with quartiles, whiskers, and median line. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `boxes` | `Array<{ min, q1, median, q3, max }>` | — | Box data, one per category **(required)** |
+| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `boxWidth` | `number` | `0.5` | Box width as fraction of category spacing |
+| `fill` | `string` | `'rgba(52, 152, 219, 0.4)'` | Box fill color |
+| `stroke` | `string` | `'#2980b9'` | Box stroke color |
+| `medianColor` | `string` | `'#e74c3c'` | Median line color |
+| `whiskerColor` | `string` | `'#555'` | Whisker and cap color |
+
+```tsx
+import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
+
+<Chart width={800} height={400} data={chartData}>
+  <Scale id="x" auto={false} min={0.5} max={10.5} />
+  <Scale id="y" auto={false} min={yMin} max={yMax} />
+  <Axis scale="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
+  <Axis scale="y" />
+  <BoxWhisker boxes={boxes} />
+</Chart>
+```
+
+**Demos:** `box-whisker`.
+
+---
+
+### `<Candlestick>`
+
+OHLC financial candlestick chart. Reads data from the chart store (4 series: open, high, low, close). Shares the `drawRangeBox` rendering primitive with BoxWhisker. Uses `useDrawHook`. Must be inside `<Chart>`.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `group` | `number` | `0` | Data group containing OHLC series |
+| `series` | `[number, number, number, number]` | `[0,1,2,3]` | Series indices: [open, high, low, close] |
+| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `upColor` | `string` | `'#26a69a'` | Color for up candles (close >= open) |
+| `downColor` | `string` | `'#ef5350'` | Color for down candles (close < open) |
+| `bodyWidth` | `number` | `0.6` | Body width as fraction of available space |
+| `wickWidth` | `number` | `1` | Wick width in CSS pixels |
+
+```tsx
+import { Chart, Series, Candlestick } from 'uplot-plus';
+
+<Chart width={800} height={400} data={data} xlabel="Day" ylabel="Price">
+  <Series group={0} index={0} show={false} label="Open" />
+  <Series group={0} index={1} show={false} label="High" />
+  <Series group={0} index={2} show={false} label="Low" />
+  <Series group={0} index={3} show={false} label="Close" />
+  <Candlestick />
+</Chart>
+```
+
+**Demos:** `candlestick-ohlc`.
+
+---
+
+### `<Heatmap>`
+
+2D grid of colored cells with configurable color mapping. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `grid` | `number[][]` | — | 2D array: `grid[row][col]` = intensity **(required)** |
+| `xRange` | `[number, number]` | `[0, rows]` | X-axis value range |
+| `yRange` | `[number, number]` | `[0, cols]` | Y-axis value range |
+| `colorMap` | `(t: number) => string` | blue-cyan-green-yellow-orange-red | Color function (0..1 normalized) |
+| `yScale` | `string` | `'y'` | Y-axis scale id |
+
+```tsx
+import { Chart, Scale, Axis, Heatmap, fmtSuffix } from 'uplot-plus';
+
+<Chart width={800} height={400} data={chartData}>
+  <Scale id="x" auto={false} min={0} max={24} />
+  <Scale id="y" auto={false} min={0} max={300} />
+  <Axis scale="x" label="Hour" />
+  <Axis scale="y" label="Latency" values={fmtSuffix('ms')} />
+  <Heatmap grid={grid} xRange={[0, 24]} yRange={[0, 300]} />
+</Chart>
+```
+
+**Demos:** `heatmap`.
+
+---
+
+### `<Vector>`
+
+Directional arrows overlaid on data points. Arrow size scales with y-value. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `directions` | `ArrayLike<number>` | — | Angle per data point in degrees (0=N, 90=E) **(required)** |
+| `group` | `number` | `0` | Data group to overlay on |
+| `index` | `number` | `0` | Series index for y-positions |
+| `color` | `string` | `'#c0392b'` | Arrow color |
+| `minSize` | `number` | `4` | Min arrow size (CSS px) |
+| `maxSize` | `number` | `10` | Max arrow size (CSS px) |
+
+```tsx
+import { Chart, Series, Axis, Vector, fmtSuffix } from 'uplot-plus';
+
+<Chart width={800} height={400} data={chartData} ylabel="Wind Speed (km/h)">
+  <Axis scale="x" label="Time (hours)" values={fmtSuffix('h')} />
+  <Series group={0} index={0} label="Speed" dash={[4, 3]} />
+  <Vector directions={directions} />
+</Chart>
+```
+
+**Demos:** `wind-direction`.
+
+---
+
 ## Standalone Components
 
 ### `<ZoomRanger>`
@@ -714,36 +832,3 @@ import { Sparkline, bars, withAlpha } from 'uplot-plus';
 ```
 
 **Demos:** `sparklines`, `sparklines-bars`.
-
----
-
-### `<ResponsiveChart>`
-
-Auto-sizing chart wrapper. Measures its container via `ResizeObserver` and passes the measured width/height to an internal `<Chart>`. SSR-safe.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `minWidth` | `number` | `100` | Minimum width (CSS px) |
-| `minHeight` | `number` | `100` | Minimum height (CSS px) |
-| `aspectRatio` | `number` | — | If set, `height = width / aspectRatio` |
-| `initialHeight` | `number` | `300` | Height when container height is auto |
-| *...all other `ChartProps`* | | | Except `width` and `height` |
-
-The container `<div>` takes `width: 100%`. If `aspectRatio` is set, height is computed from width; otherwise height comes from the container or `initialHeight`.
-
-```tsx
-import { ResponsiveChart, Scale, Series, Axis } from 'uplot-plus';
-
-// Fills parent, maintains 16:9
-<div style={{ width: '100%' }}>
-  <ResponsiveChart data={data} aspectRatio={16/9}>
-    <Scale id="x" />
-    <Scale id="y" />
-    <Axis scale="x" />
-    <Axis scale="y" />
-    <Series group={0} index={0} yScale="y" stroke="red" />
-  </ResponsiveChart>
-</div>
-```
-
-**Demos:** `resize-demo`.

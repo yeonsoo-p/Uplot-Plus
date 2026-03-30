@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Series, Axis } from '../../src';
+import { Chart, Series, Axis, fmtSuffix } from '../../src';
 
 function generateData() {
   const n = 288; // 24h at 5-min intervals
@@ -23,15 +23,13 @@ const fmtTime = (splits: number[]) => splits.map(v => {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 });
 
-const fmtMBs = (splits: number[]) => splits.map(v => v.toFixed(0) + ' MB/s');
-
 export default function CustomAxisValues() {
   const data = generateData();
 
   return (
     <Chart width={800} height={400} data={data}>
       <Axis scale="x" label="Time of Day" values={fmtTime} space={80} />
-      <Axis scale="y" label="Throughput" values={fmtMBs} />
+      <Axis scale="y" label="Throughput" values={fmtSuffix(' MB/s')} />
       <Series group={0} index={0} stroke="#2980b9" fill="rgba(41,128,185,0.1)" label="Throughput" />
     </Chart>
   );

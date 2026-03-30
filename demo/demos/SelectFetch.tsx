@@ -2,6 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { Chart, Series, Legend } from '../../src';
 import type { ChartData, SelectEventInfo } from '../../src';
 
+/** Deterministic noise based on x-value (no Math.random). */
+function noise(t: number): number {
+  const x = Math.sin(t * 127.1) * 43758.5453;
+  return x - Math.floor(x);
+}
+
 function generateData(min: number, max: number, n: number): ChartData {
   const x: number[] = [];
   const y: number[] = [];
@@ -10,7 +16,7 @@ function generateData(min: number, max: number, n: number): ChartData {
   for (let i = 0; i < n; i++) {
     const t = min + i * step;
     x.push(t);
-    y.push(Math.sin(t * 0.5) * 30 + Math.cos(t * 1.3) * 15 + 50 + (Math.random() - 0.5) * 4);
+    y.push(Math.sin(t * 0.5) * 30 + Math.cos(t * 1.3) * 15 + 50 + (noise(t) - 0.5) * 4);
   }
 
   return [{ x, series: [y] }];
@@ -64,9 +70,8 @@ export default function SelectFetch() {
         width={800}
         height={400}
         data={data}
-        cursor={{ wheelZoom: true }}
+        actions={[['leftDblclick', 'none']]}
         onSelect={onSelect}
-        onDblClick={() => false}
         onScaleChange={onScaleChange}
         xlabel="X"
         ylabel="Value"

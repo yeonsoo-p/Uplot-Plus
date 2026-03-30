@@ -1,6 +1,5 @@
-import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawVLine } from '../../annotations';
-import { useLayoutEffect, useRef } from 'react';
+import { useAnnotationDraw } from './useAnnotationDraw';
 
 export interface VLineProps {
   /** X data value where the line is drawn */
@@ -24,15 +23,7 @@ export interface VLineProps {
  * Renders a vertical line at an x-data-value. Place inside `<Chart>`.
  */
 export function VLine(props: VLineProps): null {
-  const propsRef = useRef(props);
-  useLayoutEffect(() => { propsRef.current = props; });
-
-  useDrawHook((dc) => {
-    const p = propsRef.current;
-    const scaleId = p.xScale ?? 'x';
-    const scale = dc.getScale(scaleId);
-    if (scale == null) return;
-
+  useAnnotationDraw(props, props.xScale ?? 'x', (dc, scale, p) => {
     drawVLine(dc, scale, p.value, {
       stroke: p.stroke,
       width: p.width,
@@ -40,7 +31,7 @@ export function VLine(props: VLineProps): null {
     });
 
     if (p.label != null) {
-      const x = dc.valToX(p.value, scaleId);
+      const x = dc.valToX(p.value, p.xScale ?? 'x');
       if (x == null) return;
       const { ctx, plotBox } = dc;
       ctx.font = p.labelFont ?? '11px sans-serif';

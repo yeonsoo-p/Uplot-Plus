@@ -30,7 +30,7 @@ export default function ZoomModifierKeys() {
         width={800}
         height={400}
         data={data}
-        cursor={{ wheelZoom: { x: { key: 'shift' }, y: { key: 'alt' } } }}
+        actions={[['shiftWheel', 'zoomX'], ['altWheel', 'zoomY'], ['wheel', 'none']]}
         xlabel="Time"
         ylabel="Value"
       >

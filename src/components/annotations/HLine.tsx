@@ -1,10 +1,5 @@
-import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawHLine } from '../../annotations';
-import { useLayoutEffect, useRef } from 'react';
-
-// Performance: each annotation instance registers its own useDrawHook callback.
-// For 50+ annotations, consider using a single parent component with one useDrawHook
-// that iterates over all annotation configs (see Timeline component for this pattern).
+import { useAnnotationDraw } from './useAnnotationDraw';
 
 export interface HLineProps {
   /** Y data value where the line is drawn */
@@ -28,15 +23,7 @@ export interface HLineProps {
  * Renders a horizontal line at a y-data-value. Place inside `<Chart>`.
  */
 export function HLine(props: HLineProps): null {
-  const propsRef = useRef(props);
-  useLayoutEffect(() => { propsRef.current = props; });
-
-  useDrawHook((dc) => {
-    const p = propsRef.current;
-    const scaleId = p.yScale ?? 'y';
-    const scale = dc.getScale(scaleId);
-    if (scale == null) return;
-
+  useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
     drawHLine(dc, scale, p.value, {
       stroke: p.stroke,
       width: p.width,
@@ -44,7 +31,7 @@ export function HLine(props: HLineProps): null {
     });
 
     if (p.label != null) {
-      const y = dc.valToY(p.value, scaleId);
+      const y = dc.valToY(p.value, p.yScale ?? 'y');
       if (y == null) return;
       const { ctx, plotBox } = dc;
       ctx.font = p.labelFont ?? '11px sans-serif';

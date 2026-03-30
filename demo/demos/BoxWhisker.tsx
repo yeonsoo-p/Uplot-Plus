@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { Chart, Scale, Axis } from '../../src';
-import type { ChartData, DrawCallback } from '../../src';
+import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from '../../src';
+import type { ChartData } from '../../src';
 
 interface BoxData {
   min: number;
@@ -39,78 +39,18 @@ function generateBoxData(): { boxes: BoxData[]; chartData: ChartData; yMin: numb
   return { boxes, chartData: [{ x, series: [y] }], yMin, yMax };
 }
 
-const fmtCategory = (splits: number[]) =>
-  splits.map(v => {
-    const idx = Math.round(v);
-    if (idx < 1 || idx > 10) return '';
-    return `Cat ${idx}`;
-  });
+const categoryLabels = Array.from({ length: 10 }, (_, i) => `Cat ${i + 1}`);
 
-export default function BoxWhisker() {
+export default function BoxWhiskerDemo() {
   const { boxes, chartData, yMin, yMax } = useMemo(() => generateBoxData(), []);
 
-  const onDraw: DrawCallback = ({ ctx, plotBox, valToX, valToY }) => {
-    const boxW = (plotBox.width / boxes.length) * 0.5;
-
-    for (let i = 0; i < boxes.length; i++) {
-      const b = boxes[i];
-      if (b == null) continue;
-
-      const cx = valToX(i + 1);
-      const minPx = valToY(b.min, 'y');
-      const q1Px = valToY(b.q1, 'y');
-      const medPx = valToY(b.median, 'y');
-      const q3Px = valToY(b.q3, 'y');
-      const maxPx = valToY(b.max, 'y');
-      if (cx == null || minPx == null || q1Px == null || medPx == null || q3Px == null || maxPx == null) continue;
-
-      const halfW = boxW / 2;
-      const capW = halfW * 0.6;
-
-      // Whisker line: min to max
-      ctx.strokeStyle = '#555';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cx, minPx);
-      ctx.lineTo(cx, maxPx);
-      ctx.stroke();
-
-      // Min cap
-      ctx.beginPath();
-      ctx.moveTo(cx - capW, minPx);
-      ctx.lineTo(cx + capW, minPx);
-      ctx.stroke();
-
-      // Max cap
-      ctx.beginPath();
-      ctx.moveTo(cx - capW, maxPx);
-      ctx.lineTo(cx + capW, maxPx);
-      ctx.stroke();
-
-      // Box Q1 to Q3
-      const boxTop = Math.min(q1Px, q3Px);
-      const boxH = Math.abs(q3Px - q1Px);
-      ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
-      ctx.fillRect(cx - halfW, boxTop, halfW * 2, boxH);
-      ctx.strokeStyle = '#2980b9';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(cx - halfW, boxTop, halfW * 2, boxH);
-
-      // Median line
-      ctx.strokeStyle = '#e74c3c';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(cx - halfW, medPx);
-      ctx.lineTo(cx + halfW, medPx);
-      ctx.stroke();
-    }
-  };
-
   return (
-    <Chart width={800} height={400} data={chartData} onDraw={onDraw} ylabel="Value">
+    <Chart width={800} height={400} data={chartData} ylabel="Value">
       <Scale id="x" auto={false} min={0.5} max={10.5} />
       <Scale id="y" auto={false} min={yMin} max={yMax} />
-      <Axis scale="x" label="Category" values={fmtCategory} />
+      <Axis scale="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
+      <Axis scale="y" />
+      <BoxWhisker boxes={boxes} />
     </Chart>
   );
 }

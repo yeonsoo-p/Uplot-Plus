@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Scale, Series, Axis, Side } from '../../src';
+import { Chart, Scale, Series, Axis, Side, fmtSuffix } from '../../src';
 
 function generateData() {
   const n = 100;
@@ -10,7 +10,6 @@ function generateData() {
   return [{ x, series: [tempF] }];
 }
 
-const fmtF = (splits: number[]) => splits.map(v => v.toFixed(0) + '°F');
 const fmtC = (splits: number[]) => splits.map(v => ((v - 32) * 5 / 9).toFixed(1) + '°C');
 
 export default function DependentScales() {
@@ -19,7 +18,7 @@ export default function DependentScales() {
   return (
     <Chart width={800} height={400} data={data} xlabel="Day">
       <Scale id="f"  />
-      <Axis scale="f" label="Fahrenheit" values={fmtF} stroke="#e74c3c" />
+      <Axis scale="f" label="Fahrenheit" values={fmtSuffix('°F')} stroke="#e74c3c" />
       <Axis scale="f" side={Side.Right} label="Celsius" values={fmtC} stroke="#3498db" grid={{ show: false }} />
       <Series group={0} index={0} yScale="f" stroke="#e74c3c" label="Temperature" />
     </Chart>

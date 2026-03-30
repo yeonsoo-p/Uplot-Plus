@@ -1,5 +1,5 @@
 import React from 'react';
-import { Chart, Series, Axis, Legend } from '../../src';
+import { Chart, Series, Axis, Legend, fmtSuffix } from '../../src';
 
 function generateData() {
   const n = 200;
@@ -13,8 +13,6 @@ function generateData() {
   };
 }
 
-const fmtPct = (splits: number[]) => splits.map(v => v.toFixed(0) + '%');
-
 export default function SyncCursor() {
   const { data1, data2 } = generateData();
 
@@ -25,13 +23,13 @@ export default function SyncCursor() {
       </p>
       <div style={{ marginBottom: 16 }}>
         <Chart width={800} height={200} data={data1} syncKey="demo-sync" xlabel="Time">
-          <Axis scale="y" label="CPU" values={fmtPct} />
+          <Axis scale="y" label="CPU" values={fmtSuffix('%')} />
           <Series group={0} index={0} fill="rgba(231,76,60,0.1)" label="CPU %" />
           <Legend />
         </Chart>
       </div>
       <Chart width={800} height={200} data={data2} syncKey="demo-sync" xlabel="Time">
-        <Axis scale="y" label="Memory" values={fmtPct} />
+        <Axis scale="y" label="Memory" values={fmtSuffix('%')} />
         <Series group={0} index={0} fill="rgba(52,152,219,0.1)" label="Memory %" />
         <Legend />
       </Chart>

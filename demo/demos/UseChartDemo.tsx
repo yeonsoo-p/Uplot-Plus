@@ -73,7 +73,7 @@ export default function UseChartDemo() {
         The <code>useChart()</code> hook gives child components access to the chart store.
         The panel below reads scale ranges, cursor position, and layout info in real time.
       </p>
-      <Chart width={800} height={350} data={data} cursor={{ wheelZoom: true }}>
+      <Chart width={800} height={350} data={data} >
         <Series group={0} index={0} label="Sine" stroke="#e74c3c" />
         <Series group={0} index={1} label="Cosine" stroke="#3498db" />
         <Legend />

@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import type { ChartProps } from '../types';
+import { DEFAULT_ACTIONS } from '../types/interaction';
 import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { useChartStore } from '../hooks/useChartStore';
 import { ChartContext } from '../hooks/useChart';
@@ -14,7 +15,7 @@ import { normalizeData } from '../core/normalizeData';
  */
 export function Chart({
   width, height, data, children, className, pxRatio: pxRatioOverride, title, xlabel, ylabel,
-  onDraw, onCursorDraw, syncKey, cursor,
+  onDraw, onCursorDraw, syncKey, actions,
   onClick, onContextMenu, onDblClick, onCursorMove, onCursorLeave,
   onScaleChange, onSelect,
 }: ChartProps) {
@@ -23,16 +24,12 @@ export function Chart({
 
   const pxRatio = pxRatioOverride ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
 
-  // Sync cursor config to store in an effect (not during render)
-  // wheelZoom can be an object, so we use a serialized key for the dependency array
-  const wheelZoom = cursor?.wheelZoom;
-  const wheelZoomKey = typeof wheelZoom === 'object' ? JSON.stringify(wheelZoom) : wheelZoom;
-  const focusAlpha = cursor?.focus?.alpha ?? (cursor?.focus != null ? 0.15 : 1);
+  // Merge user action overrides with defaults and sync to store
   useEffect(() => {
-    store.wheelZoom = wheelZoom;
-    store.focusAlpha = focusAlpha;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- wheelZoomKey is the stable serialization of wheelZoom
-  }, [store, wheelZoomKey, focusAlpha]);
+    store.actionMap = actions != null
+      ? new Map([...DEFAULT_ACTIONS, ...actions])
+      : new Map(DEFAULT_ACTIONS);
+  }, [store, actions]);
 
   // Sync title and axis labels to store (in effect, not render)
   useEffect(() => {
@@ -151,11 +148,13 @@ export function Chart({
       >
         <div
           ref={containerRef}
+          tabIndex={-1}
           style={{
             position: 'relative',
             width: `${width}px`,
             height: `${height}px`,
             cursor: 'crosshair',
+            outline: 'none',
             order: 0,
           }}
         >

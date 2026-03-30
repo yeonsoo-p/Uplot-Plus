@@ -1,5 +1,4 @@
 import { Chart } from './Chart';
-import { Scale } from './Scale';
 import { Series } from './Series';
 import { Axis } from './Axis';
 import type { DataInput, ColorValue } from '../types';
@@ -44,8 +43,6 @@ export function Sparkline({
   return (
     <div style={{ pointerEvents: 'none' }} className={className}>
       <Chart width={width} height={height} data={data}>
-        <Scale id="x" />
-        <Scale id="y" />
         <Axis scale="x" show={false} />
         <Axis scale="y" show={false} />
         <Series

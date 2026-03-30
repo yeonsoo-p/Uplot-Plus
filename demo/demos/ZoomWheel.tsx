@@ -19,7 +19,7 @@ export default function ZoomWheel() {
   }, []);
 
   return (
-    <Chart width={800} height={400} data={data} cursor={{ wheelZoom: true }}>
+    <Chart width={800} height={400} data={data} >
       <Series group={0} index={0} label="Damped sine" />
       <Series group={0} index={1} label="Cosine" />
       <Legend />

@@ -2,7 +2,7 @@
 
 High-performance React charting library ripped off from [uPlot](https://github.com/leeoniya/uplot). Might perform occasionally better than original uPlot in React context (or worse). Definitely easier to use in React context.
 
-**[Live Demo (99 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
+**[Live Demo (101 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
 
 ## Features
 
@@ -10,8 +10,8 @@ High-performance React charting library ripped off from [uPlot](https://github.c
 - **Native React components** — declarative `<Chart>`, `<Series>`, `<Scale>`, `<Axis>` API
 - **Multi-x-axis support** — multiple data groups with independent x-ranges on one chart
 - **TypeScript-first** — strict types, full type exports, no `any`
-- **7 path builders** — linear, stepped, bars, monotone cubic, Catmull-Rom, points, candlestick
-- **Interactive** — wheel/touch zoom, drag-to-zoom, cursor snapping, series focus
+- **8 path builders** — linear, stepped, bars, groupedBars, stackedBars, monotone cubic, Catmull-Rom, points
+- **Action map** — `Map<string|function, string|function>` maps gestures to reactions. Drag, click, dblclick, wheel, gutter, hover, touch — all configurable
 - **Cursor sync** — linked crosshairs and tooltips across multiple charts
 - **Compact bundle** — ~128KB (~36KB gzip), React 18+ peer dependency
 - **Dual output** — ES module + CommonJS
@@ -91,7 +91,10 @@ function App() {
 | `<ZoomRanger>` | Overview mini-chart with draggable selection for zoom control |
 | `<Timeline>` | Horizontal lanes of colored event spans |
 | `<Sparkline>` | Compact inline chart for tables and dashboards (no axes, no interaction) |
-| `<ResponsiveChart>` | Auto-sizes to container via ResizeObserver |
+| `<BoxWhisker>` | Box-and-whisker plot with quartiles, whiskers, and median |
+| `<Candlestick>` | OHLC financial candlestick chart |
+| `<Heatmap>` | 2D grid of colored cells with configurable color map |
+| `<Vector>` | Directional arrows overlaid on data points |
 | `<HLine>` | Declarative horizontal line annotation |
 | `<VLine>` | Declarative vertical line annotation |
 | `<Region>` | Declarative shaded region annotation |
@@ -141,7 +144,6 @@ Null values in series arrays create gaps in the chart. Use `spanGaps` on `<Serie
 | `monotoneCubic()` | `monotoneCubic` | Smooth curves that preserve monotonicity (no overshoot) |
 | `catmullRom()` | `catmullRom` | Centripetal Catmull-Rom splines |
 | `points()` | `points` | Scatter plots — points only, no connecting lines |
-| `drawCandlesticks()` | `drawCandlesticks` | OHLC financial candlestick charts |
 
 ```tsx
 import { Series, bars } from 'uplot-plus';
@@ -303,7 +305,7 @@ import { drawHLine, drawVLine, drawLabel, drawRegion } from 'uplot-plus';
 ## Development
 
 ```sh
-npm run dev         # Start demo dev server (99 examples)
+npm run dev         # Start demo dev server (101 examples)
 npm run build       # Build library (ES + CJS to dist/)
 npm run typecheck   # TypeScript strict check
 npm run lint        # ESLint

@@ -38,7 +38,7 @@ export default function ScatterPlot() {
   const data = useMemo(() => generateScatterData(), []);
 
   return (
-    <Chart width={800} height={400} data={data} cursor={{ wheelZoom: 'xy' }} xlabel="X" ylabel="Y">
+    <Chart width={800} height={400} data={data} actions={[['wheel', 'zoomXY']]} xlabel="X" ylabel="Y">
       <Series
         group={0}
         index={0}

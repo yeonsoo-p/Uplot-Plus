@@ -11,6 +11,9 @@ export { Timeline } from './components/Timeline';
 export { Sparkline } from './components/Sparkline';
 export { FloatingLegend } from './components/FloatingLegend';
 export { HoverLabel } from './components/HoverLabel';
+export { BoxWhisker } from './components/BoxWhisker';
+export { Heatmap } from './components/Heatmap';
+export { Vector } from './components/Vector';
 
 // Annotation components (declarative)
 export { HLine, VLine, Region, AnnotationLabel } from './components/annotations';
@@ -39,8 +42,12 @@ export type {
   TickConfig,
   BorderConfig,
   PointsConfig,
-  CursorConfig,
-  FocusConfig,
+  ActionList,
+  ActionEntry,
+  ActionKey,
+  ReactionValue,
+  ActionContext,
+  DragContinuation,
   GradientConfig,
   ColorValue,
 } from './types';
@@ -53,11 +60,14 @@ export type { ChartEventInfo, NearestPoint, SelectEventInfo, ScaleChangeCallback
 export type { AnnotationStyle } from './annotations';
 export type { ZoomRangerProps } from './components/ZoomRanger';
 export type { TimelineProps, TimelineLane, TimelineSegment } from './types/timeline';
-export type { CandlestickOpts } from './paths/candlestick';
+export type { CandlestickProps } from './components/Candlestick';
 export type { SparklineProps } from './components/Sparkline';
 export type { FloatingLegendProps } from './components/FloatingLegend';
 export type { HoverLabelProps } from './components/HoverLabel';
 export type { HLineProps, VLineProps, RegionProps, AnnotationLabelProps } from './components/annotations';
+export type { BoxWhiskerProps } from './components/BoxWhisker';
+export type { HeatmapProps } from './components/Heatmap';
+export type { VectorProps } from './components/Vector';
 export type { StreamingOptions, StreamingResult } from './hooks/useStreamingData';
 
 // Path builders
@@ -67,7 +77,7 @@ export { bars, groupedBars, stackedBars } from './paths/bars';
 export { monotoneCubic } from './paths/monotoneCubic';
 export { catmullRom } from './paths/catmullRom';
 export { points } from './paths/points';
-export { drawCandlesticks } from './paths/candlestick';
+export { Candlestick } from './components/Candlestick';
 
 // Data utilities
 export { stackGroup } from './math/stack';
@@ -78,6 +88,9 @@ export { drawHLine, drawVLine, drawLabel, drawRegion } from './annotations';
 
 // Scale utilities (for advanced draw hooks that need raw access)
 export { valToPos, posToVal } from './core/Scale';
+
+// Interaction defaults and reaction factories
+export { DEFAULT_ACTIONS, focus } from './types/interaction';
 
 // Enums
 export { Side, Orientation, Direction, Distribution, SortOrder, sideOrientation } from './types';

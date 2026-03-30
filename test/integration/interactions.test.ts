@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createChartStore, type ChartStore } from '@/hooks/useChartStore';
 import { setupInteraction } from '@/hooks/useInteraction';
 import { createScaleState } from '@/core/Scale';
+import { DEFAULT_ACTIONS } from '@/types/interaction';
+import type { ActionKey, ReactionValue } from '@/types/interaction';
 
 /**
  * Integration tests for chart interactions.
@@ -345,8 +347,9 @@ describe('Interaction: wheel zoom', () => {
   beforeEach(() => { h = setup(); });
   afterEach(() => { h.cleanup(); });
 
-  it('wheel with wheelZoom=false does nothing', () => {
-    h.store.wheelZoom = false;
+  it('wheel with no wheel action does nothing', () => {
+    // Remove 'wheel' from action map
+    h.store.actionMap = new Map<ActionKey, ReactionValue>([...DEFAULT_ACTIONS].filter(([k]) => k !== 'wheel'));
     const xScale = h.store.scaleManager.getScale('x');
 
     const { clientX, clientY } = plotToClient(h, 350, 280);
@@ -358,8 +361,8 @@ describe('Interaction: wheel zoom', () => {
     expect(xScale?.max).toBe(100);
   });
 
-  it('wheel with wheelZoom=true zooms x-scale', () => {
-    h.store.wheelZoom = true;
+  it('wheel with zoomX reaction zooms x-scale', () => {
+    // DEFAULT_ACTIONS already has ['wheel', 'zoomX']
     const xScale = h.store.scaleManager.getScale('x');
 
     const { clientX, clientY } = plotToClient(h, 350, 280);
@@ -375,7 +378,7 @@ describe('Interaction: wheel zoom', () => {
   });
 
   it('wheel zoom is centered around cursor position', () => {
-    h.store.wheelZoom = true;
+    // DEFAULT_ACTIONS already has ['wheel', 'zoomX']
     const xScale = h.store.scaleManager.getScale('x');
 
     // Zoom at the left quarter of the plot (x=175px, mapping to ~25 in data)
@@ -393,7 +396,7 @@ describe('Interaction: wheel zoom', () => {
   });
 
   it('onScaleChange fires after wheel zoom', () => {
-    h.store.wheelZoom = true;
+    // DEFAULT_ACTIONS already has ['wheel', 'zoomX']
     const cb = vi.fn();
     h.store.eventCallbacks.onScaleChange = cb;
 
@@ -462,8 +465,8 @@ describe('Interaction: focus mode', () => {
   beforeEach(() => { h = setup(); });
   afterEach(() => { h.cleanup(); });
 
-  it('mousemove with focusAlpha < 1 sets focusedSeries', () => {
-    h.store.focusAlpha = 0.15; // Enable focus mode
+  it('mousemove with hover→focus sets focusedSeries', () => {
+    h.store.actionMap = new Map<ActionKey, ReactionValue>([...DEFAULT_ACTIONS, ['hover', (store) => { store.focusAlpha = 0.15; }]]);
 
     const { clientX, clientY } = plotToClient(h, 350, 280);
     h.el.dispatchEvent(mouseEvent('mousemove', clientX, clientY));
@@ -473,7 +476,7 @@ describe('Interaction: focus mode', () => {
   });
 
   it('mouseleave clears focusedSeries', () => {
-    h.store.focusAlpha = 0.15;
+    h.store.actionMap = new Map<ActionKey, ReactionValue>([...DEFAULT_ACTIONS, ['hover', (store) => { store.focusAlpha = 0.15; }]]);
 
     // Move in
     const { clientX, clientY } = plotToClient(h, 350, 280);

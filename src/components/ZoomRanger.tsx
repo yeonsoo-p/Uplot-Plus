@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import type { DataInput } from '../types';
 import { Chart } from './Chart';
-import { Scale } from './Scale';
 import { Series } from './Series';
 import { clamp } from '../math/utils';
 import { Axis } from './Axis';
@@ -177,8 +176,6 @@ export function ZoomRanger({
   return (
     <div className={className} style={{ position: 'relative', width, height }}>
       <Chart width={width} height={height} data={data}>
-        <Scale id="x" />
-        <Scale id="y" />
         <Axis scale="x" show={false} />
         <Axis scale="y" show={false} />
         {Array.from({ length: seriesCount }, (_, i) => (

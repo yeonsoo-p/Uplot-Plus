@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Chart, Series, HoverLabel } from '../../src';
+import { Chart, Series, HoverLabel, focus } from '../../src';
 
 function generateData() {
   const n = 200;
@@ -33,7 +33,7 @@ export default function HoverLabelDemo() {
         width={800}
         height={400}
         data={data}
-        cursor={{ focus: { alpha: 0.15 } }}
+        actions={[['hover', focus(0.15)]]}
         xlabel="Time"
         ylabel="Value"
       >

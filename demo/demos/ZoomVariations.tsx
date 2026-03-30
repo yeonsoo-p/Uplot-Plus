@@ -23,7 +23,7 @@ export default function ZoomVariations() {
         <strong>Scroll wheel</strong> to zoom both axes &middot;{' '}
         <strong>Double-click</strong> to reset zoom
       </p>
-      <Chart width={800} height={400} data={data} cursor={{ wheelZoom: 'xy' }} xlabel="X" ylabel="Value">
+      <Chart width={800} height={400} data={data} actions={[['wheel', 'zoomXY']]} xlabel="X" ylabel="Value">
         <Series group={0} index={0} label="Sine Wave" />
         <Legend />
       </Chart>

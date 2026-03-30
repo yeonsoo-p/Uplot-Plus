@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { ScaleConfig, SeriesConfig, BBox } from '../types';
-import type { CursorConfig } from '../types/chart';
+import type { ActionKey, ReactionValue } from '../types/interaction';
+import { DEFAULT_ACTIONS } from '../types/interaction';
 import type { AxisConfig, AxisState } from '../types/axes';
 import type { SelectState } from '../types/cursor';
 import { ScaleManager } from '../core/ScaleManager';
@@ -155,10 +156,10 @@ export interface ChartStore {
 
   // Focus mode: index of focused series, or null for none
   focusedSeries: number | null;
-  /** Alpha for non-focused series (0-1, default 0.15) */
+  /** Alpha for non-focused series (0-1, default 1 = disabled) */
   focusAlpha: number;
-  /** Wheel zoom configuration */
-  wheelZoom: CursorConfig['wheelZoom'];
+  /** Action map: maps user gestures to chart reactions */
+  actionMap: Map<ActionKey, ReactionValue>;
   /** Chart title drawn on canvas */
   title: string | undefined;
   /** X-axis label for default axis */
@@ -231,8 +232,8 @@ export function createChartStore(): ChartStore {
     drawHooks: new Set(),
     cursorDrawHooks: new Set(),
     focusedSeries: null,
-    focusAlpha: 0.15,
-    wheelZoom: false,
+    focusAlpha: 1,
+    actionMap: new Map(DEFAULT_ACTIONS),
     title: undefined,
     xlabel: undefined,
     ylabel: undefined,

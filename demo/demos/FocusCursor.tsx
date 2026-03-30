@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Chart, Series, Legend } from '../../src';
+import { Chart, Series, Legend, focus } from '../../src';
 
 export default function FocusCursor() {
   const data = useMemo(() => {
@@ -31,7 +31,7 @@ export default function FocusCursor() {
       width={800}
       height={400}
       data={data}
-      cursor={{ focus: { alpha: 0.15 } }}
+      actions={[['hover', focus(0.15)]]}
     >
       {colors.map((color, i) => (
         <Series

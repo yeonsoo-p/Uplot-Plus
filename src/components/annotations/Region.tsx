@@ -1,6 +1,5 @@
-import { useDrawHook } from '../../hooks/useDrawHook';
 import { drawRegion } from '../../annotations';
-import { useLayoutEffect, useRef } from 'react';
+import { useAnnotationDraw } from './useAnnotationDraw';
 
 export interface RegionProps {
   /** Lower y data value */
@@ -24,14 +23,7 @@ export interface RegionProps {
  * Fills the area between two y-data-values. Place inside `<Chart>`.
  */
 export function Region(props: RegionProps): null {
-  const propsRef = useRef(props);
-  useLayoutEffect(() => { propsRef.current = props; });
-
-  useDrawHook((dc) => {
-    const p = propsRef.current;
-    const scale = dc.getScale(p.yScale ?? 'y');
-    if (scale == null) return;
-
+  useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
     drawRegion(dc, scale, p.yMin, p.yMax, {
       fill: p.fill,
       stroke: p.stroke,

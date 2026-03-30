@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { Chart, Series } from '../../src';
-import type { CursorDrawCallback, ChartEventInfo } from '../../src';
+import type { CursorDrawCallback, ActionEntry } from '../../src';
 
 function generateData() {
   const n = 200;
@@ -18,14 +18,11 @@ export default function MeasureDatums() {
   const data = useMemo(() => generateData(), []);
   const [refPoint, setRefPoint] = useState<RefPoint | null>(null);
 
-  const handleClick = useCallback((info: ChartEventInfo) => {
-    setRefPoint(prev => {
-      // Toggle: if already set, clear it; otherwise set new point
-      if (prev != null) return null;
-      // plotX/plotY are relative to plot area
-      return { left: info.plotX, top: info.plotY };
-    });
-  }, []);
+  const actions = useMemo<ActionEntry[]>(() => [
+    ['leftClick', (_store, _e, ctx) => {
+      setRefPoint(prev => prev ? null : { left: ctx.cx, top: ctx.cy });
+    }],
+  ], []);
 
   const onCursorDraw: CursorDrawCallback = useCallback(({ ctx, plotBox }, cursor) => {
     if (cursor.left < 0 || cursor.top < 0) return;
@@ -97,7 +94,7 @@ export default function MeasureDatums() {
       <p style={{ margin: '0 0 8px', fontSize: 13, color: '#666' }}>
         Click to set a reference point, click again to clear. Move cursor to measure distance.
       </p>
-      <Chart width={800} height={400} data={data} onCursorDraw={onCursorDraw} onClick={handleClick} xlabel="Sample" ylabel="Value">
+      <Chart width={800} height={400} data={data} onCursorDraw={onCursorDraw} actions={actions} xlabel="Sample" ylabel="Value">
         <Series group={0} index={0} label="Signal" />
       </Chart>
     </div>

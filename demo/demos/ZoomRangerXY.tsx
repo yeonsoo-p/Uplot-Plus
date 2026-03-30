@@ -24,7 +24,7 @@ export default function ZoomRangerXYDemo() {
 
   return (
     <div>
-      <Chart width={800} height={300} data={data} cursor={{ wheelZoom: 'xy' }} title="Detail view (controlled by ranger below)" ylabel="Signal A">
+      <Chart width={800} height={300} data={data} actions={[['wheel', 'zoomXY']]} title="Detail view (controlled by ranger below)" ylabel="Signal A">
         <Scale id="x" auto={range == null} min={range?.[0]} max={range?.[1]} />
         <Scale id="y2"  />
         <Axis scale="y2" side={Side.Right} label="Signal B" />

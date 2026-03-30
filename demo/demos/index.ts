@@ -80,6 +80,7 @@ import ZoomRangerDemo from './ZoomRanger';
 import ZoomRangerGrips from './ZoomRangerGrips';
 import ZoomRangerXY from './ZoomRangerXY';
 import EventCallbacks from './EventCallbacks';
+import CustomActions from './CustomActions';
 import SelectFetch from './SelectFetch';
 
 // --- Data Handling ---
@@ -225,6 +226,7 @@ export const demos: DemoEntry[] = [
   { id: 'zoom-ranger', title: 'Zoom Ranger', description: 'Overview mini-chart with draggable selection controlling detail chart zoom.', category: 'Zoom & Pan', component: ZoomRangerDemo, sourceFile: 'ZoomRanger' },
   { id: 'zoom-ranger-grips', title: 'Zoom Ranger (Grips)', description: 'Zoom ranger with visible grip handles on selection edges.', category: 'Zoom & Pan', component: ZoomRangerGrips, sourceFile: 'ZoomRangerGrips' },
   { id: 'zoom-ranger-xy', title: 'Zoom Ranger (XY)', description: 'Zoom ranger with dual y-axes and wheel zoom on detail chart.', category: 'Zoom & Pan', component: ZoomRangerXY, sourceFile: 'ZoomRangerXY' },
+  { id: 'custom-actions', title: 'Custom Actions', description: 'Function→function action matchers: shift+click toggles stroke width, ctrl+click logs data, middle-drag pans.', category: 'Cursor & Interaction', component: CustomActions, sourceFile: 'CustomActions' },
   { id: 'event-callbacks', title: 'Event Callbacks', description: 'Click, right-click context menu, and programmatic zoom via controlled Scale props.', category: 'Cursor & Interaction', component: EventCallbacks, sourceFile: 'EventCallbacks' },
   { id: 'select-fetch', title: 'Select \u2192 Fetch', description: 'Intercept drag selection to fetch detail data instead of zooming via onSelect.', category: 'Cursor & Interaction', component: SelectFetch, sourceFile: 'SelectFetch' },
   { id: 'use-chart', title: 'useChart() Hook', description: 'Programmatic access to chart store: scale ranges, cursor position, layout info.', category: 'Cursor & Interaction', component: UseChartDemo, sourceFile: 'UseChartDemo' },

@@ -18,7 +18,7 @@ export function useSyncGroup(store: ChartStore, syncKey: string | undefined): vo
     let lastGroup = -1;
     let lastIdx = -1;
 
-    const unsub = store.subscribe(() => {
+    const unsub = store.subscribeCursor(() => {
       const { activeGroup, activeDataIdx } = store.cursorManager.state;
       if (activeGroup === lastGroup && activeDataIdx === lastIdx) return;
       lastGroup = activeGroup;

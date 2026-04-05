@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Band, Legend } from 'uplot-plus';
 
 function generateConfidenceData() {

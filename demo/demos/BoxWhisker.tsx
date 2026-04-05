@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 

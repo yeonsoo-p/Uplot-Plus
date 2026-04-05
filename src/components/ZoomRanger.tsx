@@ -7,13 +7,79 @@ import { Axis } from './Axis';
 import { normalizeData } from '../core/normalizeData';
 
 /** Grip hit-target width in CSS pixels */
-const GRIP_THRESHOLD_PX = 8;
+export const GRIP_THRESHOLD_PX = 8;
 
 /** Minimum selection width as a fraction of the full range */
-const MIN_SELECTION_FRAC = 0.01;
+export const MIN_SELECTION_FRAC = 0.01;
 
 /** Default initial selection range when no initialRange prop is provided */
-const DEFAULT_SELECTION: [number, number] = [0.25, 0.75];
+export const DEFAULT_SELECTION: [number, number] = [0.25, 0.75];
+
+/**
+ * Convert an absolute data range [min, max] to selection fractions [0..1].
+ * Returns DEFAULT_SELECTION when the data range is empty or invalid.
+ */
+export function rangeToFrac(
+  initialRange: [number, number] | undefined,
+  xMin: number,
+  xMax: number,
+): [number, number] {
+  if (initialRange == null) return DEFAULT_SELECTION;
+  const range = xMax - xMin;
+  if (range <= 0) return DEFAULT_SELECTION;
+  return [
+    Math.max(0, (initialRange[0] - xMin) / range),
+    Math.min(1, (initialRange[1] - xMin) / range),
+  ];
+}
+
+/**
+ * Convert selection fractions back to absolute data values.
+ */
+export function fracToRange(
+  selFrac: [number, number],
+  xMin: number,
+  xMax: number,
+): [number, number] {
+  const range = xMax - xMin;
+  return [xMin + selFrac[0] * range, xMin + selFrac[1] * range];
+}
+
+/**
+ * Determine drag mode based on click position relative to selection edges.
+ */
+export function detectDragMode(
+  frac: number,
+  selFrac: [number, number],
+  edgeThreshold: number,
+): 'left' | 'right' | 'move' | 'outside' {
+  if (Math.abs(frac - selFrac[0]) < edgeThreshold) return 'left';
+  if (Math.abs(frac - selFrac[1]) < edgeThreshold) return 'right';
+  if (frac >= selFrac[0] && frac <= selFrac[1]) return 'move';
+  return 'outside';
+}
+
+/**
+ * Compute new selection fractions after a drag delta.
+ */
+export function applyDrag(
+  mode: 'move' | 'left' | 'right',
+  startFrac: [number, number],
+  delta: number,
+): [number, number] {
+  if (mode === 'move') {
+    const selWidth = startFrac[1] - startFrac[0];
+    const newLeft = clamp(startFrac[0] + delta, 0, 1 - selWidth);
+    return [newLeft, newLeft + selWidth];
+  }
+  if (mode === 'left') {
+    const newLeft = clamp(startFrac[0] + delta, 0, startFrac[1] - MIN_SELECTION_FRAC);
+    return [newLeft, startFrac[1]];
+  }
+  // right
+  const newRight = clamp(startFrac[1] + delta, startFrac[0] + MIN_SELECTION_FRAC, 1);
+  return [startFrac[0], newRight];
+}
 
 export interface ZoomRangerProps {
   /** Chart width in CSS pixels */
@@ -58,15 +124,7 @@ export function ZoomRanger({
     if (initialRange != null && normalized.length > 0) {
       const group = normalized[0];
       if (group != null && group.x.length > 1) {
-        const xMin = group.x[0] as number;
-        const xMax = group.x[group.x.length - 1] as number;
-        const range = xMax - xMin;
-        if (range > 0) {
-          return [
-            Math.max(0, (initialRange[0] - xMin) / range),
-            Math.min(1, (initialRange[1] - xMin) / range),
-          ];
-        }
+        return rangeToFrac(initialRange, group.x[0] as number, group.x[group.x.length - 1] as number);
       }
     }
     return DEFAULT_SELECTION;
@@ -81,9 +139,7 @@ export function ZoomRanger({
 
     const xMin = group.x[0] as number;
     const xMax = group.x[group.x.length - 1] as number;
-    const range = xMax - xMin;
-    const min = xMin + selFrac[0] * range;
-    const max = xMin + selFrac[1] * range;
+    const [min, max] = fracToRange(selFrac, xMin, xMax);
 
     const prev = prevRangeRef.current;
     const eps = Math.max(1e-10, Math.abs(max - min) * 1e-12);
@@ -114,14 +170,9 @@ export function ZoomRanger({
     const rectWidth = el.getBoundingClientRect().width;
     const edgeThreshold = rectWidth > 0 ? GRIP_THRESHOLD_PX / rectWidth : 0;
 
-    let mode: 'move' | 'left' | 'right';
-    if (Math.abs(frac - selFrac[0]) < edgeThreshold) {
-      mode = 'left';
-    } else if (Math.abs(frac - selFrac[1]) < edgeThreshold) {
-      mode = 'right';
-    } else if (frac >= selFrac[0] && frac <= selFrac[1]) {
-      mode = 'move';
-    } else {
+    const detected = detectDragMode(frac, selFrac, edgeThreshold);
+
+    if (detected === 'outside') {
       // Click outside selection — center selection on click
       const selWidth = selFrac[1] - selFrac[0];
       const half = selWidth / 2;
@@ -135,7 +186,7 @@ export function ZoomRanger({
     }
 
     dragRef.current = {
-      mode,
+      mode: detected,
       startX: e.clientX,
       startFrac: [...selFrac],
     };
@@ -152,17 +203,7 @@ export function ZoomRanger({
     const startFrac = getFrac(drag.startX);
     const delta = frac - startFrac;
 
-    if (drag.mode === 'move') {
-      const selWidth = drag.startFrac[1] - drag.startFrac[0];
-      const newLeft = clamp(drag.startFrac[0] + delta, 0, 1 - selWidth);
-      setSelFrac([newLeft, newLeft + selWidth]);
-    } else if (drag.mode === 'left') {
-      const newLeft = clamp(drag.startFrac[0] + delta, 0, drag.startFrac[1] - MIN_SELECTION_FRAC);
-      setSelFrac([newLeft, drag.startFrac[1]]);
-    } else {
-      const newRight = clamp(drag.startFrac[1] + delta, drag.startFrac[0] + MIN_SELECTION_FRAC, 1);
-      setSelFrac([drag.startFrac[0], newRight]);
-    }
+    setSelFrac(applyDrag(drag.mode, drag.startFrac, delta));
   }, [getFrac]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
@@ -179,7 +220,7 @@ export function ZoomRanger({
 
   return (
     <div className={className} style={{ position: 'relative', width, height }}>
-      <Chart width={width} height={height} data={data}>
+      <Chart width={width} height={height} data={normalized}>
         <Axis scale="x" show={false} />
         <Axis scale="y" show={false} />
         {Array.from({ length: seriesCount }, (_, i) => (

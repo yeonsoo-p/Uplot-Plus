@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Series, Axis, Side, fmtSuffix } from 'uplot-plus';
 
 function generateData() {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Axis, Legend, groupedBars, fmtLabels } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 

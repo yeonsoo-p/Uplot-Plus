@@ -1,7 +1,21 @@
 /**
- * Vitest setup: mocks for Path2D, Canvas context, and rAF
+ * Vitest setup: mocks for Path2D, Canvas context, rAF, and ResizeObserver
  * that jsdom does not provide.
  */
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+afterEach(() => { cleanup(); });
+
+// ---- ResizeObserver mock ----
+class ResizeObserverMock {
+  observe() { /* noop */ }
+  unobserve() { /* noop */ }
+  disconnect() { /* noop */ }
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).ResizeObserver = ResizeObserverMock;
 
 // ---- Path2D mock with call recording ----
 type PathCall =

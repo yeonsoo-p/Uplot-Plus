@@ -11,13 +11,14 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 ├── src/
 │   ├── components/    Chart, Series, Scale, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel,
 │   │                  ZoomRanger, Timeline, Sparkline, BoxWhisker, Candlestick, Heatmap, Vector,
-│   │                  annotations/{HLine,VLine,Region,AnnotationLabel}
+│   │                  annotations/{HLine,VLine,Region,AnnotationLabel},
+│   │                  overlay/SeriesPanel
 │   ├── core/          DataStore, ScaleManager, CursorManager, RenderScheduler, Scale, BlockMinMax, normalizeData
-│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect, drawBands, drawPoints, theme
-│   ├── hooks/         useChart, useDrawHook, useCursorDrawHook (public); useInteraction, useChartStore, useRegisterConfig (internal)
+│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect, drawBands, drawPoints, drawRangeBox, theme
+│   ├── hooks/         useChart, useDrawHook, useCursorDrawHook (public); useInteraction, useChartStore, useDraggableOverlay, useRegisterConfig (internal)
 │   ├── math/          utils, increments, stack, align, lttb
 │   ├── axes/          ticks, layout
-│   ├── paths/         lttbLinear (default), linear, stepped, bars, monotoneCubic, catmullRom, points
+│   ├── paths/         lttbLinear (default), linear, stepped, bars, monotoneCubic, catmullRom, points, spline, types, utils
 │   ├── sync/          SyncGroup, useSyncGroup
 │   ├── utils/         shallowEqual, estimatePanelSize, textMeasure
 │   ├── types/         all type definitions (common, scales, axes, hooks, bands, etc.)
@@ -84,9 +85,9 @@ npm run test        # Vitest
 - **Run**: `npm run test`
 - **Mocks**: `test/setup.ts` provides Path2D, Canvas context, and requestAnimationFrame stubs
 - **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
-- **Coverage**: math (utils, increments, stack, align, lttb), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, lttbLinear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, interactions, resize, mount, focus)
+- **Coverage**: math (utils, increments, stack, align, lttb), core (Scale, ScaleManager, DataStore, BlockMinMax, normalizeData, RenderScheduler), axes (ticks, layout, log filter, asinh splits), paths (linear, lttbLinear, stepped, bars, spline, candlestick, points, path utils), annotations, time formatting, formatters, colors, sync, hooks (useChart, useDraggableOverlay), utils (shallowEqual), integration tests (convergence, auto-ranging, cursor snapping, cursor snapping extended, interactions, resize, mount, focus, defaults, axis drag, touch pinch)
 - **Interaction tests**: `setupInteraction()` extracted from `useInteraction` hook for direct DOM event testing without React Testing Library
-- **Demos**: 100 interactive examples covering all chart types, interactions, and edge cases
+- **Demos**: 101 interactive examples covering all chart types, interactions, and edge cases
 
 ## Reference Code
 

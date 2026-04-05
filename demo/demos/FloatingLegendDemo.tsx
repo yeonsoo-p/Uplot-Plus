@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, FloatingLegend } from 'uplot-plus';
 
 function generateData() {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Series, HLine, VLine, Region, AnnotationLabel } from 'uplot-plus';
 
 function generateData() {

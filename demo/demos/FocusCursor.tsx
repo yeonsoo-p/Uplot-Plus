@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Legend, focus } from 'uplot-plus';
 
 function generateData() {
@@ -35,7 +34,7 @@ export default function FocusCursor() {
       data={data}
       actions={[['hover', focus(0.15)]]}
     >
-      {colors.map((color, i) => (
+      {colors.map((_, i) => (
         <Series
           key={i}
           group={0}

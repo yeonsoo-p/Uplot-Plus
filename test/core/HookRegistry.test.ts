@@ -13,7 +13,7 @@ function makeDC(): DrawContext {
   };
 }
 
-describe('Draw hooks on ChartStore', () => {
+describe('ChartStore draw-hook sets', () => {
   it('stores and iterates drawHooks', () => {
     const store = createChartStore();
     const fn = vi.fn();

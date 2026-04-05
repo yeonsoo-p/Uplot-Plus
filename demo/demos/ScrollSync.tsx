@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Legend } from 'uplot-plus';
 
 function makeData(offset: number) {

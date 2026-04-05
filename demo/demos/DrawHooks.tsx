@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Series, HLine, Region } from 'uplot-plus';
 import type { CursorDrawCallback } from 'uplot-plus';
 

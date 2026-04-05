@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Legend, points } from 'uplot-plus';
 
 function generateScatterData() {

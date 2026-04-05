@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Chart, Series, Legend } from 'uplot-plus';
 
 const WINDOW = 500;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, useDrawHook, useCursorDrawHook } from 'uplot-plus';
 
 function generateData() {

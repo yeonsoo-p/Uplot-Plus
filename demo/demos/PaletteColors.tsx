@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Legend, palette, withAlpha, fadeGradient } from 'uplot-plus';
 
 const N = 8;

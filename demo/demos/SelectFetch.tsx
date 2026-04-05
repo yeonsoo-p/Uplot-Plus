@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Chart, Series, Legend } from 'uplot-plus';
 import type { ChartData, SelectEventInfo } from 'uplot-plus';
 

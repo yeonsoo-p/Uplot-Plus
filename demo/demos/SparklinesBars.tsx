@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sparkline, bars, withAlpha } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 

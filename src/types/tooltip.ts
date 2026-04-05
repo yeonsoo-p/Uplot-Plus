@@ -30,4 +30,10 @@ export interface TooltipProps {
   offset?: { x?: number; y?: number };
   /** Max decimal places for the default x label (default: 2). Has no effect when using a custom render function. */
   precision?: number;
+  /** Behavior mode: 'cursor' (default, follows cursor) or 'draggable' (fixed position, drag to move). */
+  mode?: 'cursor' | 'draggable';
+  /** Initial position for draggable mode (default: 'top-right') */
+  position?: { x: number; y: number } | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  /** Opacity when not hovered in draggable mode (default: 0.8) */
+  idleOpacity?: number;
 }

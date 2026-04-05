@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Series, bars } from 'uplot-plus';
 import type { DrawCallback } from 'uplot-plus';
 

@@ -1,11 +1,11 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { Chart, Series, Axis, Scale, fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtDateStr, fmtLabels } from 'uplot-plus';
 import { Side } from 'uplot-plus';
 
 const W = 380;
 const H = 200;
 
-function SmallChart({ title, children }: { title: string; children: React.ReactNode }) {
+function SmallChart({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="inline-block m-1">
       <div className="text-xs font-semibold mb-0.5">{title}</div>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, fadeGradient } from 'uplot-plus';
 
 function generateData() {

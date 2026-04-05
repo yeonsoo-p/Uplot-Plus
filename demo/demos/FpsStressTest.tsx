@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Chart, Scale, Series, Axis } from 'uplot-plus';
 import { Distribution } from 'uplot-plus';
 import { fmtCompact } from 'uplot-plus';

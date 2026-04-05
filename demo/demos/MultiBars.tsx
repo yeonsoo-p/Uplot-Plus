@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Axis, groupedBars, fmtPrefix, fmtWrap } from 'uplot-plus';
 
 function generateData() {

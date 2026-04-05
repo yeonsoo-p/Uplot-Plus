@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import { useMemo, useState, useCallback, useRef } from 'react';
 import { Chart, Series, Legend } from 'uplot-plus';
 import type { ActionEntry } from 'uplot-plus';
 

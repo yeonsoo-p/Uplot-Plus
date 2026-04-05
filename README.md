@@ -2,7 +2,7 @@
 
 High-performance React charting library ripped off from [uPlot](https://github.com/leeoniya/uplot). Might perform occasionally better than original uPlot in React context (or worse). Definitely easier to use in React context.
 
-**[Live Demo (100 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
+**[Live Demo (101 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
 
 ## Quick Start
 
@@ -185,7 +185,7 @@ import { HLine, VLine, Region, AnnotationLabel } from 'uplot-plus';
 ## Development
 
 ```sh
-npm run dev         # Start demo dev server (100 examples)
+npm run dev         # Start demo dev server (101 examples)
 npm run build       # Build library (ES + CJS to dist/)
 npm run typecheck   # TypeScript strict check
 npm run lint        # ESLint

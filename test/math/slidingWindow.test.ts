@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ChartData } from '@/types';
 
 /**
- * Tests for the streaming data logic (window trimming).
- * Since @testing-library/react is not available, we test the
- * sliding-window algorithm directly.
+ * Tests for the sliding-window algorithm used by streaming data logic.
  */
 
 function slidingWindow(
@@ -42,7 +40,7 @@ function slidingWindowGroup0(
   return slidingWindow(prev, windowSize, 0, x, ...ySeries);
 }
 
-describe('useStreamingData sliding window', () => {
+describe('slidingWindow', () => {
   const initial: ChartData = [
     { x: [1, 2, 3], series: [[10, 20, 30], [40, 50, 60]] },
   ];
@@ -85,7 +83,7 @@ describe('useStreamingData sliding window', () => {
   });
 });
 
-describe('useStreamingData multi-group', () => {
+describe('slidingWindow multi-group', () => {
   const multiGroup: ChartData = [
     { x: [1, 2, 3], series: [[10, 20, 30]] },
     { x: [100, 200, 300], series: [[1000, 2000, 3000]] },

@@ -1,71 +1,111 @@
-import React, { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { useStore } from '../hooks/useChart';
+import { useDraggableOverlay } from '../hooks/useDraggableOverlay';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
-import { clamp } from '../math/utils';
 import { getSeriesColor } from '../types/series';
 import { estimatePanelSize } from '../utils/estimatePanelSize';
 
-const DEFAULT_OFFSET: { x?: number; y?: number } = {};
-const tooltipPanelStyle: React.CSSProperties = { pointerEvents: 'none', zIndex: 100 };
+const DEFAULT_OFFSET = { x: 12, y: -12 };
+const EMPTY_SIZE = { w: 0, h: 0 };
+const tooltipZIndex: React.CSSProperties = { zIndex: 100 };
 const xLabelStyle: React.CSSProperties = { fontWeight: 600, marginBottom: 2, padding: '0 4px' };
 
 /**
  * Tooltip component that shows data values at the cursor position.
- * Uses the shared Panel/SeriesRow visuals from FloatingLegend.
- * Positioned as an absolute HTML overlay inside the chart container.
+ *
+ * Two modes:
+ * - `"cursor"` (default): follows the cursor. Hidden when cursor leaves.
+ * - `"draggable"`: fixed position, drag to move. Values update with cursor;
+ *   shows dashes when cursor is off the plot.
  */
 export function Tooltip({
   show = true,
   className,
   children,
-  offset = DEFAULT_OFFSET,
+  offset: offsetProp = DEFAULT_OFFSET,
   precision = 2,
+  mode = 'cursor',
+  position = 'top-right',
+  idleOpacity = 0.8,
 }: TooltipProps): React.ReactElement | null {
   const store = useStore();
   const snap = useSyncExternalStore(store.subscribeCursor, store.getSnapshot);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const [measured, setMeasured] = useState({ w: 0, h: 0 });
-
-  // Measure after every DOM commit — content may change width/height on each cursor move.
-  // The state guard prevents infinite re-render loops; no deps is intentional.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => {
-    const el = tooltipRef.current;
-    if (!el) return;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    if (w !== measured.w || h !== measured.h) {
-      setMeasured({ w, h });
-    }
-  });
-
-  if (!show) return null;
-  if (snap.activeDataIdx < 0 || snap.activeGroup < 0) return null;
-  if (snap.left < 0) return null;
 
   const { activeGroup, activeDataIdx } = snap;
   const plotBox = store.plotBox;
+  const hasCursor = activeDataIdx >= 0 && activeGroup >= 0 && snap.left >= 0;
 
-  // X value
-  const group = store.dataStore.data[activeGroup];
-  const xVal = group != null ? (group.x[activeDataIdx] as number | undefined) ?? null : null;
-  const xLabel = xVal != null ? parseFloat(xVal.toFixed(precision)).toString() : '';
+  // Resolve offset with defaults for optional x/y
+  const offset = { x: offsetProp.x ?? 12, y: offsetProp.y ?? -12 };
 
-  // Series values
+  // ---- Build tooltip data ----
+
+  let xVal: number | null = null;
+  let xLabel = '';
   const items: TooltipItem[] = [];
-  for (const cfg of store.seriesConfigs) {
-    if (cfg.show === false || cfg.legend === false) continue;
-    const yData = store.dataStore.getYValues(cfg.group, cfg.index);
-    const val = cfg.group === activeGroup ? (yData[activeDataIdx] as number | null) : null;
-    items.push({
-      label: cfg.label ?? `Series ${cfg.index}`,
-      value: val,
-      color: getSeriesColor(cfg),
-      group: cfg.group,
-      index: cfg.index,
-    });
+
+  if (hasCursor) {
+    const group = store.dataStore.data[activeGroup];
+    xVal = group != null ? (group.x[activeDataIdx] as number | undefined) ?? null : null;
+    xLabel = xVal != null ? parseFloat(xVal.toFixed(precision)).toString() : '';
+
+    for (const cfg of store.seriesConfigs) {
+      if (cfg.show === false || cfg.legend === false) continue;
+      const yData = store.dataStore.getYValues(cfg.group, cfg.index);
+      const val = cfg.group === activeGroup ? (yData[activeDataIdx] as number | null) : null;
+      items.push({
+        label: cfg.label ?? `Series ${cfg.index}`,
+        value: val,
+        color: getSeriesColor(cfg),
+        group: cfg.group,
+        index: cfg.index,
+      });
+    }
+  } else if (mode === 'draggable') {
+    // Draggable mode: show series with dashes when cursor is off-chart
+    for (const cfg of store.seriesConfigs) {
+      if (cfg.show === false || cfg.legend === false) continue;
+      items.push({
+        label: cfg.label ?? `Series ${cfg.index}`,
+        value: null,
+        color: getSeriesColor(cfg),
+        group: cfg.group,
+        index: cfg.index,
+      });
+    }
   }
+
+  // Pre-compute dimensions from text content
+  const estimated = items.length > 0
+    ? estimatePanelSize({
+        header: xLabel || undefined,
+        rows: items.map(item => ({
+          label: item.label,
+          value: item.value != null ? item.value.toPrecision(4) : '\u2014',
+        })),
+      })
+    : EMPTY_SIZE;
+
+  const overlay = useDraggableOverlay({
+    mode,
+    show,
+    position,
+    offset,
+    idleOpacity,
+    estimatedSize: estimated,
+  });
+
+  // ---- Visibility checks ----
+
+  if (!show) return null;
+
+  // Cursor mode: hide when no active data
+  if (mode === 'cursor' && !hasCursor) return null;
+
+  if (overlay.renderPos == null) return null;
+
+  // ---- Build tooltip data object for custom render ----
 
   const tooltipData: TooltipData = {
     x: xVal,
@@ -75,53 +115,48 @@ export function Tooltip({
     top: snap.top + plotBox.top,
   };
 
-  const offX = offset.x ?? 12;
-  const offY = offset.y ?? -12;
+  // Merge zIndex into overlay panel style
+  const panelStyle = { ...overlay.panelStyle, ...tooltipZIndex };
 
-  // Pre-compute dimensions from text content to avoid double render.
-  // Falls back to DOM measurement when custom className alters sizing.
-  const estimated = !children ? estimatePanelSize({
-    header: xLabel,
-    rows: items.map(item => ({
-      label: item.label,
-      value: item.value != null ? item.value.toPrecision(4) : '—',
-    })),
-  }) : null;
+  // ---- Custom render function ----
 
-  const measuredWidth = measured.w || estimated?.w || 0;
-  const measuredHeight = measured.h || estimated?.h || 0;
-
-  const cursorLeft = snap.left + plotBox.left;
-  const cursorTop = snap.top + plotBox.top;
-  const plotRight = plotBox.left + plotBox.width;
-  const plotBottom = plotBox.top + plotBox.height;
-
-  const posLeft = clamp(cursorLeft + offX, plotBox.left, plotRight - measuredWidth);
-  const posTop = clamp(cursorTop + offY, plotBox.top, plotBottom - measuredHeight);
-
-  // Custom render function
   if (children) {
     return (
       <div
-        ref={tooltipRef}
+        ref={overlay.panelRef}
         className={className}
-        style={{ position: 'absolute', left: posLeft, top: posTop, whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 100 }}
+        style={{
+          position: 'absolute',
+          left: overlay.renderPos.x,
+          top: overlay.renderPos.y,
+          whiteSpace: 'nowrap',
+          ...panelStyle,
+        }}
+        {...overlay.panelHandlers}
       >
         {children(tooltipData)}
       </div>
     );
   }
 
-  // Default: use shared Panel + SeriesRow
+  // ---- Default render ----
+
   return (
-    <Panel ref={tooltipRef} left={posLeft} top={posTop} className={className} style={tooltipPanelStyle}>
-      <div style={xLabelStyle}>{xLabel}</div>
+    <Panel
+      ref={overlay.panelRef}
+      left={overlay.renderPos.x}
+      top={overlay.renderPos.y}
+      className={className}
+      style={panelStyle}
+      {...overlay.panelHandlers}
+    >
+      {xLabel && <div style={xLabelStyle}>{xLabel}</div>}
       {items.map((item) => (
         <SeriesRow
           key={`${item.group}:${item.index}`}
           label={item.label}
           color={item.color}
-          value={item.value != null ? item.value.toPrecision(4) : '—'}
+          value={item.value != null ? item.value.toPrecision(4) : '\u2014'}
         />
       ))}
     </Panel>

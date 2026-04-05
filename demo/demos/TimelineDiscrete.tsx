@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Scale, Axis, Timeline, Side } from 'uplot-plus';
 import type { ChartData, TimelineLane } from 'uplot-plus';
 

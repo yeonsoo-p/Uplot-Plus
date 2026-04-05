@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Chart, Series, Legend, palette } from 'uplot-plus';
 
 const COLORS = palette(5);

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Chart, Scale, Series, ZoomRanger } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 

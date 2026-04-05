@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, HoverLabel, focus } from 'uplot-plus';
 
 function generateData() {

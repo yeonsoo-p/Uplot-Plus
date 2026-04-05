@@ -21,6 +21,6 @@
       "uplot-plus": ["src/index.ts"]
     }
   },
-  "include": ["src/**/*", "demo/**/*"],
+  "include": ["src/**/*", "demo/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist", "*.config.*", "demo/vite.config.ts"]
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Axis, groupedBars, fmtLabels, fmtWrap } from 'uplot-plus';
 
 const MONTHS = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

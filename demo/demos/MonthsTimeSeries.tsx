@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Axis, Legend, fmtMonthName } from 'uplot-plus';
 
 function generateData() {

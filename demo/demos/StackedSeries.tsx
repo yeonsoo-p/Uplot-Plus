@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Band, stackGroup } from 'uplot-plus';
 import type { ChartData, BandConfig } from 'uplot-plus';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, Candlestick } from 'uplot-plus';
 
 function generateOHLC() {

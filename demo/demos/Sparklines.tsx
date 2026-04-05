@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { Sparkline } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 
@@ -18,11 +18,11 @@ function makeSparkData(n: number): ChartData {
 }
 
 export default function Sparklines() {
-  const rows = symbols.map(sym => ({
+  const rows = useMemo(() => symbols.map(sym => ({
     sym,
     price: makeSparkData(120),
     volume: makeSparkData(120),
-  }));
+  })), []);
 
   return (
     <table className="sparkline-table">

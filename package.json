@@ -1,6 +1,6 @@
 {
   "name": "uplot-plus",
-  "version": "0.5.12",
+  "version": "0.5.13",
   "description": "High-performance React charting library with multi-x-axis support",
   "type": "module",
   "main": "dist/index.cjs",
@@ -29,9 +29,11 @@
   "scripts": {
     "dev": "vite serve demo",
     "build": "vite build && tsc -p tsconfig.build.json",
-    "lint": "eslint src/ demo/",
-    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ demo/ test/ e2e/",
+    "typecheck": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "test": "vitest run",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
     "build:demo": "vite build demo"
   },
   "peerDependencies": {
@@ -40,8 +42,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/eslint__js": "^8.42.3",
+    "@types/node": "^25.5.2",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { Chart, Series, Axis } from 'uplot-plus';
 
 function generateHourlyData() {
@@ -28,13 +28,13 @@ function generateMonthlyData() {
 
 export default function TimePeriods() {
   // Hourly data: 48 hours
-  const hourly = generateHourlyData();
+  const hourly = useMemo(() => generateHourlyData(), []);
 
   // Daily data: 60 days
-  const daily = generateDailyData();
+  const daily = useMemo(() => generateDailyData(), []);
 
   // Monthly data: 36 months
-  const monthly = generateMonthlyData();
+  const monthly = useMemo(() => generateMonthlyData(), []);
 
   const fmtHour = (splits: number[]) =>
     splits.map(s => {

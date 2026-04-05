@@ -1,4 +1,3 @@
-import React from 'react';
 import { Chart, Series, stepped } from 'uplot-plus';
 
 function generateData() {

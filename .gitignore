@@ -45,6 +45,7 @@ vite.config.*.timestamp-*
 
 # Coverage
 coverage/
+test-results/
 
 # Misc
 *.tsbuildinfo

@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Chart, Series } from 'uplot-plus';
 import type { CursorDrawCallback, ActionEntry } from 'uplot-plus';
 

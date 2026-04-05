@@ -71,6 +71,21 @@ export function FloatingLegend({
   const dragOffset = useRef({ dx: 0, dy: 0 });
   const [initialized, setInitialized] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [cursorMeasured, setCursorMeasured] = useState({ w: 0, h: 0 });
+
+  // Measure after every DOM commit — content width/height can change per cursor position.
+  // The state guard prevents infinite re-render loops; no deps is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    if (mode !== 'cursor') return;
+    const el = panelRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (w !== cursorMeasured.w || h !== cursorMeasured.h) {
+      setCursorMeasured({ w, h });
+    }
+  });
 
   // Initialize and correct draggable position once plot box is known
   useLayoutEffect(() => {
@@ -140,8 +155,8 @@ export function FloatingLegend({
   // --- Cursor mode ---
   if (mode === 'cursor') {
     if (cursorLeft < 0) return null;
-    const mW = panelRef.current?.offsetWidth ?? 0;
-    const mH = panelRef.current?.offsetHeight ?? 0;
+    const mW = cursorMeasured.w;
+    const mH = cursorMeasured.h;
     const pR = snap.plotLeft + snap.plotWidth;
     const pB = snap.plotTop + snap.plotHeight;
     const x = clamp(cursorLeft + snap.plotLeft + offset.x, snap.plotLeft, pR - mW);

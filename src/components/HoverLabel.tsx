@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useStore } from '../hooks/useChart';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
 import { clamp } from '../math/utils';
@@ -24,11 +24,24 @@ export function HoverLabel({
   className,
 }: HoverLabelProps): React.ReactElement | null {
   const store = useStore();
-  const snap = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const snap = useSyncExternalStore(store.subscribeCursor, store.getSnapshot);
   const [visible, setVisible] = useState(false);
   const trackedSeries = useRef(-1);
   const timerRef = useRef(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState({ w: 0, h: 0 });
+
+  // Measure after every DOM commit so clamping uses real dimensions.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (w !== measured.w || h !== measured.h) {
+      setMeasured({ w, h });
+    }
+  });
 
   // Track series changes and manage timer
   useEffect(() => {
@@ -56,8 +69,8 @@ export function HoverLabel({
   const color = typeof cfg.stroke === 'string' ? cfg.stroke : '#000';
 
   // Position above cursor, clamped to plot
-  const mW = panelRef.current?.offsetWidth ?? 80;
-  const mH = panelRef.current?.offsetHeight ?? 24;
+  const mW = measured.w;
+  const mH = measured.h;
   const cx = snap.left + snap.plotLeft;
   const cy = snap.top + snap.plotTop;
   const x = clamp(cx - mW / 2, snap.plotLeft, snap.plotLeft + snap.plotWidth - mW);

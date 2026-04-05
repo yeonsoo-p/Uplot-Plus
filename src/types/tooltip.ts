@@ -28,4 +28,6 @@ export interface TooltipProps {
   children?: (data: TooltipData) => React.ReactNode;
   /** Offset from cursor in CSS pixels */
   offset?: { x?: number; y?: number };
+  /** Max decimal places for the default x label (default: 2). Has no effect when using a custom render function. */
+  precision?: number;
 }

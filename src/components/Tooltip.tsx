@@ -1,4 +1,4 @@
-import React, { useRef, useSyncExternalStore } from 'react';
+import React, { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useStore } from '../hooks/useChart';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
@@ -18,10 +18,25 @@ export function Tooltip({
   className,
   children,
   offset = DEFAULT_OFFSET,
+  precision = 2,
 }: TooltipProps): React.ReactElement | null {
   const store = useStore();
   const snap = useSyncExternalStore(store.subscribeCursor, store.getSnapshot);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = useState({ w: 0, h: 0 });
+
+  // Measure after every DOM commit — content may change width/height on each cursor move.
+  // The state guard prevents infinite re-render loops; no deps is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const el = tooltipRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (w !== measured.w || h !== measured.h) {
+      setMeasured({ w, h });
+    }
+  });
 
   if (!show) return null;
   if (snap.activeDataIdx < 0 || snap.activeGroup < 0) return null;
@@ -33,7 +48,7 @@ export function Tooltip({
   // X value
   const group = store.dataStore.data[activeGroup];
   const xVal = group != null ? (group.x[activeDataIdx] as number | undefined) ?? null : null;
-  const xLabel = xVal != null ? parseFloat(xVal.toPrecision(6)).toString() : '';
+  const xLabel = xVal != null ? parseFloat(xVal.toFixed(precision)).toString() : '';
 
   // Series values
   const items: TooltipItem[] = [];
@@ -61,8 +76,8 @@ export function Tooltip({
   const offX = offset.x ?? 12;
   const offY = offset.y ?? -12;
 
-  const measuredWidth = tooltipRef.current?.offsetWidth ?? 0;
-  const measuredHeight = tooltipRef.current?.offsetHeight ?? 0;
+  const measuredWidth = measured.w;
+  const measuredHeight = measured.h;
 
   const cursorLeft = snap.left + plotBox.left;
   const cursorTop = snap.top + plotBox.top;

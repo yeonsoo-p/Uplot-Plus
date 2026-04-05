@@ -36,15 +36,17 @@ export function Chart({
     store.setLabels(title, xlabel, ylabel);
   }, [store, title, xlabel, ylabel]);
 
-  // Sync event callback props — written during render, read only by imperative handlers
-  const cbs = store.eventCallbacks;
-  cbs.onClick = onClick;
-  cbs.onContextMenu = onContextMenu;
-  cbs.onDblClick = onDblClick;
-  cbs.onCursorMove = onCursorMove;
-  cbs.onCursorLeave = onCursorLeave;
-  cbs.onScaleChange = onScaleChange;
-  cbs.onSelect = onSelect;
+  // Sync event callback props — deferred to effect so render stays pure
+  useEffect(() => {
+    const cbs = store.eventCallbacks;
+    cbs.onClick = onClick;
+    cbs.onContextMenu = onContextMenu;
+    cbs.onDblClick = onDblClick;
+    cbs.onCursorMove = onCursorMove;
+    cbs.onCursorLeave = onCursorLeave;
+    cbs.onScaleChange = onScaleChange;
+    cbs.onSelect = onSelect;
+  }, [store, onClick, onContextMenu, onDblClick, onCursorMove, onCursorLeave, onScaleChange, onSelect]);
 
   // Attach mouse/touch interaction handlers
   useInteraction(store, containerEl);
@@ -155,13 +157,12 @@ export function Chart({
       >
         <div
           ref={containerRef}
-          tabIndex={-1}
+          tabIndex={0}
           style={{
             position: 'relative',
             width: `${width}px`,
             height: `${height}px`,
             cursor: 'crosshair',
-            outline: 'none',
             order: 0,
           }}
         >

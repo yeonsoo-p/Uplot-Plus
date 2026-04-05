@@ -91,7 +91,7 @@ export class SyncGroup {
     for (const member of this.members) {
       if (member === source) continue;
       this.syncedStores.add(member);
-      member.cursorManager.syncToValue(xVal, member);
+      member.cursorManager.syncToValue(xVal, member, activeGroup);
       member.scheduleCursorRedraw();
     }
 

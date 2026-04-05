@@ -202,6 +202,7 @@ export interface ChartStore {
 
   // Draw callbacks (registered via useDrawHook / useCursorDrawHook / Chart props)
   drawHooks: Set<DrawCallback>;
+  unclippedDrawHooks: Set<DrawCallback>;
   cursorDrawHooks: Set<CursorDrawCallback>;
 
   // Focus mode: index of focused series, or null for none
@@ -309,6 +310,7 @@ export function createChartStore(): ChartStore {
     cursorListeners: new Set(),
     scheduler: new RenderScheduler(),
     drawHooks: new Set(),
+    unclippedDrawHooks: new Set(),
     cursorDrawHooks: new Set(),
     focusedSeries: null,
     focusAlpha: 1,
@@ -607,6 +609,16 @@ export function createChartStore(): ChartStore {
         ctx.scale(pxRatio, pxRatio);
         const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
         for (const fn of store.drawHooks) {
+          try { fn(dc); } catch (err) { console.warn('[uPlot+] draw hook error:', err); }
+        }
+        ctx.restore();
+      }
+      // 9b. Fire unclipped draw hooks (persistent layer, pxRatio-scaled but not clipped)
+      if (store.unclippedDrawHooks.size > 0) {
+        ctx.save();
+        ctx.scale(pxRatio, pxRatio);
+        const dc = buildDrawContext(ctx, store.plotBox, pxRatio, getScale);
+        for (const fn of store.unclippedDrawHooks) {
           try { fn(dc); } catch (err) { console.warn('[uPlot+] draw hook error:', err); }
         }
         ctx.restore();

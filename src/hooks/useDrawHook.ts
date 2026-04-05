@@ -7,18 +7,20 @@ import { useStore } from './useChart';
  * but before the snapshot (persistent layer).
  * Uses a ref wrapper so the callback can be an inline function.
  */
-export function useDrawHook(fn: DrawCallback): void {
+export function useDrawHook(fn: DrawCallback, opts?: { clipped?: boolean }): void {
   const store = useStore();
   const fnRef = useRef(fn);
   fnRef.current = fn;
+  const clipped = opts?.clipped !== false;
 
   useEffect(() => {
     const wrapper: DrawCallback = (dc) => fnRef.current(dc);
-    store.drawHooks.add(wrapper);
+    const hookSet = clipped ? store.drawHooks : store.unclippedDrawHooks;
+    hookSet.add(wrapper);
     return () => {
-      store.drawHooks.delete(wrapper);
+      hookSet.delete(wrapper);
     };
-  }, [store]);
+  }, [store, clipped]);
 }
 
 /**

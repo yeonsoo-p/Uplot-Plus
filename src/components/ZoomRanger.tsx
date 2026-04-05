@@ -126,8 +126,12 @@ export function ZoomRanger({
       const selWidth = selFrac[1] - selFrac[0];
       const half = selWidth / 2;
       const newLeft = clamp(frac - half, 0, 1 - selWidth);
-      setSelFrac([newLeft, newLeft + selWidth]);
-      mode = 'move';
+      const newSelFrac: [number, number] = [newLeft, newLeft + selWidth];
+      setSelFrac(newSelFrac);
+      dragRef.current = { mode: 'move', startX: e.clientX, startFrac: newSelFrac };
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      return;
     }
 
     dragRef.current = {

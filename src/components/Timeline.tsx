@@ -22,7 +22,24 @@ export function Timeline({
 
     ctx.save();
 
-    // Clip to plot area
+    const totalLaneH = (laneHeight + gap) * pxRatio;
+    const barH = laneHeight * pxRatio;
+    // Start lanes from the top of the plot area
+    const baseY = plotBox.top * pxRatio;
+
+    // Draw lane labels (unclipped — visible in axis gutter)
+    ctx.fillStyle = '#666';
+    ctx.font = `${11 * pxRatio}px sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let li = 0; li < lanes.length; li++) {
+      const lane = lanes[li];
+      if (lane == null) continue;
+      const laneY = baseY + li * totalLaneH;
+      ctx.fillText(lane.label, (plotBox.left - 6) * pxRatio, laneY + barH / 2);
+    }
+
+    // Clip to plot area for segments
     ctx.beginPath();
     ctx.rect(
       plotBox.left * pxRatio,
@@ -32,23 +49,11 @@ export function Timeline({
     );
     ctx.clip();
 
-    const totalLaneH = (laneHeight + gap) * pxRatio;
-    const barH = laneHeight * pxRatio;
-    // Start lanes from the top of the plot area
-    const baseY = plotBox.top * pxRatio;
-
     for (let li = 0; li < lanes.length; li++) {
       const lane = lanes[li];
       if (lane == null) continue;
 
       const laneY = baseY + li * totalLaneH;
-
-      // Draw lane label
-      ctx.fillStyle = '#666';
-      ctx.font = `${11 * pxRatio}px sans-serif`;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(lane.label, (plotBox.left - 6) * pxRatio, laneY + barH / 2);
 
       for (const seg of lane.segments) {
         const x0 = valToPos(seg.start, scale, plotBox.width, plotBox.left) * pxRatio;
@@ -73,7 +78,7 @@ export function Timeline({
     }
 
     ctx.restore();
-  });
+  }, { clipped: false });
 
   return null;
 }

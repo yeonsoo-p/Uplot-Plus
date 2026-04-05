@@ -77,12 +77,12 @@ type ReactionFn = (store: ChartStore, e: Event, ctx: ActionContext) => DragConti
 function captureScales(
   store: ChartStore,
   filter?: (ori: Orientation) => boolean,
-): Array<{ id: string; ori: Orientation; startMin: number; startMax: number }> {
-  const result: Array<{ id: string; ori: Orientation; startMin: number; startMax: number }> = [];
+): Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> {
+  const result: Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> = [];
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
     if (filter != null && !filter(scale.ori)) continue;
-    result.push({ id: scale.id, ori: scale.ori, startMin: scale.min, startMax: scale.max });
+    result.push({ id: scale.id, ori: scale.ori, dir: scale.dir, startMin: scale.min, startMax: scale.max });
   }
   return result;
 }
@@ -245,7 +245,7 @@ function startDragPan(
         const isHoriz = s.ori === Orientation.Horizontal;
         const dim = isHoriz ? plotBox.width : plotBox.height;
         const delta = isHoriz ? me.clientX - startClientX : me.clientY - startClientY;
-        const sign = isHoriz ? -1 : 1;
+        const sign = (isHoriz ? -1 : 1) * s.dir;
         const range = s.startMax - s.startMin;
         scale.min = s.startMin + sign * (delta / dim) * range;
         scale.max = s.startMax + sign * (delta / dim) * range;
@@ -284,7 +284,7 @@ function startGutterPan(
       const dim = isVert ? plotBox.height : plotBox.width;
       const pos = isVert ? me.clientY - rect.top : me.clientX - rect.left;
       const deltaFrac = (pos - startPos) / dim;
-      const sign = isVert ? 1 : -1;
+      const sign = (isVert ? 1 : -1) * scale.dir;
       const range = startMax - startMin;
 
       const s = store.scaleManager.getScale(scaleId);

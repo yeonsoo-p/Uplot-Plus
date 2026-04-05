@@ -184,20 +184,22 @@ export class CursorManager {
    * Sync cursor to a specific x-value (from another chart in a sync group).
    * Finds the closest data index and positions the cursor there.
    */
-  syncToValue(xVal: number, store: SyncTarget): void {
+  syncToValue(xVal: number, store: SyncTarget, sourceGroup = 0): void {
     const data = store.dataStore.data;
     if (data.length === 0) return;
 
-    // Find closest x-index in group 0 (primary)
-    const group = data[0];
+    // Resolve target group — fall back to 0 if sourceGroup doesn't exist
+    const groupIdx = sourceGroup < data.length ? sourceGroup : 0;
+
+    const group = data[groupIdx];
     if (group == null) return;
 
-    const xScaleKey = store.scaleManager.getGroupXScaleKey(0);
+    const xScaleKey = store.scaleManager.getGroupXScaleKey(groupIdx);
     if (xScaleKey == null) return;
     const xScale = store.scaleManager.getScale(xScaleKey);
     if (xScale == null || !isScaleReady(xScale)) return;
 
-    const [wi0, wi1] = store.dataStore.getWindow(0);
+    const [wi0, wi1] = store.dataStore.getWindow(groupIdx);
     const dataIdx = closestIdx(xVal, group.x, wi0, wi1);
     const foundX = group.x[dataIdx];
     if (foundX == null) return;
@@ -205,7 +207,7 @@ export class CursorManager {
     // Convert to pixel position
     const pxX = valToPos(foundX, xScale, store.plotBox.width, store.plotBox.left);
     this.state.left = pxX - store.plotBox.left;
-    this.state.activeGroup = 0;
+    this.state.activeGroup = groupIdx;
     this.state.activeDataIdx = dataIdx;
 
     // Find first visible series to compute proper y position
@@ -213,7 +215,7 @@ export class CursorManager {
     let yPos = store.plotBox.height / 2; // fallback to center
 
     for (const sc of store.seriesConfigs) {
-      if (sc.group !== 0 || sc.show === false) continue;
+      if (sc.group !== groupIdx || sc.show === false) continue;
       const yData = group.series[sc.index];
       if (yData == null) continue;
       const yVal = yData[dataIdx];

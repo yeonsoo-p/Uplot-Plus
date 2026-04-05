@@ -14,6 +14,8 @@ import { createAxisState } from '../axes/ticks';
 import { drawAxesGrid } from '../rendering/drawAxes';
 import { drawCursor } from '../rendering/drawCursor';
 import { drawSelection } from '../rendering/drawSelect';
+import { readThemeVars } from '../rendering/theme';
+import type { ThemeCache } from '../rendering/theme';
 import { drawPoints, shouldShowPoints } from '../rendering/drawPoints';
 import { buildBandPath, drawBandPath } from '../rendering/drawBands';
 import type { BandConfig } from '../types/bands';
@@ -241,6 +243,9 @@ export interface ChartStore {
   // Event callbacks (synced from Chart props via refs)
   eventCallbacks: EventCallbacks;
 
+  // Cached CSS theme vars (populated during full redraws, reused on cursor fast path)
+  themeCache: ThemeCache;
+
   // Previous scale ranges for change detection
   _prevScaleRanges: Map<string, { min: number; max: number }>;
   // Previous plotBox for cache invalidation when layout changes
@@ -337,6 +342,7 @@ export function createChartStore(): ChartStore {
     snapshot: EMPTY_SNAPSHOT,
     revision: 0,
     eventCallbacks: {},
+    themeCache: readThemeVars(null),
     _prevScaleRanges: new Map(),
     _prevPlotBox: null,
     seriesConfigMap: new Map(),
@@ -447,8 +453,9 @@ export function createChartStore(): ChartStore {
           (gi) => scaleManager.getGroupXScaleKey(gi),
           undefined,
           store.seriesConfigMap,
+          store.themeCache,
         );
-        drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
+        drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.themeCache);
         // Fire cursor draw hooks on the overlay (pxRatio-scaled)
         if (store.cursorDrawHooks.size > 0) {
           ctx.save();
@@ -465,6 +472,9 @@ export function createChartStore(): ChartStore {
       }
 
       // --- Full redraw path ---
+
+      // Refresh cached CSS theme vars (one getComputedStyle call per full redraw)
+      store.themeCache = readThemeVars(canvas);
 
       // 0. Inject defaults for missing y-scales, series, and axes
       injectDefaults(store);
@@ -517,7 +527,7 @@ export function createChartStore(): ChartStore {
 
       // 7. Draw grid lines (behind series)
       if (store.axisStates.length > 0) {
-        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio, store.title);
+        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio, store.title, store.themeCache);
       }
 
       // 8. Draw series (clipped to plot area)
@@ -678,10 +688,11 @@ export function createChartStore(): ChartStore {
         (gi) => scaleManager.getGroupXScaleKey(gi),
         undefined,
         store.seriesConfigMap,
+        store.themeCache,
       );
 
       // 12. Draw selection rectangle
-      drawSelection(ctx, store.selectState, store.plotBox, pxRatio);
+      drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.themeCache);
 
       // 13. Fire cursor draw hooks (overlay layer, pxRatio-scaled)
       if (store.cursorDrawHooks.size > 0) {

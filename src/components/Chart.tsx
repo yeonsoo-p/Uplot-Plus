@@ -132,6 +132,19 @@ export function Chart({
     return () => { observer.disconnect(); };
   }, [store, containerEl]);
 
+  // Watch for CSS class changes on <html> (e.g. dark mode toggle) and repaint.
+  // This avoids needing to remount charts when the theme class changes.
+  useEffect(() => {
+    if (typeof MutationObserver === 'undefined') return;
+    const target = document.documentElement;
+    const observer = new MutationObserver(() => {
+      store.renderer.invalidateSnapshot();
+      store.scheduleRedraw();
+    });
+    observer.observe(target, { attributes: true, attributeFilter: ['class'] });
+    return () => { observer.disconnect(); };
+  }, [store]);
+
   useLayoutEffect(() => {
     const wrapper: DrawCallback = (dc) => { onDrawRef.current?.(dc); };
     store.drawHooks.add(wrapper);

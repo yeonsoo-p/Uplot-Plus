@@ -4,6 +4,7 @@ import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
 import { clamp } from '../math/utils';
 import { getSeriesColor } from '../types/series';
+import { estimatePanelSize } from '../utils/estimatePanelSize';
 
 const DEFAULT_OFFSET: { x?: number; y?: number } = {};
 const tooltipPanelStyle: React.CSSProperties = { pointerEvents: 'none', zIndex: 100 };
@@ -77,8 +78,18 @@ export function Tooltip({
   const offX = offset.x ?? 12;
   const offY = offset.y ?? -12;
 
-  const measuredWidth = measured.w;
-  const measuredHeight = measured.h;
+  // Pre-compute dimensions from text content to avoid double render.
+  // Falls back to DOM measurement when custom className alters sizing.
+  const estimated = !children ? estimatePanelSize({
+    header: xLabel,
+    rows: items.map(item => ({
+      label: item.label,
+      value: item.value != null ? item.value.toPrecision(4) : '—',
+    })),
+  }) : null;
+
+  const measuredWidth = measured.w || estimated?.w || 0;
+  const measuredHeight = measured.h || estimated?.h || 0;
 
   const cursorLeft = snap.left + plotBox.left;
   const cursorTop = snap.top + plotBox.top;

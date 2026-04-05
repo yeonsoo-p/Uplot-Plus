@@ -64,7 +64,6 @@ import CursorSnap from './CursorSnap';
 import FocusCursor from './FocusCursor';
 import NearestNonNull from './NearestNonNull';
 import Tooltips from './Tooltips';
-import TooltipsClosest from './TooltipsClosest';
 import CursorTooltip from './CursorTooltip';
 import HoverLabel from './HoverLabel';
 import FloatingLegendDemo from './FloatingLegendDemo';
@@ -210,7 +209,6 @@ export const demos: DemoEntry[] = [
   { id: 'focus-cursor', title: 'Focus Cursor', description: 'Proximity-based focus dims non-closest series on hover.', category: 'Cursor & Interaction', component: FocusCursor, sourceFile: 'FocusCursor' },
   { id: 'nearest-non-null', title: 'Nearest Non-Null', description: 'Cursor snapping that skips over null values.', category: 'Cursor & Interaction', component: NearestNonNull, sourceFile: 'NearestNonNull' },
   { id: 'tooltips', title: 'Tooltips', description: 'Default tooltip component showing all series values at cursor.', category: 'Tooltips & Legends', component: Tooltips, sourceFile: 'Tooltips' },
-  { id: 'tooltips-closest', title: 'Tooltips (Closest)', description: 'Custom tooltip showing only the closest series value.', category: 'Tooltips & Legends', component: TooltipsClosest, sourceFile: 'TooltipsClosest' },
   { id: 'cursor-tooltip', title: 'Cursor + Tooltip Sync', description: 'Two synced charts each with tooltip following cursor.', category: 'Tooltips & Legends', component: CursorTooltip, sourceFile: 'CursorTooltip' },
   { id: 'hover-label', title: 'Hover Label', description: 'Hover over a series for 1 second to show its label as a floating tag.', category: 'Cursor & Interaction', component: HoverLabel, sourceFile: 'HoverLabel' },
   { id: 'floating-legend', title: 'Floating Legend', description: 'Draggable legend widget inside the chart area with live values.', category: 'Tooltips & Legends', component: FloatingLegendDemo, sourceFile: 'FloatingLegendDemo' },

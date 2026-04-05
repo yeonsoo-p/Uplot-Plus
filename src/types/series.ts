@@ -58,6 +58,20 @@ export interface SeriesConfig {
   };
 }
 
+/** Check if a CSS color string is effectively fully transparent. */
+function isTransparent(color: string): boolean {
+  if (color === 'transparent') return true;
+  // rgba/hsla with alpha 0
+  const alphaMatch = color.match(/,\s*([\d.]+)\s*\)$/);
+  if (alphaMatch != null && alphaMatch[1] != null && parseFloat(alphaMatch[1]) === 0) return true;
+  // #RGBA with 0 alpha or #RRGGBBAA with 00 alpha
+  if (color.startsWith('#')) {
+    if (color.length === 5 && color[4] === '0') return true;
+    if (color.length === 9 && color.slice(7) === '00') return true;
+  }
+  return false;
+}
+
 /**
  * Resolve the representative color for a series config (used by Legend/Tooltip swatches).
  * Bars: use fill. Lines with transparent stroke + fill: use fill. Otherwise: use stroke.
@@ -65,8 +79,8 @@ export interface SeriesConfig {
 export function getSeriesColor(cfg: SeriesConfig): string {
   const stroke = typeof cfg.stroke === 'string' ? cfg.stroke : null;
   const fill = typeof cfg.fill === 'string' ? cfg.fill : null;
-  const hasStroke = stroke != null && stroke !== 'transparent';
-  const hasFill = fill != null && fill !== 'transparent';
+  const hasStroke = stroke != null && !isTransparent(stroke);
+  const hasFill = fill != null && !isTransparent(fill);
   const isBar = cfg.paths?.defaults?.width === 0;
   if (isBar && hasFill) return fill;
   if (!hasStroke && hasFill) return fill;

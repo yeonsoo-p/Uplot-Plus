@@ -1,5 +1,6 @@
 import type { SelectState, BBox } from '../types';
 import { round } from '../math/utils';
+import type { ThemeCache } from './theme';
 
 export interface SelectDrawConfig {
   /** Fill color for selection rectangle */
@@ -25,16 +26,13 @@ export function drawSelection(
   plotBox: BBox,
   pxRatio: number,
   config?: SelectDrawConfig,
+  theme?: ThemeCache,
 ): void {
   if (!select.show || select.width <= 0) return;
 
-  // Read CSS custom properties for themeable defaults (set by e.g. a .dark class)
-  const cs = ctx.canvas != null ? getComputedStyle(ctx.canvas) : null;
-  const cssVar = (name: string) => cs?.getPropertyValue(name).trim() || '';
-
   const themedDefaults: SelectDrawConfig = {
-    fill: cssVar('--uplot-select-fill') || defaultSelectConfig.fill,
-    stroke: cssVar('--uplot-select-stroke') || defaultSelectConfig.stroke,
+    fill: theme?.selectFill ?? defaultSelectConfig.fill,
+    stroke: theme?.selectStroke ?? defaultSelectConfig.stroke,
   };
   const cfg = { ...defaultSelectConfig, ...themedDefaults, ...config };
   const pr = pxRatio;

@@ -3,6 +3,7 @@ import { useStore } from '../hooks/useChart';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
 import { clamp } from '../math/utils';
 import { getSeriesColor } from '../types/series';
+import { estimatePanelSize } from '../utils/estimatePanelSize';
 
 const hoverPanelStyle: React.CSSProperties = { pointerEvents: 'none' };
 
@@ -69,9 +70,12 @@ export function HoverLabel({
 
   const color = getSeriesColor(cfg);
 
+  // Pre-compute dimensions from text content to avoid double render
+  const estimated = estimatePanelSize({ rows: [{ label: cfg.label }] });
+
   // Position above cursor, clamped to plot
-  const mW = measured.w;
-  const mH = measured.h;
+  const mW = measured.w || estimated.w;
+  const mH = measured.h || estimated.h;
   const cx = snap.left + snap.plotLeft;
   const cy = snap.top + snap.plotTop;
   const x = clamp(cx - mW / 2, snap.plotLeft, snap.plotLeft + snap.plotWidth - mW);

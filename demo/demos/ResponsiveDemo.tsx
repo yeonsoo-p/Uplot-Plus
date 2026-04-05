@@ -69,7 +69,7 @@ export default function ResponsiveDemo() {
       </div>
       <div
         ref={containerRef}
-        className={`w-full border border-dashed border-gray-300 ${useAspectRatio ? 'h-auto' : 'h-100'}`}
+        className={`w-full border border-dashed border-gray-300 dark:border-border-light ${useAspectRatio ? 'h-auto' : 'h-100'}`}
       >
         {size != null && (
           <Chart width={size.width} height={size.height} data={data} xlabel="Index" ylabel="Value">

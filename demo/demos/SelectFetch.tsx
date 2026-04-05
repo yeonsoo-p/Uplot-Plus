@@ -61,7 +61,7 @@ export default function SelectFetch() {
   return (
     <div>
       <div className="mb-2 flex gap-2 items-center">
-        <button onClick={handleReset}>Reset to full range</button>
+        <button className="px-3 py-1 text-demo rounded border border-border-light bg-surface hover:bg-border-lighter cursor-pointer dark:bg-white/8 dark:border-white/10 dark:hover:bg-white/15 dark:text-white transition-colors" onClick={handleReset}>Reset to full range</button>
         {loading && <span className="text-[#e67e22] font-bold">Fetching detail data...</span>}
         {rangeText && !loading && (
           <span className="text-demo font-mono text-muted">{rangeText}</span>

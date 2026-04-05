@@ -37,7 +37,7 @@ export default function UpdateCursorSelectResize() {
   return (
     <div>
       <div className="mb-2 flex gap-2">
-        <button onClick={() => setRunning(r => !r)}>
+        <button className="px-3 py-1 text-demo rounded border border-border-light bg-surface hover:bg-border-lighter cursor-pointer dark:bg-white/8 dark:border-white/10 dark:hover:bg-white/15 dark:text-white transition-colors" onClick={() => setRunning(r => !r)}>
           {running ? 'Pause' : 'Resume'}
         </button>
         <span className="text-demo text-muted leading-7">

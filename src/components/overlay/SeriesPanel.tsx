@@ -1,5 +1,17 @@
 import React, { forwardRef } from 'react';
 
+// --- Layout constants for floating panels (shared with estimatePanelSize) ---
+
+export const PANEL_BORDER = 1;
+export const PANEL_PAD_X = 6;
+export const PANEL_PAD_Y = 4;
+export const ROW_PAD_X = 4;
+export const ROW_SWATCH_W = 12;
+export const ROW_GAP = 4;
+export const PANEL_FONT = '12px sans-serif';
+export const PANEL_BOLD_FONT = 'bold 12px sans-serif';
+export const ROW_LINE_H = 16;
+
 // --- Shared styles for floating panels (Tooltip, FloatingLegend, HoverLabel) ---
 
 export const panelStyle: React.CSSProperties = {

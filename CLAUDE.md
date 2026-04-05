@@ -13,13 +13,13 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 │   │                  ZoomRanger, Timeline, Sparkline, BoxWhisker, Candlestick, Heatmap, Vector,
 │   │                  annotations/{HLine,VLine,Region,AnnotationLabel}
 │   ├── core/          DataStore, ScaleManager, CursorManager, RenderScheduler, Scale, BlockMinMax, normalizeData
-│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect, drawBands, drawPoints
+│   ├── rendering/     CanvasRenderer, drawSeries, drawAxes, drawCursor, drawSelect, drawBands, drawPoints, theme
 │   ├── hooks/         useChart, useDrawHook, useCursorDrawHook (public); useInteraction, useChartStore, useRegisterConfig (internal)
 │   ├── math/          utils, increments, stack, align, lttb
 │   ├── axes/          ticks, layout
 │   ├── paths/         lttbLinear (default), linear, stepped, bars, monotoneCubic, catmullRom, points
 │   ├── sync/          SyncGroup, useSyncGroup
-│   ├── utils/         shallowEqual
+│   ├── utils/         shallowEqual, estimatePanelSize, textMeasure
 │   ├── types/         all type definitions (common, scales, axes, hooks, bands, etc.)
 │   ├── time/          timeIncrs, timeSplits, timeVals, fmtDate
 │   ├── annotations.ts Annotation drawing helpers (drawHLine, drawVLine, drawLabel, drawRegion)
@@ -86,7 +86,7 @@ npm run test        # Vitest
 - **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
 - **Coverage**: math (utils, increments, stack, align, lttb), core (Scale, ScaleManager, DataStore), axes (ticks, layout, log filter), paths (linear, lttbLinear, stepped, bars, spline, candlestick), annotations, time formatting, integration tests (convergence, auto-ranging, cursor snapping, interactions, resize, mount, focus)
 - **Interaction tests**: `setupInteraction()` extracted from `useInteraction` hook for direct DOM event testing without React Testing Library
-- **Demos**: 101 interactive examples covering all chart types, interactions, and edge cases
+- **Demos**: 100 interactive examples covering all chart types, interactions, and edge cases
 
 ## Reference Code
 

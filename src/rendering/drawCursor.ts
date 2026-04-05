@@ -3,6 +3,7 @@ import type { ChartData } from '../types/data';
 import type { SeriesConfig } from '../types/series';
 import { valToPos, isScaleReady } from '../core/Scale';
 import { round } from '../math/utils';
+import type { ThemeCache } from './theme';
 
 /** Stroke width for the point indicator outline (CSS pixels) */
 const POINT_STROKE_WIDTH = 2;
@@ -48,15 +49,12 @@ export function drawCursor(
   getGroupXScaleKey: (groupIdx: number) => string | undefined,
   config?: CursorDrawConfig,
   seriesConfigMap?: Map<string, SeriesConfig>,
+  theme?: ThemeCache,
 ): void {
   if (cursor.left < 0 || cursor.top < 0) return;
 
-  // Read CSS custom properties for themeable defaults (set by e.g. a .dark class)
-  const cs = ctx.canvas != null ? getComputedStyle(ctx.canvas) : null;
-  const cssVar = (name: string) => cs?.getPropertyValue(name).trim() || '';
-
   const themedDefaults: CursorDrawConfig = {
-    stroke: cssVar('--uplot-cursor-stroke') || defaultCursorConfig.stroke,
+    stroke: theme?.cursorStroke ?? defaultCursorConfig.stroke,
   };
   const cfg = { ...defaultCursorConfig, ...themedDefaults, ...config };
   const pr = pxRatio;
@@ -135,7 +133,7 @@ export function drawCursor(
             const strokeW = round(POINT_STROKE_WIDTH * pr);
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
-            ctx.fillStyle = cssVar('--uplot-point-fill') || DEFAULT_POINT_FILL;
+            ctx.fillStyle = theme?.pointFill ?? DEFAULT_POINT_FILL;
             ctx.fill();
             ctx.strokeStyle = pointFill;
             ctx.lineWidth = strokeW;

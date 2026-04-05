@@ -34,8 +34,8 @@ export default function CustomTooltipDemo() {
         <Legend />
         <Tooltip>
           {(tooltipData) => (
-            <div className="bg-white border border-border-light rounded-md px-3 py-2 shadow-lg text-demo min-w-35">
-              <div className="font-bold mb-1 border-b border-border-lighter pb-1">
+            <div className="bg-white dark:bg-[#1e1e2e] border border-border-light dark:border-border-lighter dark:text-white rounded-md px-3 py-2 shadow-lg text-demo min-w-35">
+              <div className="font-bold mb-1 border-b border-border-lighter dark:border-border-light pb-1">
                 Day {tooltipData.xLabel}
               </div>
               {tooltipData.items.map((item, i) => {
@@ -48,7 +48,7 @@ export default function CustomTooltipDemo() {
                       {item.label}
                     </span>
                     <span
-                      className={isProfit && val != null ? (val >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-500') : 'text-gray-800'}>
+                      className={isProfit && val != null ? (val >= 0 ? 'font-bold text-green-600' : 'font-bold text-red-500') : 'text-gray-800 dark:text-gray-300'}>
                       {val != null ? `$${val.toFixed(1)}K` : '\u2014'}
                     </span>
                   </div>

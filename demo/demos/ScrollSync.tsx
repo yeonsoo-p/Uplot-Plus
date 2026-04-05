@@ -18,7 +18,7 @@ export default function ScrollSync() {
       <p className="text-demo text-muted mb-2">
         Multiple synced charts in a scrollable container. All share <code>syncKey=&quot;scroll&quot;</code>.
       </p>
-      <div className="max-h-[500px] overflow-y-auto border border-border-light p-2">
+      <div className="max-h-125 overflow-y-auto border border-border-light p-2">
         {LABELS.map((label, i) => (
           <div key={label} className="mb-3">
             <Chart width={760} height={150} data={datasets[i] ?? []} syncKey="scroll" ylabel={label}>

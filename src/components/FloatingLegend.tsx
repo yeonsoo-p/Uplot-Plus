@@ -3,6 +3,7 @@ import { useStore } from '../hooks/useChart';
 import { Panel, SeriesRow, formatSeriesValue } from './overlay/SeriesPanel';
 import { clamp } from '../math/utils';
 import { getSeriesColor } from '../types/series';
+import { estimatePanelSize } from '../utils/estimatePanelSize';
 
 export interface FloatingLegendProps {
   /** Behavior mode: 'draggable' (default) or 'cursor' (follows cursor). */
@@ -88,15 +89,23 @@ export function FloatingLegend({
     }
   });
 
+  // Pre-compute panel size for accurate initial draggable positioning
+  const initEstimated = mode === 'draggable' && !initialized
+    ? estimatePanelSize({ rows: store.seriesConfigs.filter(c => c.legend !== false).map(cfg => ({
+        label: cfg.label ?? `Series ${cfg.index}`,
+        value: formatSeriesValue(store, cfg.group, cfg.index, snap.activeGroup, snap.activeDataIdx),
+      })) })
+    : null;
+
   // Initialize and correct draggable position once plot box is known
   useLayoutEffect(() => {
     if (mode !== 'draggable' || initialized || snap.plotWidth <= 0) return;
     setInitialized(true);
     const el = panelRef.current;
-    const w = el?.offsetWidth ?? 0;
-    const h = el?.offsetHeight ?? 0;
+    const w = el?.offsetWidth ?? initEstimated?.w ?? 0;
+    const h = el?.offsetHeight ?? initEstimated?.h ?? 0;
     setPos(resolveInitialPos(position, store.plotBox, w, h));
-  }, [mode, initialized, snap.plotWidth, position, store.plotBox]);
+  }, [mode, initialized, snap.plotWidth, position, store.plotBox, initEstimated]);
 
   // Toggle handler — only fires if no drag occurred
   const handleToggle = (group: number, index: number) => {
@@ -136,15 +145,18 @@ export function FloatingLegend({
 
   const { activeGroup, activeDataIdx, left: cursorLeft, top: cursorTop } = snap;
 
-  // Build rows
+  // Build rows + collect text content for pre-measurement
+  const rowContent: Array<{ label: string; value: string }> = [];
   const rows = store.seriesConfigs.filter(c => c.legend !== false).map((cfg) => {
     const color = getSeriesColor(cfg);
     const value = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIdx);
+    const label = cfg.label ?? `Series ${cfg.index}`;
+    rowContent.push({ label, value });
     const isClickable = mode === 'draggable';
     return (
       <SeriesRow
         key={`${cfg.group}:${cfg.index}`}
-        label={cfg.label ?? `Series ${cfg.index}`}
+        label={label}
         color={color}
         value={value}
         isHidden={cfg.show === false}
@@ -153,11 +165,14 @@ export function FloatingLegend({
     );
   });
 
+  // Pre-compute dimensions from text content to avoid double render
+  const estimated = estimatePanelSize({ rows: rowContent });
+
   // --- Cursor mode ---
   if (mode === 'cursor') {
     if (cursorLeft < 0) return null;
-    const mW = cursorMeasured.w;
-    const mH = cursorMeasured.h;
+    const mW = cursorMeasured.w || estimated.w;
+    const mH = cursorMeasured.h || estimated.h;
     const pR = snap.plotLeft + snap.plotWidth;
     const pB = snap.plotTop + snap.plotHeight;
     const x = clamp(cursorLeft + snap.plotLeft + offset.x, snap.plotLeft, pR - mW);
@@ -167,6 +182,16 @@ export function FloatingLegend({
 
   // --- Draggable mode ---
   if (pos == null) return null;
+
+  // Nudge position to keep panel within plot bounds when content grows
+  if (!isDragging) {
+    const maxX = snap.plotLeft + snap.plotWidth - estimated.w;
+    const maxY = snap.plotTop + snap.plotHeight - estimated.h;
+    const cx = Math.max(snap.plotLeft, Math.min(pos.x, maxX));
+    const cy = Math.max(snap.plotTop, Math.min(pos.y, maxY));
+    if (cx !== pos.x || cy !== pos.y) setPos({ x: cx, y: cy });
+  }
+
   return (
     <Panel
       ref={panelRef}

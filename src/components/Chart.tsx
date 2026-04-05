@@ -175,7 +175,7 @@ export function Chart({
             position: 'relative',
             width: `${width}px`,
             height: `${height}px`,
-            cursor: 'crosshair',
+            cursor: 'default',
             outline: 'none',
             order: 0,
           }}

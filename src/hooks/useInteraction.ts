@@ -599,6 +599,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       if (!isInPlot(cx, cy) && activeDrag == null) {
         lastCursorCx = -1;
         lastCursorCy = -1;
+        el.style.cursor = '';
         store.cursorManager.hide();
         if (store.focusedSeries != null) {
           store.setFocus(null);
@@ -606,6 +607,8 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
         store.scheduleCursorRedraw();
         return;
       }
+
+      el.style.cursor = 'none';
 
       const moved = cx !== lastCursorCx || cy !== lastCursorCy;
       lastCursorCx = cx;
@@ -757,6 +760,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
 
       lastCursorCx = -1;
       lastCursorCy = -1;
+      el.style.cursor = '';
 
       store.cursorManager.hide();
 

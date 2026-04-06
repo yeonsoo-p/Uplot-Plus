@@ -360,6 +360,12 @@ export function createChartStore(): ChartStore {
     },
 
     registerSeries(cfg: ResolvedSeriesConfig) {
+      const existing = store.seriesConfigs.find(
+        s => s.group === cfg.group && s.index === cfg.index,
+      );
+      // Internal helper series never overwrite explicit user series
+      if (cfg._internal && existing != null && !existing._internal) return;
+
       store.seriesConfigs = store.seriesConfigs.filter(
         s => !(s.group === cfg.group && s.index === cfg.index),
       );
@@ -504,8 +510,9 @@ export function createChartStore(): ChartStore {
 
       // 3. Auto-range all scales (single pass — windows already set)
       // Use visible series for ranging. If a y-scale has NO visible series
-      // (e.g. Candlestick/BoxWhisker where all series are show=false),
-      // fall back to including hidden series so the scale still gets a range.
+      // (e.g. Candlestick where helper series are show=false, or BoxWhisker
+      // which uses internal-only series), fall back to including hidden
+      // series so the scale still gets a range.
       const visible = seriesConfigs.filter(s => s.show !== false);
       const visibleScales = new Set(visible.map(s => s.yScale));
       const seriesScaleMap = seriesConfigs

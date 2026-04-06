@@ -1,4 +1,4 @@
-import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
+import { Chart, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
 import type { ChartData } from 'uplot-plus';
 
 interface BoxData {
@@ -9,11 +9,8 @@ interface BoxData {
   max: number;
 }
 
-function generateBoxData(): { boxes: BoxData[]; chartData: ChartData; yMin: number; yMax: number } {
-  const categories = 10;
+function generateBoxData(categories: number): { boxes: BoxData[]; chartData: ChartData } {
   const boxes: BoxData[] = [];
-
-  let yMin = Infinity, yMax = -Infinity;
 
   for (let i = 0; i < categories; i++) {
     const center = 30 + Math.random() * 60;
@@ -24,29 +21,21 @@ function generateBoxData(): { boxes: BoxData[]; chartData: ChartData; yMin: numb
     const q3 = center + spread * 0.5;
     const max = center + spread + Math.random() * 10;
     boxes.push({ min, q1, median, q3, max });
-    if (min < yMin) yMin = min;
-    if (max > yMax) yMax = max;
   }
 
-  const pad = (yMax - yMin) * 0.1;
-  yMin -= pad;
-  yMax += pad;
-
-  // Provide minimal data for axis rendering
+  // Minimal placeholder data for axis rendering
   const x = Array.from({ length: categories }, (_, i) => i + 1);
-  const y = x.map(() => 0);
-  return { boxes, chartData: [{ x, series: [y] }], yMin, yMax };
+  return { boxes, chartData: [{ x, series: [x.map(() => 0)] }] };
 }
 
-const categoryLabels = Array.from({ length: 10 }, (_, i) => `Cat ${i + 1}`);
+const CATEGORIES = 10;
+const categoryLabels = Array.from({ length: CATEGORIES }, (_, i) => `Cat ${i + 1}`);
 
 export default function BoxWhiskerDemo() {
-  const { boxes, chartData, yMin, yMax } = generateBoxData();
+  const { boxes, chartData } = generateBoxData(CATEGORIES);
 
   return (
     <Chart width={800} height={400} data={chartData} ylabel="Value">
-      <Scale id="x" auto={false} min={0.5} max={10.5} />
-      <Scale id="y" auto={false} min={yMin} max={yMax} />
       <Axis scale="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
       <Axis scale="y" />
       <BoxWhisker boxes={boxes} />

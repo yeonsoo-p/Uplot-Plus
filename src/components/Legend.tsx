@@ -5,6 +5,7 @@ import type { ChartStore } from '../hooks/useChartStore';
 import { getSeriesColor } from '../types/series';
 import { SWATCH_W, SWATCH_H, SWATCH_RADIUS, ROW_GAP } from './overlay/tokens';
 import { cssVar } from '../rendering/theme';
+import { formatSeriesValue } from './overlay/SeriesPanel';
 
 interface LegendProps extends LegendConfig {
   className?: string;
@@ -95,17 +96,12 @@ export function Legend({ show = true, position = 'bottom', className }: LegendPr
       data-testid="legend"
       style={position === 'top' ? wrapperStyleTop : wrapperStyleBottom}
     >
+      {/* Hidden series (show=false) are shown with reduced opacity so users can toggle them back on.
+          Internal helper series and legend=false series are excluded entirely. */}
       {store.seriesConfigs.map((cfg) => {
-        if (cfg.legend === false) return null;
+        if (cfg.legend === false || cfg._internal) return null;
         const color = getSeriesColor(cfg);
-        let valueStr = '';
-        if (activeDataIdx >= 0 && activeGroup >= 0 && cfg.group === activeGroup) {
-          const yData = store.dataStore.getYValues(cfg.group, cfg.index);
-          const val = yData[activeDataIdx];
-          if (val != null) {
-            valueStr = typeof val === 'number' ? val.toPrecision(4) : String(val);
-          }
-        }
+        const valueStr = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIdx);
 
         return (
           <LegendItem

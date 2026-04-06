@@ -2,7 +2,7 @@ import React, { useSyncExternalStore } from 'react';
 import { useStore } from '../hooks/useChart';
 import { useDraggableOverlay } from '../hooks/useDraggableOverlay';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
-import { Panel, SeriesRow } from './overlay/SeriesPanel';
+import { Panel, SeriesRow, formatValue } from './overlay/SeriesPanel';
 import { getSeriesColor } from '../types/series';
 import { estimatePanelSize } from '../utils/estimatePanelSize';
 import { cssVar } from '../rendering/theme';
@@ -51,8 +51,10 @@ export function Tooltip({
     xVal = group != null ? (group.x[activeDataIdx] ?? null) : null;
     xLabel = xVal != null ? parseFloat(xVal.toFixed(precision)).toString() : '';
 
+    // Hidden series (show=false) are excluded from tooltip — showing values for
+    // invisible lines is confusing. Internal helpers and legend=false also excluded.
     for (const cfg of store.seriesConfigs) {
-      if (cfg.show === false || cfg.legend === false) continue;
+      if (cfg.show === false || cfg.legend === false || cfg._internal) continue;
       const yData = store.dataStore.getYValues(cfg.group, cfg.index);
       const val = cfg.group === activeGroup ? (yData[activeDataIdx] ?? null) : null;
       items.push({
@@ -66,7 +68,7 @@ export function Tooltip({
   } else if (mode === 'draggable') {
     // Draggable mode: show series with dashes when cursor is off-chart
     for (const cfg of store.seriesConfigs) {
-      if (cfg.show === false || cfg.legend === false) continue;
+      if (cfg.show === false || cfg.legend === false || cfg._internal) continue;
       items.push({
         label: cfg.label ?? `Series ${cfg.index}`,
         value: null,
@@ -83,7 +85,7 @@ export function Tooltip({
         header: xLabel || undefined,
         rows: items.map(item => ({
           label: item.label,
-          value: item.value != null ? item.value.toPrecision(4) : '\u2014',
+          value: formatValue(item.value),
         })),
       }, store.theme)
     : EMPTY_SIZE;
@@ -159,7 +161,7 @@ export function Tooltip({
           key={`${item.group}:${item.index}`}
           label={item.label}
           color={item.color}
-          value={item.value != null ? item.value.toPrecision(4) : '\u2014'}
+          value={formatValue(item.value)}
         />
       ))}
     </Panel>

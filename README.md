@@ -208,7 +208,8 @@ import { Chart, Series, ThemeProvider, DARK_THEME } from 'uplot-plus';
 | -------- | --------- |
 | Axis formatters | `fmtCompact`, `fmtSuffix`, `fmtPrefix`, `fmtWrap`, `fmtHourMin`, `fmtMonthName`, `fmtDateStr`, `fmtLabels` |
 | Color helpers | `fadeGradient`, `withAlpha`, `palette` |
-| Data transforms | `stackGroup`, `alignData` |
+| Data transforms | `stackGroup`, `alignData`, `lttb`, `lttbGroup` |
+| Theme presets | `THEME_DEFAULTS`, `DARK_THEME` |
 
 > Full API and examples: [docs/UTILITIES.md](docs/UTILITIES.md)
 

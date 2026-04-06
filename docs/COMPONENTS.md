@@ -95,10 +95,10 @@ import { Chart, Series, ThemeProvider, DARK_THEME } from 'uplot-plus';
 panelShadow,hiddenOpacity,zIndex,tooltipZIndex}`,
 `ranger.{accent,dim}`.
 
-**Demos:** `dark-mode-toggle`, `custom-theme`,
-`per-chart-theme`, `nested-theme-provider`,
-`themed-specialized`, `theme-presets`,
-`css-custom-properties`.
+**Demos:** `theme-presets`, `applying-themes`,
+`nested-providers`, `component-themes`,
+`themed-dashboard`, `system-color-scheme`,
+`theme-explorer`.
 
 ---
 
@@ -429,7 +429,7 @@ import { Band } from 'uplot-plus';
 </Chart>
 ```
 
-**Demos:** `high-low-bands`, `bars-grouped-stacked`.
+**Demos:** `high-low-bands`, `bars-grouped`.
 
 ---
 
@@ -528,6 +528,10 @@ Auto-flips when near chart edges. Uses
 | `className` | `string` | — | CSS class name |
 | `children` | `(data: TooltipData) => ReactNode` | — | Custom render function |
 | `offset` | `{ x?: number; y?: number }` | `{ x: 12, y: -12 }` | Offset from cursor (CSS px) |
+| `precision` | `number` | `2` | Max decimal places for the default x label (no effect with custom render) |
+| `mode` | `'cursor' \| 'draggable'` | `'cursor'` | Follows cursor vs fixed-position draggable |
+| `position` | `PositionPreset \| { x: number; y: number }` | `'top-right'` | Initial position for draggable mode |
+| `idleOpacity` | `number` | `0.8` | Opacity when not hovered in draggable mode |
 
 **`TooltipData`** (passed to custom render):
 
@@ -570,7 +574,7 @@ import { Tooltip } from 'uplot-plus';
 </Tooltip>
 ```
 
-**Demos:** `tooltips`, `tooltips-closest`, `cursor-tooltip`.
+**Demos:** `tooltips`, `cursor-tooltip`, `custom-tooltip`.
 
 ---
 
@@ -799,7 +803,7 @@ import { Chart, Candlestick } from 'uplot-plus';
 </Chart>
 ```
 
-**Demos:** `candlestick-ohlc`, `themed-specialized`.
+**Demos:** `candlestick-ohlc`, `component-themes`.
 
 ---
 

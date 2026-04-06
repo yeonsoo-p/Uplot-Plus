@@ -112,7 +112,7 @@ export default function ThemeExplorer() {
   return (
     <div>
       <div className="grid grid-cols-[280px_1fr] gap-4">
-        <div className="text-sm overflow-y-auto max-h-[500px] pr-2">
+        <div className="text-sm overflow-y-auto max-h-125 pr-2">
           <Section title="Axes & Grid">
             <ColorCtrl label="axisStroke" value={state.axisStroke} field="axisStroke" dispatch={dispatch} />
             <ColorCtrl label="gridStroke" value={state.gridStroke} field="gridStroke" dispatch={dispatch} />

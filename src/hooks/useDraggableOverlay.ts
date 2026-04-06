@@ -2,16 +2,17 @@ import type React from 'react';
 import { useRef, useState, useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
 import { useStore } from './useChart';
 import { clamp } from '../math/utils';
+import type { CornerPosition, OverlayPosition, OverlayOffset } from '../types/common';
 
 // ---- Public types ----
 
-export type CornerPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+export type { CornerPosition };
 
 export interface UseDraggableOverlayOptions {
   mode: 'cursor' | 'draggable';
   show: boolean;
-  position: { x: number; y: number } | CornerPosition;
-  offset: { x: number; y: number };
+  position: OverlayPosition;
+  offset: OverlayOffset;
   idleOpacity: number;
   estimatedSize: { w: number; h: number };
 }
@@ -237,7 +238,7 @@ export function useDraggableOverlay({
     renderPos = computeCursorPos(
       snap.left, snap.top,
       snap.plotLeft, snap.plotTop, snap.plotWidth, snap.plotHeight,
-      offset.x, offset.y,
+      offset.x ?? 0, offset.y ?? 0,
       mW, mH,
     );
   } else {

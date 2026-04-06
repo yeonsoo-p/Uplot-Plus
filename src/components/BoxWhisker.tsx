@@ -1,6 +1,9 @@
+import React from 'react';
 import { useDrawHook } from '../hooks/useDrawHook';
 import { useStore } from '../hooks/useChart';
 import { drawRangeBox } from '../rendering/drawRangeBox';
+import { Scale } from './Scale';
+import { Series } from './Series';
 
 export interface BoxWhiskerProps {
   /** Array of box data — one per category. */
@@ -17,6 +20,10 @@ export interface BoxWhiskerProps {
   medianColor?: string;
   /** Whisker color (default: '#555') */
   whiskerColor?: string;
+  /** Auto-provision x/y scales from box data (default: true). Set false for manual control. */
+  autoScales?: boolean;
+  /** When true, internal placeholder series appear in legend and are toggleable (default: false) */
+  exposeUnderlyingSeries?: boolean;
 }
 
 export function BoxWhisker({
@@ -27,7 +34,9 @@ export function BoxWhisker({
   stroke: strokeProp,
   medianColor: medianProp,
   whiskerColor: whiskerProp,
-}: BoxWhiskerProps): null {
+  autoScales = true,
+  exposeUnderlyingSeries = false,
+}: BoxWhiskerProps): React.ReactElement {
   const store = useStore();
   const fill = fillProp ?? store.theme.boxFill;
   const stroke = strokeProp ?? store.theme.boxStroke;
@@ -60,5 +69,22 @@ export function BoxWhisker({
     }
   });
 
-  return null;
+  if (!autoScales) return <></>;
+
+  // Infer y-domain from box min/max with 10% padding
+  let yMin = Infinity, yMax = -Infinity;
+  for (const b of boxes) {
+    if (b.min < yMin) yMin = b.min;
+    if (b.max > yMax) yMax = b.max;
+  }
+  const pad = (yMax - yMin) * 0.1 || 1;
+
+  return (
+    <>
+      <Scale id="x" auto={false} min={0.5} max={boxes.length + 0.5} />
+      <Scale id={yScaleId} auto={false} min={yMin - pad} max={yMax + pad} />
+      <Series group={0} index={0} yScale={yScaleId} show={false}
+        _internal={!exposeUnderlyingSeries} />
+    </>
+  );
 }

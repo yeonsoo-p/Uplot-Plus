@@ -64,6 +64,8 @@ export interface SeriesConfig {
 export interface ResolvedSeriesConfig extends SeriesConfig {
   _autoStroke?: boolean;
   _autoFill?: boolean;
+  /** Marks helper series auto-registered by specialized components (Candlestick, BoxWhisker). */
+  _internal?: boolean;
 }
 
 /** Check if a CSS color string is effectively fully transparent. */

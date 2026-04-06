@@ -123,7 +123,7 @@ const muted = palette(5, 40, 60);            // lower saturation, higher lightne
 ## Data Utilities
 
 ```tsx
-import { stackGroup, alignData } from 'uplot-plus';
+import { stackGroup, alignData, lttb, lttbGroup } from 'uplot-plus';
 ```
 
 ### `stackGroup(group: XGroup, seriesIndices?: number[], groupIdx?: number)`
@@ -160,6 +160,35 @@ const aligned = alignData([
 // Result: x=[1,2,3,4], series=[[10,20,30,null], [null,15,25,35]]
 ```
 
+### `lttb(xData, yData, targetPoints)`
+
+Largest Triangle Three Buckets downsampling. Reduces a dataset to
+`targetPoints` while preserving visual shape. Null values create
+logical gaps — contiguous non-null runs are downsampled independently
+with proportional bucket allocation.
+
+```tsx
+import { lttb } from 'uplot-plus';
+
+const { indices, x, y } = lttb(xValues, yValues, 500);
+// indices: Uint32Array of selected indices into the original arrays
+// x: Float64Array of downsampled x values
+// y: (number | null)[] of downsampled y values (null gaps preserved)
+```
+
+### `lttbGroup(group, targetPoints)`
+
+Downsample an entire `XGroup`, applying LTTB to each series against
+the shared x-axis. Uses the union of selected indices across all
+series to preserve x-alignment.
+
+```tsx
+import { lttbGroup } from 'uplot-plus';
+
+const downsampled = lttbGroup(group, 500);
+// Returns a new XGroup with downsampled x and series arrays
+```
+
 ## Scale Utilities
 
 Low-level coordinate conversion for custom draw hooks.
@@ -182,4 +211,28 @@ Convert a CSS pixel position back to a data value.
 
 ```tsx
 const val = posToVal(mouseX, scale, plotBox.width, plotBox.left);
+```
+
+## Theme Presets
+
+```tsx
+import { THEME_DEFAULTS, DARK_THEME } from 'uplot-plus';
+```
+
+### `THEME_DEFAULTS`
+
+The fully resolved default theme (`ResolvedTheme`) — every draw
+function reads from this as the baseline. Contains 40+ properties
+covering axes, grid, cursor, selection, series palette, candlestick,
+box-whisker, annotations, overlay panels, and zoom ranger.
+
+### `DARK_THEME`
+
+A partial `ChartTheme` preset for dark backgrounds. Pass it to
+`<ThemeProvider>` or the `Chart.theme` prop.
+
+```tsx
+<ThemeProvider theme={DARK_THEME}>
+  <Chart data={data}>…</Chart>
+</ThemeProvider>
 ```

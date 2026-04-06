@@ -41,7 +41,21 @@ export interface DragContinuation {
  * - Touch:    touchDrag, pinch
  * - Keyboard: key{Key}, shift/alt/ctrlKey{Key} — e.g. shiftKeyX, ctrlKeyS, keyEscape
  */
-export type ActionKey = string | ((e: Event, ctx: ActionContext) => boolean);
+/** Built-in action key names for standard charting gestures. */
+export type BuiltinAction =
+  | 'leftDrag' | 'middleDrag' | 'rightDrag'
+  | 'shiftLeftDrag' | 'altLeftDrag' | 'ctrlLeftDrag'
+  | 'shiftMiddleDrag' | 'altMiddleDrag' | 'ctrlMiddleDrag'
+  | 'shiftRightDrag' | 'altRightDrag' | 'ctrlRightDrag'
+  | 'leftClick' | 'middleClick' | 'rightClick'
+  | 'shiftLeftClick' | 'altLeftClick' | 'ctrlLeftClick'
+  | 'leftDblclick' | 'shiftLeftDblclick' | 'altLeftDblclick' | 'ctrlLeftDblclick'
+  | 'xGutterDrag' | 'yGutterDrag'
+  | 'wheel' | 'shiftWheel' | 'altWheel' | 'ctrlWheel'
+  | 'hover'
+  | 'touchDrag' | 'pinch';
+
+export type ActionKey = BuiltinAction | (string & Record<never, never>) | ((e: Event, ctx: ActionContext) => boolean);
 
 /**
  * Reaction value: a built-in string name or a custom handler function.
@@ -50,8 +64,12 @@ export type ActionKey = string | ((e: Event, ctx: ActionContext) => boolean);
  *
  * Custom handlers return a DragContinuation for multi-event gestures, or void for one-shot.
  */
+/** Built-in reaction names for standard charting behaviors. */
+export type BuiltinReaction = 'zoomX' | 'zoomY' | 'zoomXY' | 'panX' | 'panY' | 'panXY' | 'reset' | 'none';
+
 export type ReactionValue =
-  | string
+  | BuiltinReaction
+  | (string & Record<never, never>)
   | ((store: ChartStore, e: Event, ctx: ActionContext) => DragContinuation | void);
 
 /** A single action→reaction binding. */

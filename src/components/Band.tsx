@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import type { BandConfig } from '../types/bands';
 import { useStore } from '../hooks/useChart';
 
@@ -17,8 +17,10 @@ export function Band({ series, group, fill, dir }: BandConfig): null {
   const s0 = series[0];
   const s1 = series[1];
 
-  // Single effect: register/update on any prop change, unregister on unmount.
-  useEffect(() => {
+  // Layout effect: register/update on any prop change, unregister on unmount.
+  // Must be useLayoutEffect (not useEffect) so Band is registered before
+  // Chart's first sync redraw fires in its own layout effect.
+  useLayoutEffect(() => {
     const cfg: BandConfig = { series: [s0, s1], group, fill, dir };
 
     // Remove previous config if re-running due to prop change

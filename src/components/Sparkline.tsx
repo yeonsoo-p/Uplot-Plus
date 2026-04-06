@@ -1,9 +1,10 @@
+import React from 'react';
 import { Chart } from './Chart';
 import { Series } from './Series';
 import { Axis } from './Axis';
+import { useStore } from '../hooks/useChart';
 import type { DataInput, ColorValue } from '../types';
 import type { PathBuilder } from '../paths/types';
-import { THEME_DEFAULTS } from '../rendering/theme';
 
 export interface SparklineProps {
   /** Chart data — accepts {x,y}, [{x,y}], or [{x, series:[...]}] */
@@ -12,7 +13,7 @@ export interface SparklineProps {
   width?: number;
   /** Height in CSS pixels (default: 30) */
   height?: number;
-  /** Line/bar color (default: '#03a9f4') */
+  /** Line/bar color (default: from theme sparklineStroke) */
   stroke?: ColorValue;
   /** Fill color */
   fill?: ColorValue;
@@ -26,6 +27,35 @@ export interface SparklineProps {
   className?: string;
 }
 
+/** Inner series that resolves stroke from theme when not provided by props. */
+function SparklineSeries({
+  stroke,
+  fill,
+  lineWidth,
+  paths,
+  fillTo,
+}: {
+  stroke?: ColorValue;
+  fill?: ColorValue;
+  lineWidth: number;
+  paths?: PathBuilder;
+  fillTo?: number;
+}) {
+  const store = useStore();
+  return (
+    <Series
+      group={0}
+      index={0}
+      yScale="y"
+      stroke={stroke ?? store.theme.sparklineStroke}
+      fill={fill}
+      width={lineWidth}
+      paths={paths}
+      fillTo={fillTo}
+    />
+  );
+}
+
 /**
  * Compact inline chart with no axes or interaction.
  * Ideal for sparklines in tables and dashboards.
@@ -34,7 +64,7 @@ export function Sparkline({
   data,
   width = 150,
   height = 30,
-  stroke = THEME_DEFAULTS.sparklineStroke,
+  stroke,
   fill,
   lineWidth = 1,
   paths,
@@ -46,13 +76,10 @@ export function Sparkline({
       <Chart width={width} height={height} data={data}>
         <Axis scale="x" show={false} />
         <Axis scale="y" show={false} />
-        <Series
-          group={0}
-          index={0}
-          yScale="y"
+        <SparklineSeries
           stroke={stroke}
           fill={fill}
-          width={lineWidth}
+          lineWidth={lineWidth}
           paths={paths}
           fillTo={fillTo}
         />

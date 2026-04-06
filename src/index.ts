@@ -51,12 +51,17 @@ export type {
   ActionList,
   ActionEntry,
   ActionKey,
+  BuiltinAction,
   ReactionValue,
+  BuiltinReaction,
   ActionContext,
   DragContinuation,
   GradientConfig,
   ColorValue,
   ChartTheme,
+  CornerPosition,
+  OverlayPosition,
+  OverlayOffset,
 } from './types';
 
 export type { ChartSnapshot } from './hooks/useChartStore';

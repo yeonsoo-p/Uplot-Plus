@@ -4,7 +4,7 @@ import { withAlpha } from '../colors';
 import { THEME_DEFAULTS } from '../rendering/theme';
 
 /** Series component props — yScale defaults to 'y' if omitted. */
-export type SeriesProps = Omit<SeriesConfig, 'yScale'> & { yScale?: string };
+export type SeriesProps = Omit<SeriesConfig, 'yScale'> & { yScale?: string; _internal?: boolean };
 
 /** Apply defaults for yScale, show, stroke, and auto-fill. */
 function resolveDefaults(p: SeriesProps, colorIndex: number, palette?: string[]): ResolvedSeriesConfig {
@@ -28,6 +28,7 @@ function resolveDefaults(p: SeriesProps, colorIndex: number, palette?: string[])
     fill,
     _autoStroke: autoStroke,
     _autoFill: autoFill,
+    _internal: p._internal,
   };
 }
 

@@ -1,3 +1,5 @@
+import type { OverlayPosition, OverlayOffset } from './common';
+
 /** Data passed to custom tooltip renderers */
 export interface TooltipData {
   /** X value at cursor */
@@ -27,13 +29,13 @@ export interface TooltipProps {
   /** Custom render function */
   children?: (data: TooltipData) => React.ReactNode;
   /** Offset from cursor in CSS pixels */
-  offset?: { x?: number; y?: number };
+  offset?: OverlayOffset;
   /** Max decimal places for the default x label (default: 2). Has no effect when using a custom render function. */
   precision?: number;
   /** Behavior mode: 'cursor' (default, follows cursor) or 'draggable' (fixed position, drag to move). */
   mode?: 'cursor' | 'draggable';
   /** Initial position for draggable mode (default: 'top-right') */
-  position?: { x: number; y: number } | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: OverlayPosition;
   /** Opacity when not hovered in draggable mode (default: 0.8) */
   idleOpacity?: number;
 }

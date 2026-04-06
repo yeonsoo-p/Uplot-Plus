@@ -19,6 +19,8 @@ export interface CandlestickProps {
   bodyWidth?: number;
   /** Wick width in CSS pixels (default: 1) */
   wickWidth?: number;
+  /** When true, helper OHLC series appear in legend and are toggleable (default: false) */
+  exposeUnderlyingSeries?: boolean;
 }
 
 export function Candlestick({
@@ -29,6 +31,7 @@ export function Candlestick({
   downColor: downColorProp,
   bodyWidth = 0.6,
   wickWidth = 1,
+  exposeUnderlyingSeries = false,
 }: CandlestickProps): React.ReactElement {
   const store = useStore();
   const upColor = upColorProp ?? store.theme.candlestickUp;
@@ -77,12 +80,12 @@ export function Candlestick({
   });
 
   // Auto-register hidden series so users don't need to declare them manually.
-  // If the user already declared <Series> for these indices, registerSeries
-  // deduplicates by (group, index) — the last registration wins.
+  // Internal helpers are hidden from legend/tooltip and yield to explicit user <Series>.
   return (
     <>
       {seriesIndices.map(idx => (
-        <Series key={idx} group={group} index={idx} yScale={yScaleId} show={false} />
+        <Series key={idx} group={group} index={idx} yScale={yScaleId} show={false}
+          _internal={!exposeUnderlyingSeries} />
       ))}
     </>
   );

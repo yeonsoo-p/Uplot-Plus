@@ -60,6 +60,15 @@ export function sideOrientation(side: Side): Orientation {
   return ori;
 }
 
+/** Overlay corner position preset */
+export type CornerPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+/** Overlay position: absolute {x,y} or corner preset */
+export type OverlayPosition = { x: number; y: number } | CornerPosition;
+
+/** Overlay offset from computed position */
+export type OverlayOffset = { x?: number; y?: number };
+
 /** Pixel rounding function */
 export type PxRound = (v: number) => number;
 

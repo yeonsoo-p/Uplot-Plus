@@ -1,4 +1,4 @@
-export type { NumArray, NullableNumArray, BBox, Range, PxRound } from './common';
+export type { NumArray, NullableNumArray, BBox, Range, PxRound, CornerPosition, OverlayPosition, OverlayOffset } from './common';
 export { Side, Orientation, Direction, Distribution, SortOrder, sideOrientation, DirtyFlag } from './common';
 export type { XGroup, ChartData, SeriesRef, DataArray, SimpleGroup, FullGroup, DataInput } from './data';
 export type { ScaleConfig, ScaleState, RangeConfig, RangePart } from './scales';
@@ -8,6 +8,6 @@ export type { AxisConfig, AxisState, GridConfig, TickConfig, BorderConfig } from
 export type { CursorState, SelectState } from './cursor';
 export type { ChartProps } from './chart';
 export type { ChartTheme } from './theme';
-export type { ActionList, ActionEntry, ActionKey, ReactionValue, ActionContext, DragContinuation } from './interaction';
+export type { ActionList, ActionEntry, ActionKey, BuiltinAction, ReactionValue, BuiltinReaction, ActionContext, DragContinuation } from './interaction';
 export { DEFAULT_ACTIONS } from './interaction';
 export type { DrawContext, DrawCallback, CursorDrawCallback } from './hooks';

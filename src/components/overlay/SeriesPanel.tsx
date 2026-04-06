@@ -135,6 +135,12 @@ export const Panel = forwardRef<HTMLDivElement, PanelProps>(function Panel(
   );
 });
 
+/** Format a single numeric value for display in overlay panels. */
+export function formatValue(val: number | null, precision = 4): string {
+  if (val == null) return '\u2014';
+  return typeof val === 'number' ? val.toPrecision(precision) : String(val);
+}
+
 // --- Helper: build series value string from store ---
 
 export function formatSeriesValue(
@@ -143,11 +149,12 @@ export function formatSeriesValue(
   index: number,
   activeGroup: number,
   activeDataIdx: number,
+  precision = 4,
 ): string {
   if (activeDataIdx < 0 || activeGroup < 0) return '';
   if (group !== activeGroup) return '';
   const yData = store.dataStore.getYValues(group, index);
   const val = yData[activeDataIdx];
   if (val == null) return '';
-  return typeof val === 'number' ? val.toPrecision(4) : String(val);
+  return typeof val === 'number' ? val.toPrecision(precision) : String(val);
 }

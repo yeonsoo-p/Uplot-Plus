@@ -4,6 +4,7 @@ import { useDraggableOverlay } from '../hooks/useDraggableOverlay';
 import { Panel, SeriesRow, formatSeriesValue } from './overlay/SeriesPanel';
 import { getSeriesColor } from '../types/series';
 import { estimatePanelSize } from '../utils/estimatePanelSize';
+import type { OverlayPosition, OverlayOffset } from '../types/common';
 
 // Re-export for backward compatibility (tests and external consumers)
 export { resolveInitialPos, CORNER_PAD } from '../hooks/useDraggableOverlay';
@@ -12,9 +13,9 @@ export interface FloatingLegendProps {
   /** Behavior mode: 'draggable' (default) or 'cursor' (follows cursor). */
   mode?: 'draggable' | 'cursor';
   /** Initial position for draggable mode (default: 'top-right') */
-  position?: { x: number; y: number } | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: OverlayPosition;
   /** Offset from cursor for cursor mode (default: { x: 12, y: -12 }) */
-  offset?: { x: number; y: number };
+  offset?: OverlayOffset;
   /** Opacity when not hovered in draggable mode (default: 0.3) */
   idleOpacity?: number;
   /** Whether to show (default: true) */
@@ -49,7 +50,9 @@ export function FloatingLegend({
 
   // Build rows + collect text content for pre-measurement
   const rowContent: Array<{ label: string; value: string }> = [];
-  const rows = store.seriesConfigs.filter(c => c.legend !== false).map((cfg) => {
+  // Hidden series (show=false) are shown with reduced opacity so users can toggle them back on.
+  // Internal helper series and legend=false series are excluded entirely.
+  const rows = store.seriesConfigs.filter(c => c.legend !== false && !c._internal).map((cfg) => {
     const color = getSeriesColor(cfg);
     const value = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIdx);
     const label = cfg.label ?? `Series ${cfg.index}`;

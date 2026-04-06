@@ -5,10 +5,7 @@ import { Series } from './Series';
 import { clamp } from '../math/utils';
 import { Axis } from './Axis';
 import { normalizeData } from '../core/normalizeData';
-import {
-  CSS_RANGER_ACCENT, DEFAULT_RANGER_ACCENT,
-  CSS_RANGER_DIM, DEFAULT_RANGER_DIM,
-} from './overlay/tokens';
+import { cssVar } from '../rendering/theme';
 
 /** Grip hit-target width in CSS pixels */
 export const GRIP_THRESHOLD_PX = 8;
@@ -264,7 +261,7 @@ export function ZoomRanger({
             left: 0,
             width: leftPct,
             height: '100%',
-            background: `var(${CSS_RANGER_DIM}, ${DEFAULT_RANGER_DIM})`,
+            background: cssVar('rangerDim'),
             pointerEvents: 'none',
           }}
         />
@@ -277,7 +274,7 @@ export function ZoomRanger({
             left: `${selFrac[1] * 100}%`,
             right: 0,
             height: '100%',
-            background: `var(${CSS_RANGER_DIM}, ${DEFAULT_RANGER_DIM})`,
+            background: cssVar('rangerDim'),
             pointerEvents: 'none',
           }}
         />
@@ -290,8 +287,8 @@ export function ZoomRanger({
             left: leftPct,
             width: widthPct,
             height: '100%',
-            borderLeft: `2px solid var(${CSS_RANGER_ACCENT}, ${DEFAULT_RANGER_ACCENT})`,
-            borderRight: `2px solid var(${CSS_RANGER_ACCENT}, ${DEFAULT_RANGER_ACCENT})`,
+            borderLeft: `2px solid ${cssVar('rangerAccent')}`,
+            borderRight: `2px solid ${cssVar('rangerAccent')}`,
             boxSizing: 'border-box',
             cursor: 'grab',
             pointerEvents: 'none',
@@ -301,12 +298,12 @@ export function ZoomRanger({
             <>
               <div data-testid="zoom-ranger-grip-left" style={{
                 position: 'absolute', left: -5, top: '50%', transform: 'translateY(-50%)',
-                width: 8, height: 24, borderRadius: 3, background: `var(${CSS_RANGER_ACCENT}, ${DEFAULT_RANGER_ACCENT})`,
+                width: 8, height: 24, borderRadius: 3, background: cssVar('rangerAccent'),
                 cursor: 'ew-resize', pointerEvents: 'auto',
               }} />
               <div data-testid="zoom-ranger-grip-right" style={{
                 position: 'absolute', right: -5, top: '50%', transform: 'translateY(-50%)',
-                width: 8, height: 24, borderRadius: 3, background: `var(${CSS_RANGER_ACCENT}, ${DEFAULT_RANGER_ACCENT})`,
+                width: 8, height: 24, borderRadius: 3, background: cssVar('rangerAccent'),
                 cursor: 'ew-resize', pointerEvents: 'auto',
               }} />
             </>

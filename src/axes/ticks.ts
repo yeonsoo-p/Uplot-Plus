@@ -186,13 +186,24 @@ export function logAxisValFilter(
  * Estimate minimum pixel spacing between tick labels based on label width.
  * Avoids overlap for large numbers (e.g., Unix timestamps) without canvas text measurement.
  */
-const EST_CHAR_WIDTH_PX = 7;       // ~7px per character at 12px font
 const MIN_LABEL_WIDTH_PX = 50;     // minimum pixel width for a tick label
 const LABEL_PADDING_PX = 16;       // padding between adjacent labels
+const DEFAULT_CHAR_WIDTH = 7;      // ~7px per character at 12px font
 
-function estimateMinSpace(min: number, max: number): number {
+/** Extract the pixel size from a CSS font string (e.g. "bold 14px sans-serif" → 14). */
+export function parseFontSizePx(font: string): number {
+  const match = font.match(/(\d+(?:\.\d+)?)px/);
+  return match != null ? Number(match[1]) : 12;
+}
+
+/** Estimate character width from a font size (ratio ~0.58 for system-ui). */
+function estCharWidth(font?: string): number {
+  return font != null ? parseFontSizePx(font) * 0.58 : DEFAULT_CHAR_WIDTH;
+}
+
+function estimateMinSpace(min: number, max: number, charWidth = DEFAULT_CHAR_WIDTH): number {
   const maxAbsStr = fmtNum(Math.max(Math.abs(min), Math.abs(max)));
-  const estWidth = maxAbsStr.length * EST_CHAR_WIDTH_PX;
+  const estWidth = maxAbsStr.length * charWidth;
   return Math.max(MIN_LABEL_WIDTH_PX, estWidth + LABEL_PADDING_PX);
 }
 
@@ -205,14 +216,16 @@ export function getIncrSpace(
   min: number,
   max: number,
   fullDim: number,
+  tickFont?: string,
 ): [number, number] {
   if (fullDim <= 0)
     return [0, 0];
 
   const isVertical = sideOrientation(axis.side) === Orientation.Vertical;
-  // Y-axis: vertical spacing based on font height + gap (~30px, matching uPlot yAxisOpts.space).
+  const fontSize = tickFont != null ? parseFontSizePx(tickFont) : 12;
+  // Y-axis: vertical spacing based on font height + gap.
   // X-axis: horizontal spacing based on label width estimate.
-  const minSpace = axis.space ?? (isVertical ? 30 : estimateMinSpace(min, max));
+  const minSpace = axis.space ?? (isVertical ? Math.ceil(fontSize * 2.5) : estimateMinSpace(min, max, estCharWidth(tickFont)));
   const incrs = axis.incrs ?? numIncrs;
 
   return findIncr(min, max, incrs, fullDim, minSpace);
@@ -230,13 +243,15 @@ export function computeAxisSize(
   axis: AxisConfig,
   _values: string[] | null,
   _cycleNum: number,
+  tickFont?: string,
 ): number {
   if (axis.size != null)
     return axis.size;
 
   const tickSize = axis.ticks?.show !== false ? (axis.ticks?.size ?? 10) : 0;
   const gap = axis.gap ?? 5;
-  const fontSize = 12;
+  const fontSize = tickFont != null ? parseFontSizePx(tickFont) : 12;
+  const cw = estCharWidth(tickFont);
 
   const isVertical = sideOrientation(axis.side) === Orientation.Vertical;
 
@@ -246,7 +261,7 @@ export function computeAxisSize(
     for (const v of _values) {
       if (v.length > maxLen) maxLen = v.length;
     }
-    const estLabelWidth = maxLen * 7; // ~7px per char at 12px font
+    const estLabelWidth = maxLen * cw;
     return Math.max(50, tickSize + gap + estLabelWidth + 4);
   }
 

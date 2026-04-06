@@ -3,13 +3,13 @@ import { useStore } from '../hooks/useChart';
 import { useDraggableOverlay } from '../hooks/useDraggableOverlay';
 import type { TooltipProps, TooltipData, TooltipItem } from '../types/tooltip';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
-import { CSS_TOOLTIP_Z, DEFAULT_TOOLTIP_Z } from './overlay/tokens';
 import { getSeriesColor } from '../types/series';
 import { estimatePanelSize } from '../utils/estimatePanelSize';
+import { cssVar } from '../rendering/theme';
 
 const DEFAULT_OFFSET = { x: 12, y: -12 };
 const EMPTY_SIZE = { w: 0, h: 0 };
-const tooltipZIndex: React.CSSProperties = { zIndex: `var(${CSS_TOOLTIP_Z}, ${DEFAULT_TOOLTIP_Z})` };
+const tooltipZIndex: React.CSSProperties = { zIndex: cssVar('tooltipZ') };
 const xLabelStyle: React.CSSProperties = { fontWeight: 600, marginBottom: 2, padding: '0 4px' };
 
 /**
@@ -85,7 +85,7 @@ export function Tooltip({
           label: item.label,
           value: item.value != null ? item.value.toPrecision(4) : '\u2014',
         })),
-      })
+      }, store.theme)
     : EMPTY_SIZE;
 
   const overlay = useDraggableOverlay({

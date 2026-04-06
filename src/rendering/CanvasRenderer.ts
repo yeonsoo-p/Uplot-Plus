@@ -255,7 +255,7 @@ export class CanvasRenderer {
         pi1,
         dir,
         pxRound,
-        { fillTo, spanGaps: info.config.spanGaps },
+        { fillTo, fillToData: info.config.fillToData, spanGaps: info.config.spanGaps },
       );
 
       this.setCachedPaths(group, index, pi0, pi1, paths);

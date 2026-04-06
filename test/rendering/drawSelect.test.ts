@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { drawSelection } from '@/rendering/drawSelect';
 import type { SelectDrawConfig } from '@/rendering/drawSelect';
 import type { SelectState, BBox } from '@/types';
-import type { ThemeCache } from '@/rendering/theme';
+import type { ResolvedTheme } from '@/rendering/theme';
+import { THEME_DEFAULTS } from '@/rendering/theme';
 
 function makeCtx() {
   return {
@@ -74,7 +75,7 @@ describe('drawSelection', () => {
   });
 
   it('applies themed fill/stroke colors', () => {
-    const theme = { selectFill: 'red', selectStroke: 'blue' } as ThemeCache;
+    const theme = { ...THEME_DEFAULTS, selectFill: 'red', selectStroke: 'blue' } as ResolvedTheme;
     drawSelection(ctx as unknown as CanvasRenderingContext2D, makeSelect(), plotBox, 1, undefined, theme);
 
     expect(ctx.fillStyle).toBe('red');
@@ -82,7 +83,7 @@ describe('drawSelection', () => {
   });
 
   it('config overrides theme', () => {
-    const theme = { selectFill: 'red', selectStroke: 'blue' } as ThemeCache;
+    const theme = { ...THEME_DEFAULTS, selectFill: 'red', selectStroke: 'blue' } as ResolvedTheme;
     const config: SelectDrawConfig = { fill: 'yellow', stroke: 'purple' };
     drawSelection(ctx as unknown as CanvasRenderingContext2D, makeSelect(), plotBox, 1, config, theme);
 

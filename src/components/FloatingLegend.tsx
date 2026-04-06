@@ -58,7 +58,7 @@ export function FloatingLegend({
   });
 
   // Pre-compute dimensions from text content to avoid double render
-  const estimated = rows.length > 0 ? estimatePanelSize({ rows: rowContent }) : EMPTY_SIZE;
+  const estimated = rows.length > 0 ? estimatePanelSize({ rows: rowContent }, store.theme) : EMPTY_SIZE;
 
   const overlay = useDraggableOverlay({
     mode,

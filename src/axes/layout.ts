@@ -1,5 +1,6 @@
 import type { ScaleState, BBox } from '../types';
 import type { AxisState } from '../types/axes';
+import type { ResolvedTheme } from '../rendering/theme';
 import { Side, Orientation, Distribution, sideOrientation } from '../types';
 import { ceil } from '../math/utils';
 import { isScaleReady } from '../core/Scale';
@@ -31,6 +32,7 @@ export function axesCalc(
   plotWidCss: number,
   plotHgtCss: number,
   cycleNum: number,
+  theme?: ResolvedTheme,
 ): boolean {
   let converged = true;
 
@@ -69,7 +71,8 @@ export function axesCalc(
       const minSpace = config.space ?? 80;
       [_incr, _space] = findTimeIncr(min, max, timeIncrs, fullDim, minSpace);
     } else {
-      [_incr, _space] = getIncrSpace(config, min, max, fullDim);
+      const tickFont = config.font ?? theme?.tickFont;
+      [_incr, _space] = getIncrSpace(config, min, max, fullDim, tickFont);
     }
 
     // Discrete x-data: force integer-only ticks
@@ -118,7 +121,8 @@ export function axesCalc(
 
     // Compute size
     const oldSize = axis._size;
-    axis._size = ceil(computeAxisSize(config, axis._values, cycleNum));
+    const sizeFont = config.font ?? theme?.tickFont;
+    axis._size = ceil(computeAxisSize(config, axis._values, cycleNum, sizeFont));
 
     if (oldSize !== axis._size)
       converged = false;
@@ -234,6 +238,7 @@ export function convergeSize(
   axisStates: AxisState[],
   getScale: (id: string) => ScaleState | undefined,
   titleHeight = 0,
+  theme?: ResolvedTheme,
 ): BBox {
   // Reset _size so convergence always runs at least 2 cycles.
   // Without this, preserved _size from a previous redraw can cause
@@ -255,6 +260,7 @@ export function convergeSize(
       plotBox.width,
       plotBox.height,
       cycleNum,
+      theme,
     );
 
     converged = cycleNum === CYCLE_LIMIT || axesConverged;

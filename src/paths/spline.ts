@@ -70,15 +70,27 @@ export function splineInterp(
     // Build fill path
     if (stroke != null) {
       const fill = _paths.fill = new Path2D(stroke);
-      const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
-      const fillToY = pixelForY(fillToVal);
+      const fillToData = opts?.fillToData;
 
-      let frX = pixelForX(dataX[idx0] as number);
-      let toX = pixelForX(dataX[idx1] as number);
-      if (dir === Direction.Backward) [toX, frX] = [frX, toX];
+      if (fillToData != null) {
+        // Per-point baseline: trace backwards along baseline data
+        for (let i = dir === Direction.Forward ? idx1 : idx0; i >= idx0 && i <= idx1; i -= dir) {
+          const bv = fillToData[i];
+          const xv = dataX[i];
+          if (bv != null && xv != null)
+            lineTo(fill, pixelForX(xv), pixelForY(bv));
+        }
+      } else {
+        const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
+        const fillToY = pixelForY(fillToVal);
 
-      lineTo(fill, toX, fillToY);
-      lineTo(fill, frX, fillToY);
+        let frX = pixelForX(dataX[idx0] as number);
+        let toX = pixelForX(dataX[idx1] as number);
+        if (dir === Direction.Backward) [toX, frX] = [frX, toX];
+
+        lineTo(fill, toX, fillToY);
+        lineTo(fill, frX, fillToY);
+      }
     }
 
     // Build clip path for gaps

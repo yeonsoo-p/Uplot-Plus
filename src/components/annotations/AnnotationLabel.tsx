@@ -1,5 +1,6 @@
 import { useDrawHook } from '../../hooks/useDrawHook';
 import { useLayoutEffect, useRef } from 'react';
+import { useStore } from '../../hooks/useChart';
 
 export interface AnnotationLabelProps {
   /** X data value */
@@ -27,6 +28,7 @@ export interface AnnotationLabelProps {
  * Place inside `<Chart>`.
  */
 export function AnnotationLabel(props: AnnotationLabelProps): null {
+  const store = useStore();
   const propsRef = useRef(props);
   useLayoutEffect(() => { propsRef.current = props; });
 
@@ -36,9 +38,10 @@ export function AnnotationLabel(props: AnnotationLabelProps): null {
     const py = dc.valToY(p.y, p.yScale ?? 'y');
     if (px == null || py == null) return;
 
+    const t = store.theme;
     const { ctx } = dc;
-    ctx.font = p.font ?? '12px sans-serif';
-    ctx.fillStyle = p.fill ?? '#000';
+    ctx.font = p.font ?? t.annotationFont;
+    ctx.fillStyle = p.fill ?? t.annotationLabelFill;
     ctx.textAlign = p.align ?? 'left';
     ctx.textBaseline = p.baseline ?? 'bottom';
     ctx.fillText(p.text, px, py - 4);

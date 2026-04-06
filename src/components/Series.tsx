@@ -1,24 +1,21 @@
 import type { SeriesConfig } from '../types';
 import { useRegisterConfig } from '../hooks/useRegisterConfig';
 import { withAlpha } from '../colors';
+import { THEME_DEFAULTS } from '../rendering/theme';
 
 /** Series component props — yScale defaults to 'y' if omitted. */
 export type SeriesProps = Omit<SeriesConfig, 'yScale'> & { yScale?: string };
 
-/** Curated default colors for auto-assignment to series without explicit stroke. */
-const DEFAULT_COLORS = [
-  '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-  '#1abc9c', '#e67e22', '#34495e', '#16a085', '#c0392b',
-  '#2980b9', '#27ae60', '#f1c40f', '#8e44ad', '#d35400',
-];
-
 /** Apply defaults for yScale, show, stroke, and auto-fill. */
-function resolveDefaults(p: SeriesProps, colorIndex: number): SeriesConfig {
+function resolveDefaults(p: SeriesProps, colorIndex: number, palette?: string[]): SeriesConfig {
   const pathDefaults = p.paths?.defaults;
-  const stroke = p.stroke ?? DEFAULT_COLORS[colorIndex % DEFAULT_COLORS.length] ?? '#000';
+  const colors = palette ?? THEME_DEFAULTS.seriesColors;
+  const autoStroke = p.stroke == null;
+  const stroke = p.stroke ?? colors[colorIndex % colors.length] ?? '#000';
 
   const rawFill = p.fill ?? pathDefaults?.fill;
-  const fill = rawFill === 'auto' && typeof stroke === 'string'
+  const autoFill = rawFill === 'auto' && typeof stroke === 'string';
+  const fill = autoFill
     ? withAlpha(stroke, 0.5)
     : rawFill === 'auto' ? undefined : rawFill;
 
@@ -29,6 +26,8 @@ function resolveDefaults(p: SeriesProps, colorIndex: number): SeriesConfig {
     show: p.show ?? true,
     stroke,
     fill,
+    _autoStroke: autoStroke,
+    _autoFill: autoFill,
   };
 }
 
@@ -40,11 +39,11 @@ export function Series(props: SeriesProps): null {
   useRegisterConfig(
     props,
     [props.group, props.index],
-    (store, p) => store.registerSeries(resolveDefaults(p, store.seriesConfigs.length)),
+    (store, p) => store.registerSeries(resolveDefaults(p, store.seriesConfigs.length, store.theme.seriesColors)),
     (store, p) => store.unregisterSeries(p.group, p.index),
     (store, p) => {
       const idx = store.seriesConfigs.findIndex(s => s.group === p.group && s.index === p.index);
-      store.updateSeries(resolveDefaults(p, idx >= 0 ? idx : store.seriesConfigs.length));
+      store.updateSeries(resolveDefaults(p, idx >= 0 ? idx : store.seriesConfigs.length, store.theme.seriesColors));
     },
   );
   return null;

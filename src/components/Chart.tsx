@@ -1,4 +1,4 @@
-import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
 import type { ChartProps } from '../types';
 import { DEFAULT_ACTIONS } from '../types/interaction';
 import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
@@ -7,6 +7,7 @@ import { ChartContext } from '../hooks/useChart';
 import { useInteraction } from '../hooks/useInteraction';
 import { useSyncGroup } from '../sync/useSyncGroup';
 import { normalizeData } from '../core/normalizeData';
+import { themeToVars } from '../rendering/theme';
 
 /**
  * Root chart component.
@@ -15,7 +16,7 @@ import { normalizeData } from '../core/normalizeData';
  */
 export function Chart({
   width, height, data, children, className, pxRatio: pxRatioOverride, title, xlabel, ylabel,
-  onDraw, onCursorDraw, syncKey, actions,
+  onDraw, onCursorDraw, syncKey, actions, theme,
   onClick, onContextMenu, onDblClick, onCursorMove, onCursorLeave,
   onScaleChange, onSelect,
 }: ChartProps) {
@@ -23,6 +24,19 @@ export function Chart({
   const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
 
   const pxRatio = pxRatioOverride ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+
+  // Convert theme prop to CSS custom properties for the wrapper div
+  const themeStyle = useMemo(() => theme != null ? themeToVars(theme) : undefined, [theme]);
+
+  // When the theme prop changes, invalidate the cached snapshot and trigger
+  // a full redraw so the canvas re-resolves CSS custom properties.
+  const themeStyleRef = useRef(themeStyle);
+  useEffect(() => {
+    if (themeStyleRef.current === themeStyle) return;
+    themeStyleRef.current = themeStyle;
+    store.renderer.invalidateSnapshot();
+    store.scheduleRedraw();
+  }, [store, themeStyle]);
 
   // Merge user action overrides with defaults and sync to store
   useEffect(() => {
@@ -162,6 +176,7 @@ export function Chart({
       <div
         className={className}
         style={{
+          ...themeStyle,
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',

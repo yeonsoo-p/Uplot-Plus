@@ -1,5 +1,8 @@
-// Centralized design tokens for overlay components (Legend, Tooltip, SeriesPanel, ZoomRanger).
-// Canvas rendering tokens live separately in src/rendering/theme.ts.
+// Layout constants for overlay components — used for pixel math in estimatePanelSize.
+// Themeable values (colors, fonts, opacity, z-index) live in src/rendering/theme.ts.
+
+import { THEME_DEFAULTS } from '../../rendering/theme';
+import type { ResolvedTheme } from '../../rendering/theme';
 
 // --- Swatch ---
 export const SWATCH_W = 12;
@@ -14,23 +17,16 @@ export const PANEL_PAD_Y = 4;
 export const ROW_PAD_X = 4;
 export const ROW_LINE_H = 16;
 
-// --- Typography ---
-export const OVERLAY_FONT_SIZE = 12;
-export const OVERLAY_FONT_FAMILY = 'sans-serif';
-export const PANEL_FONT = `${OVERLAY_FONT_SIZE}px ${OVERLAY_FONT_FAMILY}`;
-export const PANEL_BOLD_FONT = `bold ${OVERLAY_FONT_SIZE}px ${OVERLAY_FONT_FAMILY}`;
+// --- Fonts (derived from theme defaults, used for pixel measurement) ---
+export const PANEL_FONT = `${THEME_DEFAULTS.overlayFontSize}px ${THEME_DEFAULTS.overlayFontFamily}`;
+export const PANEL_BOLD_FONT = `bold ${THEME_DEFAULTS.overlayFontSize}px ${THEME_DEFAULTS.overlayFontFamily}`;
 
-// --- Opacity ---
-export const HIDDEN_OPACITY = 0.4;
+/** Build a panel font string from a resolved theme. */
+export function panelFont(theme: ResolvedTheme): string {
+  return `${theme.overlayFontSize}px ${theme.overlayFontFamily}`;
+}
 
-// --- Z-Index (CSS custom property names + defaults) ---
-export const CSS_OVERLAY_Z = '--uplot-overlay-z';
-export const CSS_TOOLTIP_Z = '--uplot-tooltip-z';
-export const DEFAULT_OVERLAY_Z = 50;
-export const DEFAULT_TOOLTIP_Z = 100;
-
-// --- ZoomRanger colors (CSS custom property names + defaults) ---
-export const CSS_RANGER_ACCENT = '--uplot-ranger-accent';
-export const CSS_RANGER_DIM = '--uplot-ranger-dim';
-export const DEFAULT_RANGER_ACCENT = 'rgba(0,100,255,0.8)';
-export const DEFAULT_RANGER_DIM = 'rgba(0,0,0,0.3)';
+/** Build a bold panel font string from a resolved theme. */
+export function panelBoldFont(theme: ResolvedTheme): string {
+  return `bold ${theme.overlayFontSize}px ${theme.overlayFontFamily}`;
+}

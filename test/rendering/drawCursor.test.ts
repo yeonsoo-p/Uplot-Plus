@@ -3,7 +3,8 @@ import { drawCursor } from '@/rendering/drawCursor';
 import type { CursorState, ScaleState, BBox } from '@/types';
 import type { ChartData } from '@/types/data';
 import type { SeriesConfig } from '@/types/series';
-import type { ThemeCache } from '@/rendering/theme';
+import type { ResolvedTheme } from '@/rendering/theme';
+import { THEME_DEFAULTS } from '@/rendering/theme';
 
 function makeCtx() {
   return {
@@ -113,7 +114,7 @@ describe('drawCursor', () => {
 
   it('applies theme cursorStroke override', () => {
     const cursor = makeCursor();
-    const theme = { cursorStroke: '#ff0' } as ThemeCache;
+    const theme: ResolvedTheme = { ...THEME_DEFAULTS, cursorStroke: '#ff0' };
     drawCursor(ctx as unknown as CanvasRenderingContext2D, cursor, plotBox, 1, emptyData, emptyConfigs, noScale, noGroupXScale, undefined, undefined, theme);
 
     expect(ctx.strokeStyle).toBe('#ff0');
@@ -190,7 +191,7 @@ describe('drawCursor', () => {
     });
 
     it('applies theme pointFill override', () => {
-      const theme = { pointFill: '#000' } as ThemeCache;
+      const theme: ResolvedTheme = { ...THEME_DEFAULTS, pointFill: '#000' };
       const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
       drawCursor(ctx as unknown as CanvasRenderingContext2D, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap, theme);
 

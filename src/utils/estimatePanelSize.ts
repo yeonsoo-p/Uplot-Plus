@@ -1,4 +1,5 @@
 import { measureLabelWidth } from './textMeasure';
+import type { ResolvedTheme } from '../rendering/theme';
 import {
   PANEL_BORDER,
   PANEL_PAD_X,
@@ -9,6 +10,8 @@ import {
   PANEL_FONT,
   PANEL_BOLD_FONT,
   ROW_LINE_H,
+  panelFont,
+  panelBoldFont,
 } from '../components/overlay/tokens';
 
 export interface PanelContent {
@@ -16,11 +19,13 @@ export interface PanelContent {
   rows: Array<{ label: string; value?: string }>;
 }
 
-export function estimatePanelSize(content: PanelContent): { w: number; h: number } {
+export function estimatePanelSize(content: PanelContent, theme?: ResolvedTheme): { w: number; h: number } {
+  const font = theme != null ? panelFont(theme) : PANEL_FONT;
+  const boldFont = theme != null ? panelBoldFont(theme) : PANEL_BOLD_FONT;
   let maxRowW = 0;
   for (const row of content.rows) {
-    const labelW = measureLabelWidth(row.label, PANEL_FONT);
-    const valueW = row.value ? measureLabelWidth(row.value, PANEL_BOLD_FONT) : 0;
+    const labelW = measureLabelWidth(row.label, font);
+    const valueW = row.value ? measureLabelWidth(row.value, boldFont) : 0;
     const rowW = ROW_PAD_X * 2 + ROW_SWATCH_W + ROW_GAP + labelW + (row.value ? ROW_GAP + valueW : 0);
     if (rowW > maxRowW) maxRowW = rowW;
   }
@@ -28,7 +33,7 @@ export function estimatePanelSize(content: PanelContent): { w: number; h: number
   let headerW = 0;
   let headerH = 0;
   if (content.header) {
-    headerW = measureLabelWidth(content.header, PANEL_BOLD_FONT) + 8;
+    headerW = measureLabelWidth(content.header, boldFont) + 8;
     headerH = ROW_LINE_H + 2;
   }
 

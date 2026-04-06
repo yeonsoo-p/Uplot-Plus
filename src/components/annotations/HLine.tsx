@@ -1,5 +1,6 @@
 import { drawHLine } from '../../annotations';
 import { useAnnotationDraw } from './useAnnotationDraw';
+import { useStore } from '../../hooks/useChart';
 
 export interface HLineProps {
   /** Y data value where the line is drawn */
@@ -23,9 +24,11 @@ export interface HLineProps {
  * Renders a horizontal line at a y-data-value. Place inside `<Chart>`.
  */
 export function HLine(props: HLineProps): null {
+  const store = useStore();
   useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
+    const t = store.theme;
     drawHLine(dc, scale, p.value, {
-      stroke: p.stroke,
+      stroke: p.stroke ?? t.annotationStroke,
       width: p.width,
       dash: p.dash,
     });
@@ -34,8 +37,8 @@ export function HLine(props: HLineProps): null {
       const y = dc.valToY(p.value, p.yScale ?? 'y');
       if (y == null) return;
       const { ctx, plotBox } = dc;
-      ctx.font = p.labelFont ?? '11px sans-serif';
-      ctx.fillStyle = p.stroke ?? 'red';
+      ctx.font = p.labelFont ?? t.annotationFont;
+      ctx.fillStyle = p.stroke ?? t.annotationStroke;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
       ctx.fillText(p.label, plotBox.left + 4, y - 4);

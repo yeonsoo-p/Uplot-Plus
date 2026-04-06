@@ -28,7 +28,7 @@ export function Timeline({
     const baseY = plotBox.top * pxRatio;
 
     // Draw lane labels (unclipped — visible in axis gutter)
-    ctx.fillStyle = '#666';
+    ctx.fillStyle = store.theme.timelineLabel;
     ctx.font = `${11 * pxRatio}px sans-serif`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -63,12 +63,12 @@ export function Timeline({
         if (segW <= 0) continue;
 
         // Fill segment
-        ctx.fillStyle = seg.color ?? '#4dabf7';
+        ctx.fillStyle = seg.color ?? store.theme.timelineSegment;
         ctx.fillRect(x0, laneY, segW, barH);
 
         // Draw segment label if it fits
         if (seg.label != null && segW > 20 * pxRatio) {
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = store.theme.timelineText;
           ctx.font = `${10 * pxRatio}px sans-serif`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';

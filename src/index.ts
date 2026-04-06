@@ -18,6 +18,12 @@ export { Vector } from './components/Vector';
 // Annotation components (declarative)
 export { HLine, VLine, Region, AnnotationLabel } from './components/annotations';
 
+// Theme
+export { ThemeProvider } from './components/ThemeProvider';
+export type { ThemeProviderProps } from './components/ThemeProvider';
+export { THEME_DEFAULTS, DARK_THEME } from './rendering/theme';
+export type { ResolvedTheme } from './rendering/theme';
+
 // Hooks
 export { useChart } from './hooks/useChart';
 export type { ChartAPI } from './hooks/useChart';
@@ -50,6 +56,7 @@ export type {
   DragContinuation,
   GradientConfig,
   ColorValue,
+  ChartTheme,
 } from './types';
 
 export type { ChartSnapshot } from './hooks/useChartStore';

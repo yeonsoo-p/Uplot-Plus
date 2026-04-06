@@ -49,8 +49,14 @@ export interface SeriesConfig {
   join?: CanvasLineJoin;
   /** Pixel alignment: 0=none (default, smooth anti-aliased curves), 1=round to pixel (crisp lines), N=round to increment */
   pxAlign?: number;
-  /** Fill-to value or function */
+  /** Fill-to value or function. Defaults to scaleY.min for line builders, 0 for bars. */
   fillTo?: number | ((min: number, max: number) => number);
+  /** Per-point baseline data for stacked fills. Overrides fillTo per data point. */
+  fillToData?: ArrayLike<number | null>;
+  /** @internal Whether stroke was auto-assigned from the theme palette. */
+  _autoStroke?: boolean;
+  /** @internal Whether fill was auto-derived from the stroke color. */
+  _autoFill?: boolean;
   /** Cursor behavior for this series */
   cursor?: {
     /** Whether to draw the point indicator on hover (default: true) */

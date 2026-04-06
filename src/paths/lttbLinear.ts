@@ -37,7 +37,7 @@ export function lttbLinear(lttbOpts?: LttbLinearOpts): PathBuilder {
     const pointCount = idx1 - idx0 + 1;
     const target = Math.round(xDim * factor);
 
-    if (pointCount > target * 2) {
+    if (pointCount > target * 2 && opts?.fillToData == null) {
       // Extract the visible window and run LTTB
       const windowLen = idx1 - idx0 + 1;
       const windowX = new Float64Array(windowLen);

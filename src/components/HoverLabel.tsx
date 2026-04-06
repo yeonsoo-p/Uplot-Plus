@@ -71,7 +71,7 @@ export function HoverLabel({
   const color = getSeriesColor(cfg);
 
   // Pre-compute dimensions from text content to avoid double render
-  const estimated = estimatePanelSize({ rows: [{ label: cfg.label }] });
+  const estimated = estimatePanelSize({ rows: [{ label: cfg.label }] }, store.theme);
 
   // Position above cursor, clamped to plot
   const mW = measured.w || estimated.w;

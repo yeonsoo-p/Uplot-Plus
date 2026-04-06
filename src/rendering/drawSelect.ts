@@ -1,6 +1,7 @@
 import type { SelectState, BBox } from '../types';
 import { round } from '../math/utils';
-import type { ThemeCache } from './theme';
+import type { ResolvedTheme } from './theme';
+import { THEME_DEFAULTS } from './theme';
 
 export interface SelectDrawConfig {
   /** Fill color for selection rectangle */
@@ -12,9 +13,9 @@ export interface SelectDrawConfig {
 }
 
 const defaultSelectConfig: Required<SelectDrawConfig> = {
-  fill: 'rgba(0,0,0,0.07)',
-  stroke: 'rgba(0,0,0,0.15)',
-  width: 1,
+  fill: THEME_DEFAULTS.selectFill,
+  stroke: THEME_DEFAULTS.selectStroke,
+  width: THEME_DEFAULTS.selectWidth,
 };
 
 /**
@@ -26,13 +27,15 @@ export function drawSelection(
   plotBox: BBox,
   pxRatio: number,
   config?: SelectDrawConfig,
-  theme?: ThemeCache,
+  theme?: ResolvedTheme,
 ): void {
   if (!select.show || select.width <= 0) return;
 
+  const t = theme ?? THEME_DEFAULTS;
   const themedDefaults: SelectDrawConfig = {
-    fill: theme?.selectFill ?? defaultSelectConfig.fill,
-    stroke: theme?.selectStroke ?? defaultSelectConfig.stroke,
+    fill: t.selectFill,
+    stroke: t.selectStroke,
+    width: t.selectWidth,
   };
   const cfg = { ...defaultSelectConfig, ...themedDefaults, ...config };
   const pr = pxRatio;

@@ -2,6 +2,7 @@ import type { DataInput } from './data';
 import type { DrawCallback, CursorDrawCallback } from './hooks';
 import type { ChartEventInfo, SelectEventInfo, ScaleChangeCallback } from './events';
 import type { ActionList } from './interaction';
+import type { ChartTheme } from './theme';
 
 /** Props for the Chart component */
 export interface ChartProps {
@@ -51,4 +52,6 @@ export interface ChartProps {
   onScaleChange?: ScaleChangeCallback;
   /** Fires when drag selection completes (before zoom is applied) — return false to prevent zoom */
   onSelect?: (sel: SelectEventInfo) => boolean | void;
+  /** Theme overrides — sets CSS custom properties on the chart wrapper. */
+  theme?: ChartTheme;
 }

@@ -23,12 +23,14 @@ export function Candlestick({
   group = 0,
   series = [0, 1, 2, 3],
   yScale: yScaleId = 'y',
-  upColor = '#26a69a',
-  downColor = '#ef5350',
+  upColor: upColorProp,
+  downColor: downColorProp,
   bodyWidth = 0.6,
   wickWidth = 1,
 }: CandlestickProps): null {
   const store = useStore();
+  const upColor = upColorProp ?? store.theme.candlestickUp;
+  const downColor = downColorProp ?? store.theme.candlestickDown;
 
   useDrawHook(({ ctx, plotBox, valToX, valToY }) => {
     const dataGroup = store.dataStore.data[group];

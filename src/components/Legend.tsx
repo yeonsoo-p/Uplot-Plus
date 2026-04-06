@@ -3,10 +3,8 @@ import { useStore } from '../hooks/useChart';
 import type { LegendConfig } from '../types/legend';
 import type { ChartStore } from '../hooks/useChartStore';
 import { getSeriesColor } from '../types/series';
-import {
-  SWATCH_W, SWATCH_H, SWATCH_RADIUS, ROW_GAP, HIDDEN_OPACITY,
-  OVERLAY_FONT_SIZE, OVERLAY_FONT_FAMILY,
-} from './overlay/tokens';
+import { SWATCH_W, SWATCH_H, SWATCH_RADIUS, ROW_GAP } from './overlay/tokens';
+import { cssVar } from '../rendering/theme';
 
 interface LegendProps extends LegendConfig {
   className?: string;
@@ -28,12 +26,12 @@ const baseItemStyle: React.CSSProperties = {
   gap: ROW_GAP,
   padding: '2px 8px',
   cursor: 'pointer',
-  fontSize: OVERLAY_FONT_SIZE,
-  fontFamily: OVERLAY_FONT_FAMILY,
+  fontSize: cssVar('overlayFontSize'),
+  fontFamily: cssVar('overlayFontFamily'),
 };
 
 const itemStyleVisible: React.CSSProperties = { ...baseItemStyle, opacity: 1 };
-const itemStyleHidden: React.CSSProperties = { ...baseItemStyle, opacity: HIDDEN_OPACITY };
+const itemStyleHidden: React.CSSProperties = { ...baseItemStyle, opacity: cssVar('overlayHiddenOpacity') };
 const swatchStyleCache = new Map<string, React.CSSProperties>();
 
 const wrapperStyleTop: React.CSSProperties = {

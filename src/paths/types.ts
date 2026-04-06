@@ -29,7 +29,7 @@ export interface PathBuilderOpts {
   barGroupIdx?: number;
   /** For grouped bars: total number of series in the group */
   barGroupCount?: number;
-  /** Per-point baseline values for stacked bars. When set, overrides fillTo per data point. */
+  /** Per-point baseline values for stacked fills. Supported by linear, stepped, spline, and bars. When set, overrides fillTo per data point. */
   fillToData?: ArrayLike<number | null>;
 }
 

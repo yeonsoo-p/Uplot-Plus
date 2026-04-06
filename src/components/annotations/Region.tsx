@@ -1,5 +1,6 @@
 import { drawRegion } from '../../annotations';
 import { useAnnotationDraw } from './useAnnotationDraw';
+import { useStore } from '../../hooks/useChart';
 
 export interface RegionProps {
   /** Lower y data value */
@@ -23,9 +24,10 @@ export interface RegionProps {
  * Fills the area between two y-data-values. Place inside `<Chart>`.
  */
 export function Region(props: RegionProps): null {
+  const store = useStore();
   useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
     drawRegion(dc, scale, p.yMin, p.yMax, {
-      fill: p.fill,
+      fill: p.fill ?? store.theme.annotationFill,
       stroke: p.stroke,
       width: p.strokeWidth,
       dash: p.dash,

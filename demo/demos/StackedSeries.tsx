@@ -1,5 +1,5 @@
-import { Chart, Series, Band, stackGroup } from 'uplot-plus';
-import type { ChartData, BandConfig } from 'uplot-plus';
+import { Chart, Series, stackGroup } from 'uplot-plus';
+import type { ChartData } from 'uplot-plus';
 
 function generateRawData() {
   const n = 80;
@@ -12,34 +12,17 @@ function generateRawData() {
 }
 
 export default function StackedSeries() {
-  const { stackedData, bands } = (() => {
-    const raw = generateRawData();
-    const rawGroup = { x: raw.x, series: raw.series };
-    const result = stackGroup(rawGroup);
-    const data: ChartData = [result.group];
-    return { stackedData: data, bands: result.bands };
-  })();
+  const raw = generateRawData();
+  const result = stackGroup({ x: raw.x, series: raw.series });
+  const stackedData: ChartData = [result.group];
+  const stackedSeries = result.group.series;
 
   return (
     <div>
       <Chart width={800} height={400} data={stackedData} xlabel="Sample" ylabel="Value">
-        <Series group={0} index={0} stroke="#e74c3c" fill="rgba(231,76,60,0.4)" label="Series A" fillTo={0} />
-        <Series group={0} index={1} stroke="#2ecc71" fill="rgba(46,204,113,0.4)" label="Series B" fillTo={0} />
-        <Series group={0} index={2} stroke="#3498db" fill="rgba(52,152,219,0.4)" label="Series C" fillTo={0} />
-        {bands.map((b: BandConfig, i: number) => (
-          <Band
-            key={i}
-            series={b.series}
-            group={b.group}
-            fill={
-              b.series[0] === 2
-                ? 'rgba(52,152,219,0.3)'
-                : b.series[0] === 1
-                  ? 'rgba(46,204,113,0.3)'
-                  : 'rgba(231,76,60,0.3)'
-            }
-          />
-        ))}
+        <Series group={0} index={0} stroke="#e74c3c" fill="rgba(231,76,60,0.4)" label="Series A" />
+        <Series group={0} index={1} stroke="#2ecc71" fill="rgba(46,204,113,0.4)" label="Series B" fillToData={stackedSeries[0]} />
+        <Series group={0} index={2} stroke="#3498db" fill="rgba(52,152,219,0.4)" label="Series C" fillToData={stackedSeries[1]} />
       </Chart>
     </div>
   );

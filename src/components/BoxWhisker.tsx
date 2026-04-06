@@ -1,4 +1,5 @@
 import { useDrawHook } from '../hooks/useDrawHook';
+import { useStore } from '../hooks/useChart';
 import { drawRangeBox } from '../rendering/drawRangeBox';
 
 export interface BoxWhiskerProps {
@@ -22,11 +23,17 @@ export function BoxWhisker({
   boxes,
   yScale: yScaleId = 'y',
   boxWidth = 0.5,
-  fill = 'rgba(52, 152, 219, 0.4)',
-  stroke = '#2980b9',
-  medianColor = '#e74c3c',
-  whiskerColor = '#555',
+  fill: fillProp,
+  stroke: strokeProp,
+  medianColor: medianProp,
+  whiskerColor: whiskerProp,
 }: BoxWhiskerProps): null {
+  const store = useStore();
+  const fill = fillProp ?? store.theme.boxFill;
+  const stroke = strokeProp ?? store.theme.boxStroke;
+  const medianColor = medianProp ?? store.theme.boxMedian;
+  const whiskerColor = whiskerProp ?? store.theme.boxWhisker;
+
   useDrawHook(({ ctx, plotBox, valToX, valToY }) => {
     const w = (plotBox.width / boxes.length) * boxWidth;
     const capW = w * 0.3;

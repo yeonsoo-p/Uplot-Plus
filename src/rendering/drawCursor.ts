@@ -3,13 +3,11 @@ import type { ChartData } from '../types/data';
 import type { SeriesConfig } from '../types/series';
 import { valToPos, isScaleReady } from '../core/Scale';
 import { round } from '../math/utils';
-import type { ThemeCache } from './theme';
+import type { ResolvedTheme } from './theme';
+import { THEME_DEFAULTS } from './theme';
 
 /** Stroke width for the point indicator outline (CSS pixels) */
 const POINT_STROKE_WIDTH = 2;
-
-/** Default fill color for the point indicator center */
-const DEFAULT_POINT_FILL = '#fff';
 
 export interface CursorDrawConfig {
   /** Crosshair line color */
@@ -27,10 +25,10 @@ export interface CursorDrawConfig {
 }
 
 const defaultCursorConfig: Required<CursorDrawConfig> = {
-  stroke: '#607D8B',
-  width: 1,
-  dash: [5, 3],
-  pointRadius: 4,
+  stroke: THEME_DEFAULTS.cursorStroke,
+  width: THEME_DEFAULTS.cursorWidth,
+  dash: THEME_DEFAULTS.cursorDash,
+  pointRadius: THEME_DEFAULTS.cursorPointRadius,
   showX: true,
   showY: true,
 };
@@ -49,12 +47,16 @@ export function drawCursor(
   getGroupXScaleKey: (groupIdx: number) => string | undefined,
   config?: CursorDrawConfig,
   seriesConfigMap?: Map<string, SeriesConfig>,
-  theme?: ThemeCache,
+  theme?: ResolvedTheme,
 ): void {
   if (cursor.left < 0 || cursor.top < 0) return;
 
+  const t = theme ?? THEME_DEFAULTS;
   const themedDefaults: CursorDrawConfig = {
-    stroke: theme?.cursorStroke ?? defaultCursorConfig.stroke,
+    stroke: t.cursorStroke,
+    width: t.cursorWidth,
+    dash: t.cursorDash,
+    pointRadius: t.cursorPointRadius,
   };
   const cfg = { ...defaultCursorConfig, ...themedDefaults, ...config };
   const pr = pxRatio;
@@ -133,7 +135,7 @@ export function drawCursor(
             const strokeW = round(POINT_STROKE_WIDTH * pr);
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
-            ctx.fillStyle = theme?.pointFill ?? DEFAULT_POINT_FILL;
+            ctx.fillStyle = t.pointFill;
             ctx.fill();
             ctx.strokeStyle = pointFill;
             ctx.lineWidth = strokeW;

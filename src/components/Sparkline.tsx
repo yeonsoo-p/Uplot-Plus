@@ -3,6 +3,7 @@ import { Series } from './Series';
 import { Axis } from './Axis';
 import type { DataInput, ColorValue } from '../types';
 import type { PathBuilder } from '../paths/types';
+import { THEME_DEFAULTS } from '../rendering/theme';
 
 export interface SparklineProps {
   /** Chart data — accepts {x,y}, [{x,y}], or [{x, series:[...]}] */
@@ -33,7 +34,7 @@ export function Sparkline({
   data,
   width = 150,
   height = 30,
-  stroke = '#03a9f4',
+  stroke = THEME_DEFAULTS.sparklineStroke,
   fill,
   lineWidth = 1,
   paths,

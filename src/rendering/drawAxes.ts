@@ -3,7 +3,8 @@ import type { AxisState } from '../types/axes';
 import { Side, Orientation, sideOrientation } from '../types';
 import { valToPos, isScaleReady } from '../core/Scale';
 import { round, PI } from '../math/utils';
-import type { ThemeCache } from './theme';
+import type { ResolvedTheme } from './theme';
+import { THEME_DEFAULTS } from './theme';
 
 const TOP = 'top';
 const BOTTOM = 'bottom';
@@ -87,9 +88,9 @@ export function drawAxesGrid(
   plotBox: BBox,
   pxRatio: number,
   title?: string,
-  theme?: ThemeCache,
+  theme?: ResolvedTheme,
 ): void {
-  const t = theme ?? { axisStroke: '#000', gridStroke: 'rgba(0,0,0,0.12)', titleFill: '#000' };
+  const t = theme ?? THEME_DEFAULTS;
 
   const plotLft = round(plotBox.left * pxRatio);
   const plotTop = round(plotBox.top * pxRatio);
@@ -162,7 +163,7 @@ export function drawAxesGrid(
       const shiftAmt = (tickSize + axisGap) * shiftDir;
       const finalPos = basePos + shiftAmt;
 
-      const font = scaleFontPx(config.font ?? '12px system-ui, sans-serif', pxRatio);
+      const font = scaleFontPx(config.font ?? t.tickFont, pxRatio);
       const textAlign: CanvasTextAlign = ori === Orientation.Horizontal ? 'center' : (side === Side.Left ? RIGHT : LEFT) as CanvasTextAlign;
       const textBaseline: CanvasTextBaseline = ori === Orientation.Horizontal ? (side === Side.Bottom ? TOP : BOTTOM) as CanvasTextBaseline : 'middle';
 
@@ -205,7 +206,7 @@ export function drawAxesGrid(
 
     // Draw axis label
     if (config.label != null) {
-      const labelFont = scaleFontPx(config.labelFont ?? 'bold 12px system-ui, sans-serif', pxRatio);
+      const labelFont = scaleFontPx(config.labelFont ?? t.labelFont, pxRatio);
 
       ctx.font = labelFont;
       ctx.fillStyle = fillStyle;
@@ -260,7 +261,7 @@ export function drawAxesGrid(
 
   // Draw chart title centered over plot area
   if (title != null) {
-    const titleFont = scaleFontPx('bold 14px system-ui, sans-serif', pxRatio);
+    const titleFont = scaleFontPx(t.titleFont, pxRatio);
     ctx.font = titleFont;
     ctx.fillStyle = t.titleFill;
     ctx.textAlign = 'center';

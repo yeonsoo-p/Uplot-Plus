@@ -171,19 +171,30 @@ export function linear(): PathBuilder {
     // Build fill path
     {
       const fill = _paths.fill = new Path2D(stroke);
+      const fillToData = opts?.fillToData;
 
-      const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
-      const fillToY = pixelForY(fillToVal);
+      if (fillToData != null) {
+        // Per-point baseline: trace backwards along baseline data
+        for (let i = dir === Direction.Forward ? idx1 : idx0; i >= idx0 && i <= idx1; i -= dir) {
+          const bv = fillToData[i];
+          const xv = dataX[i];
+          if (bv != null && xv != null)
+            lineTo(fill, pixelForX(xv), pixelForY(bv));
+        }
+      } else {
+        const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
+        const fillToY = pixelForY(fillToVal);
 
-      // Close fill to data extent (not plot edges) to avoid triangular overshoots
-      let frX = pixelForX(dataX[idx0] as number);
-      let toX = pixelForX(dataX[idx1] as number);
+        // Close fill to data extent (not plot edges) to avoid triangular overshoots
+        let frX = pixelForX(dataX[idx0] as number);
+        let toX = pixelForX(dataX[idx1] as number);
 
-      if (dir === Direction.Backward)
-        [toX, frX] = [frX, toX];
+        if (dir === Direction.Backward)
+          [toX, frX] = [frX, toX];
 
-      lineTo(fill, toX, fillToY);
-      lineTo(fill, frX, fillToY);
+        lineTo(fill, toX, fillToY);
+        lineTo(fill, frX, fillToY);
+      }
     }
 
     // Build clip path for gaps

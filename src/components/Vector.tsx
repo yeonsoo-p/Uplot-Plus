@@ -58,11 +58,12 @@ export function Vector({
   directions,
   group = 0,
   index = 0,
-  color = '#c0392b',
+  color: colorProp,
   minSize = 4,
   maxSize = 10,
 }: VectorProps): null {
   const store = useStore();
+  const color = colorProp ?? store.theme.vectorColor;
 
   useDrawHook(({ ctx, valToX, valToY }) => {
     const dataGroup = store.dataStore.data[group];

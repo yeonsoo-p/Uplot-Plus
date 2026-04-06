@@ -10,12 +10,12 @@ import { CursorManager } from '../core/CursorManager';
 import { RenderScheduler } from '../core/RenderScheduler';
 import { CanvasRenderer, type RenderableSeriesInfo } from '../rendering/CanvasRenderer';
 import { convergeSize } from '../axes/layout';
-import { createAxisState } from '../axes/ticks';
+import { createAxisState, parseFontSizePx } from '../axes/ticks';
 import { drawAxesGrid } from '../rendering/drawAxes';
 import { drawCursor } from '../rendering/drawCursor';
 import { drawSelection } from '../rendering/drawSelect';
-import { readThemeVars } from '../rendering/theme';
-import type { ThemeCache } from '../rendering/theme';
+import { resolveTheme } from '../rendering/theme';
+import type { ResolvedTheme } from '../rendering/theme';
 import { drawPoints, shouldShowPoints } from '../rendering/drawPoints';
 import { buildBandPath, drawBandPath } from '../rendering/drawBands';
 import type { BandConfig } from '../types/bands';
@@ -23,6 +23,7 @@ import { Side, DirtyFlag } from '../types/common';
 import type { DrawContext, DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { valToPos, isScaleReady } from '../core/Scale';
 import type { EventCallbacks } from '../types/events';
+import { withAlpha } from '../colors';
 
 /**
  * Inject sensible defaults for missing y-scales, series, and axes.
@@ -244,7 +245,7 @@ export interface ChartStore {
   eventCallbacks: EventCallbacks;
 
   // Cached CSS theme vars (populated during full redraws, reused on cursor fast path)
-  themeCache: ThemeCache;
+  theme: ResolvedTheme;
 
   // Previous scale ranges for change detection
   _prevScaleRanges: Map<string, { min: number; max: number }>;
@@ -342,7 +343,7 @@ export function createChartStore(): ChartStore {
     snapshot: EMPTY_SNAPSHOT,
     revision: 0,
     eventCallbacks: {},
-    themeCache: readThemeVars(null),
+    theme: resolveTheme(null),
     _prevScaleRanges: new Map(),
     _prevPlotBox: null,
     seriesConfigMap: new Map(),
@@ -453,9 +454,9 @@ export function createChartStore(): ChartStore {
           (gi) => scaleManager.getGroupXScaleKey(gi),
           undefined,
           store.seriesConfigMap,
-          store.themeCache,
+          store.theme,
         );
-        drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.themeCache);
+        drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.theme);
         // Fire cursor draw hooks on the overlay (pxRatio-scaled)
         if (store.cursorDrawHooks.size > 0) {
           ctx.save();
@@ -474,7 +475,20 @@ export function createChartStore(): ChartStore {
       // --- Full redraw path ---
 
       // Refresh cached CSS theme vars (one getComputedStyle call per full redraw)
-      store.themeCache = readThemeVars(canvas);
+      store.theme = resolveTheme(canvas);
+
+      // Re-apply palette colors for series with auto-assigned strokes
+      const palette = store.theme.seriesColors;
+      for (let i = 0; i < seriesConfigs.length; i++) {
+        const cfg = seriesConfigs[i];
+        if (cfg == null || !cfg._autoStroke) continue;
+        const newStroke = palette[i % palette.length] ?? '#000';
+        if (cfg.stroke === newStroke) continue;
+        const newFill = cfg._autoFill && typeof newStroke === 'string'
+          ? withAlpha(newStroke, 0.5) : cfg.fill;
+        seriesConfigs[i] = { ...cfg, stroke: newStroke, fill: newFill };
+      }
+      rebuildSeriesConfigMap(store);
 
       // 0. Inject defaults for missing y-scales, series, and axes
       injectDefaults(store);
@@ -502,8 +516,9 @@ export function createChartStore(): ChartStore {
 
       // 5. Convergence loop: calculate axis sizes → compute plot rect
       if (store.axisStates.length > 0) {
-        const titleHeight = store.title != null ? 20 : 0;
-        store.plotBox = convergeSize(width, height, store.axisStates, getScale, titleHeight);
+        const titleFontSize = parseFontSizePx(store.theme.titleFont);
+        const titleHeight = store.title != null ? Math.ceil(titleFontSize * 1.5) + 4 : 0;
+        store.plotBox = convergeSize(width, height, store.axisStates, getScale, titleHeight, store.theme);
       } else {
         const margin = 10;
         store.plotBox = {
@@ -527,7 +542,7 @@ export function createChartStore(): ChartStore {
 
       // 7. Draw grid lines (behind series)
       if (store.axisStates.length > 0) {
-        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio, store.title, store.themeCache);
+        drawAxesGrid(ctx, store.axisStates, getScale, store.plotBox, pxRatio, store.title, store.theme);
       }
 
       // 8. Draw series (clipped to plot area)
@@ -599,13 +614,14 @@ export function createChartStore(): ChartStore {
             dataStore.getYValues(band.group, upper),
             dataStore.getYValues(band.group, lower),
             xScale, yScale, store.plotBox, pxRatio, i0, i1,
+            band.dir,
           ) ?? undefined;
           if (bandPath != null) {
             renderer.setCachedBandPath(band.group, upper, lower, i0, i1, bandPath);
           }
         }
         if (bandPath != null) {
-          drawBandPath(ctx, band, bandPath);
+          drawBandPath(ctx, band, bandPath, store.theme);
         }
       }
 
@@ -688,11 +704,11 @@ export function createChartStore(): ChartStore {
         (gi) => scaleManager.getGroupXScaleKey(gi),
         undefined,
         store.seriesConfigMap,
-        store.themeCache,
+        store.theme,
       );
 
       // 12. Draw selection rectangle
-      drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.themeCache);
+      drawSelection(ctx, store.selectState, store.plotBox, pxRatio, undefined, store.theme);
 
       // 13. Fire cursor draw hooks (overlay layer, pxRatio-scaled)
       if (store.cursorDrawHooks.size > 0) {

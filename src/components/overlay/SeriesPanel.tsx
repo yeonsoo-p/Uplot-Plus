@@ -1,10 +1,9 @@
 import React, { forwardRef } from 'react';
 import {
   PANEL_BORDER, PANEL_PAD_X, PANEL_PAD_Y, ROW_PAD_X, ROW_GAP, ROW_LINE_H,
-  PANEL_FONT, PANEL_BOLD_FONT, OVERLAY_FONT_SIZE, OVERLAY_FONT_FAMILY,
-  SWATCH_W, SWATCH_H, SWATCH_RADIUS, HIDDEN_OPACITY,
-  CSS_OVERLAY_Z, DEFAULT_OVERLAY_Z,
+  PANEL_FONT, PANEL_BOLD_FONT, SWATCH_W, SWATCH_H, SWATCH_RADIUS,
 } from './tokens';
+import { cssVar } from '../../rendering/theme';
 
 // Re-export layout constants so existing consumers (estimatePanelSize) keep working.
 export { PANEL_BORDER, PANEL_PAD_X, PANEL_PAD_Y, ROW_PAD_X, ROW_GAP, ROW_LINE_H, PANEL_FONT, PANEL_BOLD_FONT };
@@ -14,15 +13,15 @@ export const ROW_SWATCH_W = SWATCH_W;
 
 export const panelStyle: React.CSSProperties = {
   position: 'absolute',
-  zIndex: `var(${CSS_OVERLAY_Z}, ${DEFAULT_OVERLAY_Z})`,
-  background: 'var(--uplot-panel-bg, rgba(255,255,255,0.92))',
-  border: '1px solid var(--uplot-panel-border, #ccc)',
+  zIndex: cssVar('overlayZ'),
+  background: cssVar('panelBg'),
+  border: `1px solid ${cssVar('panelBorder')}`,
   borderRadius: 4,
   padding: `${PANEL_PAD_Y}px ${PANEL_PAD_X}px`,
-  fontSize: OVERLAY_FONT_SIZE,
-  fontFamily: OVERLAY_FONT_FAMILY,
+  fontSize: cssVar('overlayFontSize'),
+  fontFamily: cssVar('overlayFontFamily'),
   userSelect: 'none',
-  boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+  boxShadow: cssVar('panelShadow'),
   whiteSpace: 'nowrap' as const,
 };
 
@@ -46,8 +45,8 @@ const rowStyle: React.CSSProperties = {
 // Pre-computed row style variants to avoid object spreads on every render
 const rowVisiblePointer: React.CSSProperties = { ...rowStyle, opacity: 1, cursor: 'pointer' };
 const rowVisibleDefault: React.CSSProperties = { ...rowStyle, opacity: 1, cursor: 'default' };
-const rowHiddenPointer: React.CSSProperties = { ...rowStyle, opacity: HIDDEN_OPACITY, cursor: 'pointer' };
-const rowHiddenDefault: React.CSSProperties = { ...rowStyle, opacity: HIDDEN_OPACITY, cursor: 'default' };
+const rowHiddenPointer: React.CSSProperties = { ...rowStyle, opacity: cssVar('overlayHiddenOpacity'), cursor: 'pointer' };
+const rowHiddenDefault: React.CSSProperties = { ...rowStyle, opacity: cssVar('overlayHiddenOpacity'), cursor: 'default' };
 
 // Swatch style cache keyed by color string
 const swatchStyleCache = new Map<string, React.CSSProperties>();

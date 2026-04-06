@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { ScaleConfig, SeriesConfig, BBox, ChartData } from '../types';
+import type { ScaleConfig, SeriesConfig, ResolvedSeriesConfig, BBox, ChartData } from '../types';
 import type { ActionKey, ReactionValue } from '../types/interaction';
 import { DEFAULT_ACTIONS } from '../types/interaction';
 import type { AxisConfig, AxisState } from '../types/axes';
@@ -193,7 +193,7 @@ export interface ChartStore {
 
   // Registered configs (mutated by renderless child components)
   scaleConfigs: ScaleConfig[];
-  seriesConfigs: SeriesConfig[];
+  seriesConfigs: ResolvedSeriesConfig[];
   axisConfigs: AxisConfig[];
   bandConfigs: BandConfig[];
 
@@ -255,7 +255,7 @@ export interface ChartStore {
   // Methods
   registerScale: (cfg: ScaleConfig) => void;
   unregisterScale: (id: string) => void;
-  registerSeries: (cfg: SeriesConfig) => void;
+  registerSeries: (cfg: ResolvedSeriesConfig) => void;
   unregisterSeries: (group: number, index: number) => void;
   toggleSeries: (group: number, index: number) => void;
   setFocus: (seriesIdx: number | null) => void;
@@ -265,7 +265,7 @@ export interface ChartStore {
   subscribe: (fn: () => void) => () => void;
   subscribeCursor: (fn: () => void) => () => void;
   /** Pre-built lookup map for series config by "group:index" key */
-  seriesConfigMap: Map<string, SeriesConfig>;
+  seriesConfigMap: Map<string, ResolvedSeriesConfig>;
   redraw: () => void;
   /** Stable snapshot getter for useSyncExternalStore (no useCallback needed) */
   getSnapshot: () => ChartSnapshot;
@@ -276,7 +276,7 @@ export interface ChartStore {
   /** Update a scale config in-place (replaces scaleConfigs entry + syncs manager + clears cache) */
   updateScale: (cfg: ScaleConfig) => void;
   /** Update a series config in-place (replaces seriesConfigs entry + rebuilds map + invalidates render) */
-  updateSeries: (cfg: SeriesConfig) => void;
+  updateSeries: (cfg: ResolvedSeriesConfig) => void;
   /** Register an axis config (deduplicates by scale+side) */
   registerAxis: (cfg: AxisConfig) => void;
   /** Unregister an axis config by scale+side */
@@ -359,7 +359,7 @@ export function createChartStore(): ChartStore {
       store.scaleManager.removeScale(id);
     },
 
-    registerSeries(cfg: SeriesConfig) {
+    registerSeries(cfg: ResolvedSeriesConfig) {
       store.seriesConfigs = store.seriesConfigs.filter(
         s => !(s.group === cfg.group && s.index === cfg.index),
       );
@@ -503,11 +503,18 @@ export function createChartStore(): ChartStore {
       });
 
       // 3. Auto-range all scales (single pass — windows already set)
-      const seriesScaleMap = seriesConfigs.map(s => ({
-        group: s.group,
-        index: s.index,
-        yScale: s.yScale,
-      }));
+      // Use visible series for ranging. If a y-scale has NO visible series
+      // (e.g. Candlestick/BoxWhisker where all series are show=false),
+      // fall back to including hidden series so the scale still gets a range.
+      const visible = seriesConfigs.filter(s => s.show !== false);
+      const visibleScales = new Set(visible.map(s => s.yScale));
+      const seriesScaleMap = seriesConfigs
+        .filter(s => s.show !== false || !visibleScales.has(s.yScale))
+        .map(s => ({
+          group: s.group,
+          index: s.index,
+          yScale: s.yScale,
+        }));
 
       scaleManager.autoRange(dataStore.data, seriesScaleMap, dataStore);
 
@@ -607,7 +614,8 @@ export function createChartStore(): ChartStore {
         const upper = band.series[0];
         const lower = band.series[1];
 
-        let bandPath = renderer.getCachedBandPath(band.group, upper, lower, i0, i1);
+        const bandDir = band.dir ?? 0;
+        let bandPath = renderer.getCachedBandPath(band.group, upper, lower, i0, i1, bandDir);
         if (bandPath == null) {
           bandPath = buildBandPath(
             dataStore.getXValues(band.group),
@@ -617,7 +625,7 @@ export function createChartStore(): ChartStore {
             band.dir,
           ) ?? undefined;
           if (bandPath != null) {
-            renderer.setCachedBandPath(band.group, upper, lower, i0, i1, bandPath);
+            renderer.setCachedBandPath(band.group, upper, lower, i0, i1, bandDir, bandPath);
           }
         }
         if (bandPath != null) {
@@ -757,12 +765,15 @@ export function createChartStore(): ChartStore {
       store.renderer.clearCache();
     },
 
-    updateSeries(cfg: SeriesConfig) {
+    updateSeries(cfg: ResolvedSeriesConfig) {
       store.seriesConfigs = store.seriesConfigs.map(s =>
         (s.group === cfg.group && s.index === cfg.index) ? cfg : s,
       );
       rebuildSeriesConfigMap(store);
       store.renderer.invalidateSeries(cfg.group, cfg.index);
+      store.revision++;
+      store.cursorManager.invalidateGroupedConfigs();
+      store.renderer.invalidateSnapshot();
     },
 
     registerAxis(cfg: AxisConfig) {
@@ -791,6 +802,7 @@ export function createChartStore(): ChartStore {
     setData(data: ChartData) {
       store.dataStore.setData(data);
       store.renderer.clearCache();
+      store.revision++;
     },
 
     setCanvas(node: HTMLCanvasElement | null) {

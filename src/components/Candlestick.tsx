@@ -1,6 +1,8 @@
+import React from 'react';
 import { useDrawHook } from '../hooks/useDrawHook';
 import { useStore } from '../hooks/useChart';
 import { drawRangeBox } from '../rendering/drawRangeBox';
+import { Series } from './Series';
 
 export interface CandlestickProps {
   /** Data group containing OHLC series (default: 0) */
@@ -21,13 +23,13 @@ export interface CandlestickProps {
 
 export function Candlestick({
   group = 0,
-  series = [0, 1, 2, 3],
+  series: seriesIndices = [0, 1, 2, 3],
   yScale: yScaleId = 'y',
   upColor: upColorProp,
   downColor: downColorProp,
   bodyWidth = 0.6,
   wickWidth = 1,
-}: CandlestickProps): null {
+}: CandlestickProps): React.ReactElement {
   const store = useStore();
   const upColor = upColorProp ?? store.theme.candlestickUp;
   const downColor = downColorProp ?? store.theme.candlestickDown;
@@ -37,10 +39,10 @@ export function Candlestick({
     if (dataGroup == null) return;
 
     const xArr = dataGroup.x;
-    const openArr = dataGroup.series[series[0]];
-    const highArr = dataGroup.series[series[1]];
-    const lowArr = dataGroup.series[series[2]];
-    const closeArr = dataGroup.series[series[3]];
+    const openArr = dataGroup.series[seriesIndices[0]];
+    const highArr = dataGroup.series[seriesIndices[1]];
+    const lowArr = dataGroup.series[seriesIndices[2]];
+    const closeArr = dataGroup.series[seriesIndices[3]];
     if (openArr == null || highArr == null || lowArr == null || closeArr == null) return;
 
     const n = xArr.length;
@@ -74,5 +76,14 @@ export function Candlestick({
     }
   });
 
-  return null;
+  // Auto-register hidden series so users don't need to declare them manually.
+  // If the user already declared <Series> for these indices, registerSeries
+  // deduplicates by (group, index) — the last registration wins.
+  return (
+    <>
+      {seriesIndices.map(idx => (
+        <Series key={idx} group={group} index={idx} yScale={yScaleId} show={false} />
+      ))}
+    </>
+  );
 }

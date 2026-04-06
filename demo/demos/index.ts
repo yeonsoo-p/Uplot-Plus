@@ -115,6 +115,15 @@ import Annotations from './Annotations';
 import Gradients from './Gradients';
 import HighLowBands from './HighLowBands';
 
+// --- Theming ---
+import DarkModeToggle from './DarkModeToggle';
+import CustomTheme from './CustomTheme';
+import PerChartTheme from './PerChartTheme';
+import NestedThemeProvider from './NestedThemeProvider';
+import ThemedSpecializedCharts from './ThemedSpecializedCharts';
+import ThemePresets from './ThemePresets';
+import CSSCustomProperties from './CSSCustomProperties';
+
 // --- Specialized Charts ---
 import CandlestickOHLC from './CandlestickOHLC';
 import Heatmap from './Heatmap';
@@ -258,6 +267,15 @@ export const demos: DemoEntry[] = [
   { id: 'band-demo', title: 'Band Component', description: 'Band component: confidence intervals, between-series fills, and multiple bands.', category: 'Annotations & Drawing', component: BandDemo, sourceFile: 'BandDemo' },
   { id: 'draw-hooks-composable', title: 'Composable Draw Hooks', description: 'useDrawHook and useCursorDrawHook as composable child components for canvas drawing.', category: 'Annotations & Drawing', component: DrawHooksComposable, sourceFile: 'DrawHooksComposable' },
   { id: 'palette-colors', title: 'Palette & Colors', description: 'palette(), withAlpha(), fadeGradient() — auto-generate colors, transparency, and gradient fills.', category: 'Annotations & Drawing', component: PaletteColors, sourceFile: 'PaletteColors' },
+
+  // --- Theming ---
+  { id: 'dark-mode-toggle', title: 'Dark Mode Toggle', description: 'Toggle between light and dark themes via ThemeProvider.', category: 'Theming', component: DarkModeToggle, sourceFile: 'DarkModeToggle' },
+  { id: 'custom-theme', title: 'Custom Theme', description: 'Live color pickers to build a custom ChartTheme via ThemeProvider.', category: 'Theming', component: CustomTheme, sourceFile: 'CustomTheme' },
+  { id: 'per-chart-theme', title: 'Per-Chart Theme', description: 'Two charts with different theme props — no ThemeProvider needed.', category: 'Theming', component: PerChartTheme, sourceFile: 'PerChartTheme' },
+  { id: 'nested-theme-provider', title: 'Nested ThemeProvider', description: 'Outer dark theme with inner accent-color overrides via nested providers.', category: 'Theming', component: NestedThemeProvider, sourceFile: 'NestedThemeProvider' },
+  { id: 'themed-specialized', title: 'Themed Specialized Charts', description: 'Theme properties for candlestick, band, and annotation components.', category: 'Theming', component: ThemedSpecializedCharts, sourceFile: 'ThemedSpecializedCharts' },
+  { id: 'theme-presets', title: 'Theme Presets', description: 'Switch between 6 pre-built theme presets: default, dark, solarized, ocean, pastel, high contrast.', category: 'Theming', component: ThemePresets, sourceFile: 'ThemePresets' },
+  { id: 'css-custom-properties', title: 'CSS Custom Properties', description: 'Style charts via --uplot-* CSS variables — no ThemeProvider needed.', category: 'Theming', component: CSSCustomProperties, sourceFile: 'CSSCustomProperties' },
 
   // --- Specialized Charts ---
   { id: 'candlestick-ohlc', title: 'Candlestick / OHLC', description: 'Financial candlestick chart with green/red candles via onDraw hook.', category: 'Specialized Charts', component: CandlestickOHLC, sourceFile: 'CandlestickOHLC' },

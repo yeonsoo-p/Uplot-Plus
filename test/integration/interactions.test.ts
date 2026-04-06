@@ -100,14 +100,14 @@ describe('Interaction: cursor tracking', () => {
   });
 
   it('mousemove fires onCursorMove callback', () => {
-    const cb = vi.fn();
+    const cb = vi.fn<(info: ChartEventInfo) => void>();
     h.store.eventCallbacks.onCursorMove = cb;
 
     const { clientX, clientY } = plotToClient(h, 350, 280);
     h.el.dispatchEvent(mouseEvent('mousemove', clientX, clientY));
 
     expect(cb).toHaveBeenCalledTimes(1);
-    const info = cb.mock.calls[0]![0] as ChartEventInfo;
+    const info = cb.mock.calls[0]![0];
     expect(info.plotX).toBe(350);
     expect(info.plotY).toBe(280);
   });
@@ -151,14 +151,14 @@ describe('Interaction: click events', () => {
   afterEach(() => { h.cleanup(); });
 
   it('click in plot area fires onClick callback', () => {
-    const cb = vi.fn();
+    const cb = vi.fn<(info: ChartEventInfo) => void>();
     h.store.eventCallbacks.onClick = cb;
 
     const { clientX, clientY } = plotToClient(h, 350, 280);
     h.el.dispatchEvent(mouseEvent('click', clientX, clientY));
 
     expect(cb).toHaveBeenCalledTimes(1);
-    const info = cb.mock.calls[0]![0] as ChartEventInfo;
+    const info = cb.mock.calls[0]![0];
     expect(info.plotX).toBe(350);
   });
 
@@ -245,7 +245,7 @@ describe('Interaction: drag-to-zoom', () => {
   });
 
   it('onSelect callback fires with SelectEventInfo', () => {
-    const cb = vi.fn();
+    const cb = vi.fn<(info: SelectEventInfo) => boolean | void>();
     h.store.eventCallbacks.onSelect = cb;
 
     const start = plotToClient(h, 100, 280);
@@ -256,9 +256,10 @@ describe('Interaction: drag-to-zoom', () => {
     h.el.dispatchEvent(mouseEvent('mouseup', end.clientX, end.clientY));
 
     expect(cb).toHaveBeenCalledTimes(1);
-    const info = cb.mock.calls[0]![0] as SelectEventInfo;
+    const info = cb.mock.calls[0]![0];
     expect(info.left).toBeGreaterThan(0);
     expect(info.right).toBeGreaterThan(info.left);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     expect(info.ranges['x']).toEqual(expect.objectContaining({ min: expect.any(Number) as unknown, max: expect.any(Number) as unknown }));
     expect(info.ranges['x']!.min).toBeGreaterThan(0);
     expect(info.ranges['x']!.max).toBeLessThan(100);

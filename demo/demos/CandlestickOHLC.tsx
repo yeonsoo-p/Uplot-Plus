@@ -1,4 +1,4 @@
-import { Chart, Series, Candlestick } from 'uplot-plus';
+import { Chart, Candlestick } from 'uplot-plus';
 
 function generateOHLC() {
   const n = 60;
@@ -32,10 +32,6 @@ export default function CandlestickOHLC() {
 
   return (
     <Chart width={800} height={400} data={data} xlabel="Day" ylabel="Price">
-      <Series group={0} index={0} show={false} label="Open" />
-      <Series group={0} index={1} show={false} label="High" />
-      <Series group={0} index={2} show={false} label="Low" />
-      <Series group={0} index={3} show={false} label="Close" />
       <Candlestick />
     </Chart>
   );

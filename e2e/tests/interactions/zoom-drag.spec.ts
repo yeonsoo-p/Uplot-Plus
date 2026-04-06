@@ -41,12 +41,22 @@ test.describe('Zoom via drag', () => {
   test('tiny drag below threshold does not zoom', async ({ page }) => {
     const chart = getChartContainer(page);
 
-    // Move cursor away to get a clean "no-cursor" screenshot
+    // Zoom in first so we have a known zoomed state to compare against
+    await dragOnChart(page, 0, { x: 0.25, y: 0.5 }, { x: 0.75, y: 0.5 });
     await page.mouse.move(0, 0);
     await page.waitForTimeout(100);
-    const before = await chart.screenshot();
+    const zoomed = await chart.screenshot();
 
-    // Drag only ~2px horizontally — below MIN_DRAG_PX = 5
+    // Reset via double-click
+    await dblclickChart(page, 0);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(100);
+    const reset = await chart.screenshot();
+
+    // Sanity: zoom and reset should differ
+    expect(Buffer.compare(zoomed, reset)).not.toBe(0);
+
+    // Now do a tiny drag (~2px, below MIN_DRAG_PX = 5)
     const box = await chart.boundingBox();
     expect(box).not.toBeNull();
     const startX = box!.x + box!.width * 0.5;
@@ -56,12 +66,12 @@ test.describe('Zoom via drag', () => {
     await page.mouse.down();
     await page.mouse.move(startX + 2, startY);
     await page.mouse.up();
-
-    // Move cursor away again for comparable screenshot
     await page.mouse.move(0, 0);
     await page.waitForTimeout(100);
 
-    const after = await chart.screenshot();
-    expect(Buffer.compare(before, after)).toBe(0);
+    const afterTiny = await chart.screenshot();
+
+    // The tiny drag should NOT have zoomed — screenshot should match reset, not zoomed
+    expect(Buffer.compare(afterTiny, zoomed)).not.toBe(0);
   });
 });

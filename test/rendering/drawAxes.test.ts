@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { drawAxesGrid } from '@/rendering/drawAxes';
 import type { ScaleState, BBox } from '@/types';
 import type { AxisState } from '@/types/axes';
 import { Side, Orientation } from '@/types';
 import { createScaleState } from '@/core/Scale';
+import { createMockCtx } from '../helpers/mockCanvas';
 
 function makeScale(id: string, min: number, max: number, ori: Orientation = Orientation.Horizontal): ScaleState {
   return { ...createScaleState({ id, min, max, ori }) };
@@ -24,35 +25,13 @@ function makeAxisState(overrides: Partial<AxisState> & { config: AxisState['conf
   };
 }
 
-function makeCtx() {
-  return {
-    save: vi.fn(),
-    restore: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    stroke: vi.fn(),
-    fillText: vi.fn(),
-    translate: vi.fn(),
-    rotate: vi.fn(),
-    setTransform: vi.fn(),
-    setLineDash: vi.fn(),
-    strokeStyle: '',
-    fillStyle: '',
-    lineWidth: 0,
-    font: '',
-    textAlign: 'start' as CanvasTextAlign,
-    textBaseline: 'alphabetic' as CanvasTextBaseline,
-  };
-}
-
 const plotBox: BBox = { left: 50, top: 20, width: 400, height: 300 };
 
 describe('drawAxesGrid', () => {
-  let ctx: ReturnType<typeof makeCtx>;
+  let ctx: ReturnType<typeof createMockCtx>;
 
   beforeEach(() => {
-    ctx = makeCtx();
+    ctx = createMockCtx();
   });
 
   it('skips hidden axes (_show=false)', () => {
@@ -63,7 +42,7 @@ describe('drawAxesGrid', () => {
       _values: ['0', '50', '100'],
     });
 
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => makeScale('y', 0, 100, Orientation.Vertical), plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => makeScale('y', 0, 100, Orientation.Vertical), plotBox, 1);
 
     expect(ctx.fillText).not.toHaveBeenCalled();
     expect(ctx.stroke).not.toHaveBeenCalled();
@@ -76,8 +55,8 @@ describe('drawAxesGrid', () => {
       _values: ['0', '50', '100'],
     });
 
-    const nullScale = { ...makeScale('y', 0, 100, Orientation.Vertical), min: null, max: null } as unknown as ScaleState;
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => nullScale, plotBox, 1);
+    const nullScale: ScaleState = { ...makeScale('y', 0, 100, Orientation.Vertical), min: null, max: null };
+    drawAxesGrid(ctx, [axis], () => nullScale, plotBox, 1);
 
     expect(ctx.fillText).not.toHaveBeenCalled();
   });
@@ -89,7 +68,7 @@ describe('drawAxesGrid', () => {
       _values: null,
     });
 
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => makeScale('y', 0, 100, Orientation.Vertical), plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => makeScale('y', 0, 100, Orientation.Vertical), plotBox, 1);
 
     expect(ctx.fillText).not.toHaveBeenCalled();
   });
@@ -104,7 +83,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Should have rendered 3 labels
     expect(ctx.fillText).toHaveBeenCalledTimes(3);
@@ -125,7 +104,7 @@ describe('drawAxesGrid', () => {
     });
 
     const yScale = makeScale('y', 0, 100, Orientation.Vertical);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => yScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => yScale, plotBox, 1);
 
     expect(ctx.fillText).toHaveBeenCalledTimes(3);
     expect(ctx.textAlign).toBe('right');
@@ -141,7 +120,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Grid uses moveTo/lineTo via drawOrthoLines
     expect(ctx.moveTo).toHaveBeenCalled();
@@ -158,7 +137,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // moveTo should only be from labels, not grid
     // With ticks and grid both off, stroke shouldn't be called for ortho lines
@@ -176,7 +155,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Tick drawing uses save/restore, stroke
     expect(ctx.stroke).toHaveBeenCalled();
@@ -193,7 +172,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Should render axis label text
     const calls = ctx.fillText.mock.calls;
@@ -212,7 +191,7 @@ describe('drawAxesGrid', () => {
     });
 
     const yScale = makeScale('y', 0, 100, Orientation.Vertical);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => yScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => yScale, plotBox, 1);
 
     // Vertical axis label requires save/rotate/restore
     expect(ctx.save).toHaveBeenCalled();
@@ -220,7 +199,7 @@ describe('drawAxesGrid', () => {
   });
 
   it('renders chart title when provided', () => {
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [], () => undefined, plotBox, 1, 'My Chart');
+    drawAxesGrid(ctx, [], () => undefined, plotBox, 1, 'My Chart');
 
     const calls = ctx.fillText.mock.calls;
     const titleCall = calls.find((c: unknown[]) => c[0] === 'My Chart');
@@ -228,7 +207,7 @@ describe('drawAxesGrid', () => {
   });
 
   it('does not render title when not provided', () => {
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [], () => undefined, plotBox, 1);
+    drawAxesGrid(ctx, [], () => undefined, plotBox, 1);
 
     expect(ctx.fillText).not.toHaveBeenCalled();
   });
@@ -243,7 +222,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Should only render 2 labels (skipping empty string)
     expect(ctx.fillText).toHaveBeenCalledTimes(2);
@@ -259,7 +238,7 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 1);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 1);
 
     // Border draws a line across the axis position
     expect(ctx.beginPath).toHaveBeenCalled();
@@ -276,13 +255,13 @@ describe('drawAxesGrid', () => {
     });
 
     const xScale = makeScale('x', 0, 100);
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [axis], () => xScale, plotBox, 2);
+    drawAxesGrid(ctx, [axis], () => xScale, plotBox, 2);
 
     // With pxRatio=2, pixel positions should be scaled
     const calls = ctx.fillText.mock.calls;
     expect(calls.length).toBe(1);
     // The x position for value 50 at center should be scaled by 2
-    const xPos = calls[0]![1] as number;
+    const xPos = Number(calls[0]![1]);
     expect(xPos).toBeGreaterThan(200); // 250 * 2 = 500 (scaled)
   });
 
@@ -308,7 +287,7 @@ describe('drawAxesGrid', () => {
       return undefined;
     };
 
-    drawAxesGrid(ctx as unknown as CanvasRenderingContext2D, [xAxis, yAxis], getScale, plotBox, 1);
+    drawAxesGrid(ctx, [xAxis, yAxis], getScale, plotBox, 1);
 
     // 2 labels per axis = 4 total
     expect(ctx.fillText).toHaveBeenCalledTimes(4);

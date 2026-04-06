@@ -1,10 +1,11 @@
 # Component Reference
 
-Complete props reference for all uPlot+ React components, organized by hierarchy.
+Complete props reference for all uPlot+ React components,
+organized by hierarchy.
 
 ## Component Hierarchy
 
-```
+```text
 <ThemeProvider>                   Sets CSS custom properties for descendant charts
 └── <Chart>                      Root container (canvas + store)
     ├── <Scale>                  Scale registration (renderless)
@@ -29,11 +30,17 @@ Complete props reference for all uPlot+ React components, organized by hierarchy
 <Sparkline>                      Compact inline chart (standalone, wraps Chart internally)
 ```
 
-**Renderless components** return `null` — they register configuration with the chart store via `useEffect` and do not produce DOM elements. Canvas operations are imperative, not driven by React re-renders.
+**Renderless components** return `null` — they register
+configuration with the chart store via `useEffect` and do not
+produce DOM elements. Canvas operations are imperative, not
+driven by React re-renders.
 
-**Draw hook components** (Timeline, annotations) use `useDrawHook()` to register a canvas draw callback that runs on every redraw.
+**Draw hook components** (Timeline, annotations) use
+`useDrawHook()` to register a canvas draw callback that runs
+on every redraw.
 
-**Standalone components** wrap `<Chart>` internally and can be used independently.
+**Standalone components** wrap `<Chart>` internally and can
+be used independently.
 
 ---
 
@@ -41,10 +48,13 @@ Complete props reference for all uPlot+ React components, organized by hierarchy
 
 ### `<ThemeProvider>`
 
-Sets CSS custom properties on a wrapper `<div>` so descendant `<Chart>` components inherit themed styles. Provides a revision counter via React context so Charts detect ancestor theme changes and repaint the canvas.
+Sets CSS custom properties on a wrapper `<div>` so descendant
+`<Chart>` components inherit themed styles. Provides a revision
+counter via React context so Charts detect ancestor theme
+changes and repaint the canvas.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `theme` | `ChartTheme` | — | Theme overrides **(required)** |
 | `children` | `ReactNode` | — | Child elements |
 
@@ -68,11 +78,27 @@ import { Chart, Series, ThemeProvider, DARK_THEME } from 'uplot-plus';
 
 **Per-chart theming** (no provider): pass `theme` prop directly on `<Chart>`.
 
-**CSS custom properties** (no provider or prop): set `--uplot-*` variables on any ancestor element.
+**CSS custom properties** (no provider or prop): set
+`--uplot-*` variables on any ancestor element.
 
-**Themeable properties:** `axisStroke`, `gridStroke`, `titleFill`, `tickFont`, `labelFont`, `titleFont`, `bandFill`, `cursor.{stroke,width,dash,pointRadius,pointFill}`, `select.{fill,stroke,width}`, `seriesColors[]`, `candlestick.{upColor,downColor}`, `boxWhisker.{fill,stroke,medianColor,whiskerColor}`, `vector.color`, `sparkline.stroke`, `timeline.{labelColor,segmentColor,segmentTextColor}`, `annotation.{stroke,fill,font,labelFill}`, `overlay.{fontFamily,fontSize,panelBg,panelBorder,panelShadow,hiddenOpacity,zIndex,tooltipZIndex}`, `ranger.{accent,dim}`.
+**Themeable properties:** `axisStroke`, `gridStroke`,
+`titleFill`, `tickFont`, `labelFont`, `titleFont`,
+`bandFill`,
+`cursor.{stroke,width,dash,pointRadius,pointFill}`,
+`select.{fill,stroke,width}`, `seriesColors[]`,
+`candlestick.{upColor,downColor}`,
+`boxWhisker.{fill,stroke,medianColor,whiskerColor}`,
+`vector.color`, `sparkline.stroke`,
+`timeline.{labelColor,segmentColor,segmentTextColor}`,
+`annotation.{stroke,fill,font,labelFill}`,
+`overlay.{fontFamily,fontSize,panelBg,panelBorder,
+panelShadow,hiddenOpacity,zIndex,tooltipZIndex}`,
+`ranger.{accent,dim}`.
 
-**Demos:** `dark-mode-toggle`, `custom-theme`, `per-chart-theme`, `nested-theme-provider`, `themed-specialized`, `theme-presets`, `css-custom-properties`.
+**Demos:** `dark-mode-toggle`, `custom-theme`,
+`per-chart-theme`, `nested-theme-provider`,
+`themed-specialized`, `theme-presets`,
+`css-custom-properties`.
 
 ---
 
@@ -80,12 +106,18 @@ import { Chart, Series, ThemeProvider, DARK_THEME } from 'uplot-plus';
 
 ### `<Chart>`
 
-Root container. Creates the canvas, initializes the chart store, and provides context to all children.
+Root container. Creates the canvas, initializes the chart
+store, and provides context to all children.
 
-**Smart defaults:** `<Scale>`, `<Axis>` children are optional. If omitted, Chart auto-creates x/y scales and bottom/left axes. Series get auto-assigned colors from a 15-color palette when `stroke` is not provided. Data accepts three forms: `{ x, y }` (single series), `[{ x, y }, ...]` (multiple groups), or `[{ x, series: [...] }, ...]` (full form).
+**Smart defaults:** `<Scale>`, `<Axis>` children are optional.
+If omitted, Chart auto-creates x/y scales and bottom/left
+axes. Series get auto-assigned colors from a 15-color palette
+when `stroke` is not provided. Data accepts three forms:
+`{ x, y }` (single series), `[{ x, y }, ...]` (multiple
+groups), or `[{ x, series: [...] }, ...]` (full form).
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `width` | `number` | — | Chart width in CSS pixels **(required)** |
 | `height` | `number` | — | Chart height in CSS pixels **(required)** |
 | `data` | `DataInput` | — | Chart data **(required)** — `{ x, y }`, `[{ x, y }]`, or `[{ x, series }]` |
@@ -107,7 +139,9 @@ Root container. Creates the canvas, initializes the chart store, and provides co
 | `onScaleChange` | `ScaleChangeCallback` | — | Scale range changes (zoom, pan) |
 | `onSelect` | `(sel: SelectEventInfo) => boolean \| void` | — | Drag selection completes (return `false` to prevent zoom) |
 
-**`actions`** — array of `[ActionKey, ReactionValue]` tuples, merged with `DEFAULT_ACTIONS` internally. Override specific gestures without repeating defaults:
+**`actions`** — array of `[ActionKey, ReactionValue]` tuples,
+merged with `DEFAULT_ACTIONS` internally. Override specific
+gestures without repeating defaults:
 
 ```tsx
 // Wheel zoom on both axes + disable dblclick reset
@@ -126,9 +160,13 @@ import { focus } from 'uplot-plus';
 ]} />
 ```
 
-Built-in action strings: `{mod?}{Button}{Type}` — e.g. `leftDrag`, `shiftMiddleClick`, `ctrlRightDrag`, `wheel`, `shiftWheel`, `xGutterDrag`, `yGutterDrag`, `hover`, `touchDrag`, `pinch`.
+Built-in action strings: `{mod?}{Button}{Type}` — e.g.
+`leftDrag`, `shiftMiddleClick`, `ctrlRightDrag`, `wheel`,
+`shiftWheel`, `xGutterDrag`, `yGutterDrag`, `hover`,
+`touchDrag`, `pinch`.
 
-Built-in reaction strings: `zoomX`, `zoomY`, `zoomXY`, `panX`, `panY`, `panXY`, `reset`, `none`.
+Built-in reaction strings: `zoomX`, `zoomY`, `zoomXY`,
+`panX`, `panY`, `panXY`, `reset`, `none`.
 
 ```tsx
 import { Chart, Scale, Series, Axis } from 'uplot-plus';
@@ -142,16 +180,19 @@ import { Chart, Scale, Series, Axis } from 'uplot-plus';
 </Chart>
 ```
 
-**Demos:** All demos use Chart. Key examples: `basic-line`, `zoom-wheel`, `sync-cursor`, `draw-hooks`.
+**Demos:** All demos use Chart. Key examples: `basic-line`,
+`zoom-wheel`, `sync-cursor`, `draw-hooks`.
 
 ---
 
 ### `<Scale>`
 
-Registers a scale with the chart store. Scales define how data values map to pixel positions. Renderless — returns `null`.
+Registers a scale with the chart store. Scales define how
+data values map to pixel positions. Renderless — returns
+`null`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `id` | `string` | — | Unique scale identifier **(required)** |
 | `auto` | `boolean` | `true` | Auto-range from data |
 | `ori` | `Orientation` | `Horizontal` for `"x"`, `Vertical` otherwise | Scale orientation |
@@ -182,7 +223,7 @@ interface RangePart {
 **Distribution types:**
 
 | Value | Type | Use case |
-|-------|------|----------|
+| --- | --- | --- |
 | `Distribution.Linear` | Linear | Default. Equal spacing. |
 | `Distribution.Ordinal` | Ordinal | Categorical data (equal spacing by index). |
 | `Distribution.Log` | Log | Exponential data. Set `log` for base (default 10). |
@@ -199,18 +240,26 @@ interface RangePart {
 <Scale id="y" range={{ min: { soft: 0, mode: 1 } }} />
 ```
 
-**Demos:** `log-scales`, `log-scales-2`, `asinh-scales`, `multiple-scales`, `dependent-scales`, `scale-direction`, `custom-scales`, `scale-padding`, `soft-minmax`, `nice-scale`, `sync-y-zero`.
+**Demos:** `log-scales`, `log-scales-2`, `asinh-scales`,
+`multiple-scales`, `dependent-scales`, `scale-direction`,
+`custom-scales`, `scale-padding`, `soft-minmax`,
+`nice-scale`, `sync-y-zero`.
 
 ---
 
 ### `<Series>`
 
-Registers a data series with the chart store. Each series references a `(group, index)` tuple in the data and maps to a y-scale. Renderless — returns `null`.
+Registers a data series with the chart store. Each series
+references a `(group, index)` tuple in the data and maps to
+a y-scale. Renderless — returns `null`.
 
-**Smart defaults:** `yScale` defaults to `'y'`, `stroke` is auto-assigned from a 15-color palette based on registration order, and `show` defaults to `true`. The minimal series declaration is just `<Series group={0} index={0} />`.
+**Smart defaults:** `yScale` defaults to `'y'`, `stroke` is
+auto-assigned from a 15-color palette based on registration
+order, and `show` defaults to `true`. The minimal series
+declaration is just `<Series group={0} index={0} />`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `group` | `number` | — | Data group index **(required)** |
 | `index` | `number` | — | Series index within group **(required)** |
 | `yScale` | `string` | `'y'` | Y-axis scale key |
@@ -233,7 +282,7 @@ Registers a data series with the chart store. Each series references a `(group, 
 **`PointsConfig`:**
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `show` | `boolean \| function` | — | Show points (function receives viewport info) |
 | `size` | `number` | — | Point diameter in CSS pixels |
 | `space` | `number` | — | Min space between points |
@@ -253,12 +302,13 @@ interface GradientConfig {
 }
 ```
 
-Use the `fadeGradient()` and `withAlpha()` helpers from `uplot-plus` to create these easily.
+Use the `fadeGradient()` and `withAlpha()` helpers from
+`uplot-plus` to create these easily.
 
 **Path builders** (pass to `paths` prop):
 
 | Builder | Import | Use case |
-|---------|--------|----------|
+| --- | --- | --- |
 | `linear()` | `linear` | Line/area charts (default). Pixel-level decimation. |
 | `stepped()` | `stepped` | Step-after, step-before, or mid-step. |
 | `bars()` | `bars` | Bar/column charts. |
@@ -284,16 +334,21 @@ import { Series, bars, withAlpha, fadeGradient } from 'uplot-plus';
 <Series group={0} index={0} yScale="y" stroke="#888" dash={[6, 4]} points={{ show: true, size: 6 }} />
 ```
 
-**Demos:** `basic-line`, `area-fill`, `point-styles`, `dash-patterns`, `bar-chart`, `stepped-lines`, `smooth-lines`, `fill-to`, `span-gaps`, `sparklines`, `gradients`.
+**Demos:** `basic-line`, `area-fill`, `point-styles`,
+`dash-patterns`, `bar-chart`, `stepped-lines`,
+`smooth-lines`, `fill-to`, `span-gaps`, `sparklines`,
+`gradients`.
 
 ---
 
 ### `<Axis>`
 
-Registers an axis with the chart store. Axes render tick marks, labels, and grid lines for a scale. Renderless — returns `null`.
+Registers an axis with the chart store. Axes render tick
+marks, labels, and grid lines for a scale. Renderless —
+returns `null`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `scale` | `string` | — | Scale key **(required)** |
 | `side` | `Side` | `Bottom` for `"x"`, `Left` otherwise | `Side.Top`, `Side.Right`, `Side.Bottom`, `Side.Left` |
 | `show` | `boolean` | `true` | Visibility |
@@ -317,7 +372,7 @@ Registers an axis with the chart store. Axes render tick marks, labels, and grid
 **`GridConfig` / `TickConfig` / `BorderConfig`:**
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `show` | `boolean` | `true` (grid/ticks), `false` (border) | Visibility |
 | `stroke` | `string` | — | Color |
 | `width` | `number` | — | Line width |
@@ -342,16 +397,19 @@ import { Axis, fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtLabels } from
 <Axis scale="humid" side={Side.Right} label="Humidity" values={fmtSuffix('%')} stroke="#3498db" grid={{ show: false }} />
 ```
 
-**Demos:** `axis-control`, `custom-axis-values`, `axis-autosize`, `axis-indicators`, `time-series`, `multiple-scales`, `log-scales`, `months-time-series`.
+**Demos:** `axis-control`, `custom-axis-values`,
+`axis-autosize`, `axis-indicators`, `time-series`,
+`multiple-scales`, `log-scales`, `months-time-series`.
 
 ---
 
 ### `<Band>`
 
-Fills the region between two series within the same group. Renderless — returns `null`.
+Fills the region between two series within the same group.
+Renderless — returns `null`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `series` | `[number, number]` | — | Series indices `[upper, lower]` **(required)** |
 | `group` | `number` | — | Group index containing both series **(required)** |
 | `fill` | `string` | — | Fill color for the band |
@@ -379,10 +437,12 @@ import { Band } from 'uplot-plus';
 
 ### `<Legend>`
 
-Interactive legend with live cursor values and click-to-toggle series visibility. Uses `useSyncExternalStore` for reactive updates. Must be inside `<Chart>`.
+Interactive legend with live cursor values and click-to-toggle
+series visibility. Uses `useSyncExternalStore` for reactive
+updates. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `show` | `boolean` | `true` | Visibility |
 | `position` | `'top' \| 'bottom'` | `'bottom'` | Position relative to chart |
 | `className` | `string` | — | CSS class name |
@@ -406,10 +466,12 @@ import { Legend } from 'uplot-plus';
 
 ### `<FloatingLegend>`
 
-Floating legend panel that can be dragged around the plot area or follow the cursor. Subscribes only to cursor updates for performance. Must be inside `<Chart>`.
+Floating legend panel that can be dragged around the plot area
+or follow the cursor. Subscribes only to cursor updates for
+performance. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `mode` | `'draggable' \| 'cursor'` | `'draggable'` | Drag to reposition, or follow cursor |
 | `position` | `{ x, y } \| 'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right'` | `'top-right'` | Initial position (draggable) or anchor (cursor) |
 | `offset` | `{ x: number; y: number }` | `{ x: 12, y: -12 }` | Offset from cursor (cursor mode only) |
@@ -433,10 +495,12 @@ import { FloatingLegend } from 'uplot-plus';
 
 ### `<HoverLabel>`
 
-Shows a small label for the nearest series after a configurable hover delay. Useful for clean charts that only show series info on extended hover. Must be inside `<Chart>`.
+Shows a small label for the nearest series after a
+configurable hover delay. Useful for clean charts that only
+show series info on extended hover. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `delay` | `number` | `1000` | Milliseconds before label appears |
 | `show` | `boolean` | `true` | Visibility |
 | `className` | `string` | — | CSS class name |
@@ -453,10 +517,13 @@ import { HoverLabel } from 'uplot-plus';
 
 ### `<Tooltip>`
 
-Floating tooltip at cursor position showing series values. Auto-flips when near chart edges. Uses `useSyncExternalStore` for reactive updates. Must be inside `<Chart>`.
+Floating tooltip at cursor position showing series values.
+Auto-flips when near chart edges. Uses
+`useSyncExternalStore` for reactive updates. Must be inside
+`<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `show` | `boolean` | `true` | Visibility |
 | `className` | `string` | — | CSS class name |
 | `children` | `(data: TooltipData) => ReactNode` | — | Custom render function |
@@ -465,7 +532,7 @@ Floating tooltip at cursor position showing series values. Auto-flips when near 
 **`TooltipData`** (passed to custom render):
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `x` | `number \| null` | X value at cursor |
 | `xLabel` | `string` | Formatted x value |
 | `items` | `TooltipItem[]` | Series values at cursor |
@@ -475,7 +542,7 @@ Floating tooltip at cursor position showing series values. Auto-flips when near 
 **`TooltipItem`:**
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `label` | `string` | Series label |
 | `value` | `number \| null` | Y value |
 | `color` | `string` | Series stroke color |
@@ -509,14 +576,16 @@ import { Tooltip } from 'uplot-plus';
 
 ## Annotation Components
 
-Declarative annotation components — place inside `<Chart>`. Each uses `useDrawHook()` internally to draw on the persistent canvas layer. All are renderless (return `null`).
+Declarative annotation components — place inside `<Chart>`.
+Each uses `useDrawHook()` internally to draw on the persistent
+canvas layer. All are renderless (return `null`).
 
 ### `<HLine>`
 
 Horizontal line at a y-data-value.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `value` | `number` | — | Y data value **(required)** |
 | `yScale` | `string` | `'y'` | Y-axis scale id |
 | `stroke` | `string` | `'red'` | Line color |
@@ -534,7 +603,7 @@ Horizontal line at a y-data-value.
 Vertical line at an x-data-value.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `value` | `number` | — | X data value **(required)** |
 | `xScale` | `string` | `'x'` | X-axis scale id |
 | `stroke` | `string` | `'red'` | Line color |
@@ -552,7 +621,7 @@ Vertical line at an x-data-value.
 Shaded region between two y-data-values.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `yMin` | `number` | — | Lower y value **(required)** |
 | `yMax` | `number` | — | Upper y value **(required)** |
 | `yScale` | `string` | `'y'` | Y-axis scale id |
@@ -570,7 +639,7 @@ Shaded region between two y-data-values.
 Text label at data coordinates.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `x` | `number` | — | X data value **(required)** |
 | `y` | `number` | — | Y data value **(required)** |
 | `text` | `string` | — | Label text **(required)** |
@@ -603,18 +672,24 @@ import { HLine, VLine, Region, AnnotationLabel } from 'uplot-plus';
 </Chart>
 ```
 
-Imperative helpers are also available for custom draw hooks: `drawHLine`, `drawVLine`, `drawLabel`, `drawRegion`. See the `annotations` demo for this approach.
+Imperative helpers are also available for custom draw hooks:
+`drawHLine`, `drawVLine`, `drawLabel`, `drawRegion`. See the
+`annotations` demo for this approach.
 
-**Demos:** `draw-hooks` (declarative `<HLine>` + `<Region>`), `annotations` (imperative helpers).
+**Demos:** `draw-hooks` (declarative `<HLine>` + `<Region>`),
+`annotations` (imperative helpers).
 
 ---
 
 ### `<Timeline>`
 
-Horizontal lanes of colored event spans. Each lane is a category, each segment is a time range. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+Horizontal lanes of colored event spans. Each lane is a
+category, each segment is a time range. Uses `useDrawHook`
+to draw on the persistent canvas layer. Must be inside
+`<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `lanes` | `TimelineLane[]` | — | Lane definitions **(required)** |
 | `laneHeight` | `number` | `24` | Height of each lane (CSS px) |
 | `gap` | `number` | `2` | Gap between lanes (CSS px) |
@@ -623,14 +698,14 @@ Horizontal lanes of colored event spans. Each lane is a category, each segment i
 **`TimelineLane`:**
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `label` | `string` | Lane label (drawn on the left) |
 | `segments` | `TimelineSegment[]` | Segments in this lane |
 
 **`TimelineSegment`:**
 
 | Field | Type | Default | Description |
-|-------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `start` | `number` | — | Start value in x-scale units **(required)** |
 | `end` | `number` | — | End value in x-scale units **(required)** |
 | `color` | `string` | `'#4dabf7'` | Fill color |
@@ -663,10 +738,12 @@ const lanes = [
 
 ### `<BoxWhisker>`
 
-Box-and-whisker plot with quartiles, whiskers, and median line. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+Box-and-whisker plot with quartiles, whiskers, and median
+line. Uses `useDrawHook` to draw on the persistent canvas
+layer. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `boxes` | `Array<{ min, q1, median, q3, max }>` | — | Box data, one per category **(required)** |
 | `yScale` | `string` | `'y'` | Y-axis scale id |
 | `boxWidth` | `number` | `0.5` | Box width as fraction of category spacing |
@@ -693,10 +770,13 @@ import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
 
 ### `<Candlestick>`
 
-OHLC financial candlestick chart. Reads data from the chart store (4 series: open, high, low, close). Shares the `drawRangeBox` rendering primitive with BoxWhisker. Uses `useDrawHook`. Must be inside `<Chart>`. 
+OHLC financial candlestick chart. Reads data from the chart
+store (4 series: open, high, low, close). Shares the
+`drawRangeBox` rendering primitive with BoxWhisker. Uses
+`useDrawHook`. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `group` | `number` | `0` | Data group containing OHLC series |
 | `series` | `[number, number, number, number]` | `[0,1,2,3]` | Series indices: [open, high, low, close] |
 | `yScale` | `string` | `'y'` | Y-axis scale id |
@@ -725,10 +805,12 @@ import { Chart, Candlestick } from 'uplot-plus';
 
 ### `<Heatmap>`
 
-2D grid of colored cells with configurable color mapping. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+2D grid of colored cells with configurable color mapping.
+Uses `useDrawHook` to draw on the persistent canvas layer.
+Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `grid` | `number[][]` | — | 2D array: `grid[row][col]` = intensity **(required)** |
 | `xRange` | `[number, number]` | `[0, rows]` | X-axis value range |
 | `yRange` | `[number, number]` | `[0, cols]` | Y-axis value range |
@@ -753,10 +835,12 @@ import { Chart, Scale, Axis, Heatmap, fmtSuffix } from 'uplot-plus';
 
 ### `<Vector>`
 
-Directional arrows overlaid on data points. Arrow size scales with y-value. Uses `useDrawHook` to draw on the persistent canvas layer. Must be inside `<Chart>`.
+Directional arrows overlaid on data points. Arrow size scales
+with y-value. Uses `useDrawHook` to draw on the persistent
+canvas layer. Must be inside `<Chart>`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `directions` | `ArrayLike<number>` | — | Angle per data point in degrees (0=N, 90=E) **(required)** |
 | `group` | `number` | `0` | Data group to overlay on |
 | `index` | `number` | `0` | Series index for y-positions |
@@ -782,10 +866,13 @@ import { Chart, Series, Axis, Vector, fmtSuffix } from 'uplot-plus';
 
 ### `<ZoomRanger>`
 
-Overview mini-chart with a draggable selection window. The selection controls the zoom range of a linked detail chart via the `onRangeChange` callback. Used **outside** `<Chart>` — it creates its own internal Chart.
+Overview mini-chart with a draggable selection window. The
+selection controls the zoom range of a linked detail chart
+via the `onRangeChange` callback. Used **outside**
+`<Chart>` — it creates its own internal Chart.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `width` | `number` | — | Width in CSS pixels **(required)** |
 | `height` | `number` | — | Height in CSS pixels **(required)** |
 | `data` | `ChartData` | — | Data to render **(required)** |
@@ -828,10 +915,12 @@ const [range, setRange] = useState<[number, number] | null>(null);
 
 ### `<Sparkline>`
 
-Compact inline chart for tables and dashboards. No axes, no interaction, no legend. Wraps `<Chart>` internally with hidden axes and `pointerEvents: 'none'`.
+Compact inline chart for tables and dashboards. No axes, no
+interaction, no legend. Wraps `<Chart>` internally with
+hidden axes and `pointerEvents: 'none'`.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
+| --- | --- | --- | --- |
 | `data` | `ChartData` | — | Single group, single series **(required)** |
 | `width` | `number` | `150` | Width (CSS px) |
 | `height` | `number` | `30` | Height (CSS px) |

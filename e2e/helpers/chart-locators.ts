@@ -34,3 +34,20 @@ export function getLegendItems(page: Page, nth = 0): Locator {
 export function getDemoContent(page: Page): Locator {
   return page.locator('main');
 }
+
+/** Read a scale's min/max from the ChartStore attached to the canvas element. */
+export async function getScaleState(
+  page: Page,
+  scaleId: string,
+  nth = 0,
+): Promise<{ min: number | null; max: number | null }> {
+  const canvas = getCanvas(page, nth);
+  return canvas.evaluate((el, id) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- browser context: accessing internal test-only property on DOM element
+    const store = (el as any).__chartStore;
+    if (!store) throw new Error('No __chartStore on canvas');
+    const scale = store.scaleManager.getScale(id);
+    if (!scale) throw new Error(`Scale "${id}" not found`);
+    return { min: scale.min, max: scale.max };
+  }, scaleId);
+}

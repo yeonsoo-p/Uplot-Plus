@@ -1,10 +1,13 @@
 # Utility Reference
 
-Helper functions exported by uPlot+ for axis formatting, colors, data transforms, and coordinate math.
+Helper functions exported by uPlot+ for axis formatting,
+colors, data transforms, and coordinate math.
 
 ## Axis Value Formatters
 
-Pre-built formatters for common axis label patterns. Each returns an `AxisValueFormatter` compatible with the `<Axis values={...}>` prop.
+Pre-built formatters for common axis label patterns. Each
+returns an `AxisValueFormatter` compatible with the
+`<Axis values={...}>` prop.
 
 ```tsx
 import { fmtCompact, fmtSuffix, fmtPrefix, fmtWrap, fmtHourMin, fmtMonthName, fmtDateStr, fmtLabels } from 'uplot-plus';
@@ -12,7 +15,8 @@ import { fmtCompact, fmtSuffix, fmtPrefix, fmtWrap, fmtHourMin, fmtMonthName, fm
 
 ### `fmtCompact(opts?: { decimals?: number })`
 
-Format numbers with SI suffixes: `1200` → `"1.2K"`, `2500000` → `"2.5M"`. Handles negative values and zero.
+Format numbers with SI suffixes: `1200` → `"1.2K"`,
+`2500000` → `"2.5M"`. Handles negative values and zero.
 
 ```tsx
 <Axis scale="y" values={fmtCompact()} />           // 1.2K, 3.5M
@@ -89,7 +93,10 @@ import { fadeGradient, withAlpha, palette } from 'uplot-plus';
 
 ### `fadeGradient(color: string, fromAlpha?: number, toAlpha?: number)`
 
-Create a vertical linear gradient that fades from one opacity to another. Returns a `GradientConfig` for the `<Series fill={...}>` prop. Supports hex (`#rgb`, `#rrggbb`) and `rgb()`/`rgba()` color strings.
+Create a vertical linear gradient that fades from one
+opacity to another. Returns a `GradientConfig` for the
+`<Series fill={...}>` prop. Supports hex (`#rgb`,
+`#rrggbb`) and `rgb()`/`rgba()` color strings.
 
 ```tsx
 <Series fill={fadeGradient('#3498db')} />                  // 0.8 → 0.0
@@ -121,7 +128,9 @@ import { stackGroup, alignData } from 'uplot-plus';
 
 ### `stackGroup(group: XGroup, seriesIndices?: number[], groupIdx?: number)`
 
-Compute cumulative sums for stacked area/bar charts. Returns a new `XGroup` with stacked y-values and auto-generated `BandConfig[]` for fills between layers.
+Compute cumulative sums for stacked area/bar charts.
+Returns a new `XGroup` with stacked y-values and
+auto-generated `BandConfig[]` for fills between layers.
 
 ```tsx
 import { stackGroup, Band } from 'uplot-plus';
@@ -136,7 +145,10 @@ const { group, bands } = stackGroup(raw);
 
 ### `alignData(datasets: [ArrayLike<number>, ArrayLike<number | null>][])`
 
-Align multiple datasets with different x-values to a common x-axis. Merges all unique x-values and fills gaps with `null`. Returns `ChartData` with one group containing all aligned series.
+Align multiple datasets with different x-values to a
+common x-axis. Merges all unique x-values and fills gaps
+with `null`. Returns `ChartData` with one group containing
+all aligned series.
 
 ```tsx
 import { alignData } from 'uplot-plus';

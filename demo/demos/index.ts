@@ -116,13 +116,13 @@ import Gradients from './Gradients';
 import HighLowBands from './HighLowBands';
 
 // --- Theming ---
-import DarkModeToggle from './DarkModeToggle';
-import CustomTheme from './CustomTheme';
-import PerChartTheme from './PerChartTheme';
-import NestedThemeProvider from './NestedThemeProvider';
-import ThemedSpecializedCharts from './ThemedSpecializedCharts';
 import ThemePresets from './ThemePresets';
-import CSSCustomProperties from './CSSCustomProperties';
+import ApplyingThemes from './ApplyingThemes';
+import NestedThemeProvider from './NestedThemeProvider';
+import ComponentThemes from './ComponentThemes';
+import ThemedDashboard from './ThemedDashboard';
+import SystemColorScheme from './SystemColorScheme';
+import ThemeExplorer from './ThemeExplorer';
 
 // --- Specialized Charts ---
 import CandlestickOHLC from './CandlestickOHLC';
@@ -269,13 +269,13 @@ export const demos: DemoEntry[] = [
   { id: 'palette-colors', title: 'Palette & Colors', description: 'palette(), withAlpha(), fadeGradient() — auto-generate colors, transparency, and gradient fills.', category: 'Annotations & Drawing', component: PaletteColors, sourceFile: 'PaletteColors' },
 
   // --- Theming ---
-  { id: 'dark-mode-toggle', title: 'Dark Mode Toggle', description: 'Toggle between light and dark themes via ThemeProvider.', category: 'Theming', component: DarkModeToggle, sourceFile: 'DarkModeToggle' },
-  { id: 'custom-theme', title: 'Custom Theme', description: 'Live color pickers to build a custom ChartTheme via ThemeProvider.', category: 'Theming', component: CustomTheme, sourceFile: 'CustomTheme' },
-  { id: 'per-chart-theme', title: 'Per-Chart Theme', description: 'Two charts with different theme props — no ThemeProvider needed.', category: 'Theming', component: PerChartTheme, sourceFile: 'PerChartTheme' },
-  { id: 'nested-theme-provider', title: 'Nested ThemeProvider', description: 'Outer dark theme with inner accent-color overrides via nested providers.', category: 'Theming', component: NestedThemeProvider, sourceFile: 'NestedThemeProvider' },
-  { id: 'themed-specialized', title: 'Themed Specialized Charts', description: 'Theme properties for candlestick, band, and annotation components.', category: 'Theming', component: ThemedSpecializedCharts, sourceFile: 'ThemedSpecializedCharts' },
-  { id: 'theme-presets', title: 'Theme Presets', description: 'Switch between 6 pre-built theme presets: default, dark, solarized, ocean, pastel, high contrast.', category: 'Theming', component: ThemePresets, sourceFile: 'ThemePresets' },
-  { id: 'css-custom-properties', title: 'CSS Custom Properties', description: 'Style charts via --uplot-* CSS variables — no ThemeProvider needed.', category: 'Theming', component: CSSCustomProperties, sourceFile: 'CSSCustomProperties' },
+  { id: 'theme-presets', title: 'Theme Presets', description: 'Switch between curated theme presets to see the range of themeable properties.', category: 'Theming', component: ThemePresets, sourceFile: 'ThemePresets' },
+  { id: 'applying-themes', title: 'Applying Themes', description: 'Three ways to theme: ThemeProvider, Chart prop, or CSS custom properties — same result.', category: 'Theming', component: ApplyingThemes, sourceFile: 'ApplyingThemes' },
+  { id: 'nested-providers', title: 'Nested Providers', description: 'Compose themes with nested ThemeProviders — inner overrides merge with outer base.', category: 'Theming', component: NestedThemeProvider, sourceFile: 'NestedThemeProvider' },
+  { id: 'component-themes', title: 'Component Themes', description: 'Theme properties for specialized components: candlestick, band, annotation, overlay, ranger.', category: 'Theming', component: ComponentThemes, sourceFile: 'ComponentThemes' },
+  { id: 'themed-dashboard', title: 'Themed Dashboard', description: 'One ThemeProvider unifies a multi-chart dashboard layout.', category: 'Theming', component: ThemedDashboard, sourceFile: 'ThemedDashboard' },
+  { id: 'system-color-scheme', title: 'System Color Scheme', description: 'Auto light/dark theming via prefers-color-scheme and CSS custom properties — zero JS.', category: 'Theming', component: SystemColorScheme, sourceFile: 'SystemColorScheme' },
+  { id: 'theme-explorer', title: 'Theme Explorer', description: 'Interactive reference: adjust all themeable properties with live preview.', category: 'Theming', component: ThemeExplorer, sourceFile: 'ThemeExplorer' },
 
   // --- Specialized Charts ---
   { id: 'candlestick-ohlc', title: 'Candlestick / OHLC', description: 'Financial candlestick chart with green/red candles via onDraw hook.', category: 'Specialized Charts', component: CandlestickOHLC, sourceFile: 'CandlestickOHLC' },

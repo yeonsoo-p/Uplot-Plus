@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/demo-page';
-import { getChartContainer } from '../../helpers/chart-locators';
+import { getChartContainer, getScaleState } from '../../helpers/chart-locators';
 import { dragOnChart, dblclickChart } from '../../helpers/interactions';
 
 test.describe('Zoom via drag', () => {
@@ -7,56 +7,57 @@ test.describe('Zoom via drag', () => {
     await demoPage.navigateTo('basic-line');
   });
 
-  test('drag zooms in (screenshot changes)', async ({ page }) => {
+  test('drag zooms in (x-scale narrows)', async ({ page }) => {
     const chart = getChartContainer(page);
 
-    // Take baseline screenshot
+    // Capture baseline
     const before = await chart.screenshot();
+    const baseline = await getScaleState(page, 'x');
 
     // Drag from 25% to 75% horizontally to zoom in
     await dragOnChart(page, 0, { x: 0.25, y: 0.5 }, { x: 0.75, y: 0.5 });
 
-    // Take after-zoom screenshot
     const after = await chart.screenshot();
+    const zoomed = await getScaleState(page, 'x');
 
-    // Screenshots should differ (chart zoomed in)
+    // Scale range should have narrowed
+    expect(zoomed.min).toBeGreaterThan(baseline.min!);
+    expect(zoomed.max).toBeLessThan(baseline.max!);
+
+    // Visual sanity: screenshot should also differ
     expect(Buffer.compare(before, after)).not.toBe(0);
   });
 
-  test('double-click resets zoom after drag', async ({ page }) => {
-    const chart = getChartContainer(page);
+  test('double-click resets zoom to baseline', async ({ page }) => {
+    // Capture baseline scale state
+    const baseline = await getScaleState(page, 'x');
 
     // Zoom in
     await dragOnChart(page, 0, { x: 0.25, y: 0.5 }, { x: 0.75, y: 0.5 });
-    const zoomed = await chart.screenshot();
+    const zoomed = await getScaleState(page, 'x');
+
+    // Verify zoom occurred
+    expect(zoomed.min).toBeGreaterThan(baseline.min!);
+    expect(zoomed.max).toBeLessThan(baseline.max!);
 
     // Double-click to reset
     await dblclickChart(page, 0);
+    const reset = await getScaleState(page, 'x');
 
-    // Should differ from zoomed state (i.e. it changed back)
-    const reset = await chart.screenshot();
-    expect(Buffer.compare(zoomed, reset)).not.toBe(0);
+    // Scale should be restored to baseline
+    expect(reset.min).toBe(baseline.min);
+    expect(reset.max).toBe(baseline.max);
   });
 
   test('tiny drag below threshold does not zoom', async ({ page }) => {
     const chart = getChartContainer(page);
 
-    // Zoom in first so we have a known zoomed state to compare against
+    // Zoom in then reset to establish a known state
     await dragOnChart(page, 0, { x: 0.25, y: 0.5 }, { x: 0.75, y: 0.5 });
-    await page.mouse.move(0, 0);
-    await page.waitForTimeout(100);
-    const zoomed = await chart.screenshot();
-
-    // Reset via double-click
     await dblclickChart(page, 0);
-    await page.mouse.move(0, 0);
-    await page.waitForTimeout(100);
-    const reset = await chart.screenshot();
+    const resetScale = await getScaleState(page, 'x');
 
-    // Sanity: zoom and reset should differ
-    expect(Buffer.compare(zoomed, reset)).not.toBe(0);
-
-    // Now do a tiny drag (~2px, below MIN_DRAG_PX = 5)
+    // Do a tiny drag (~2px, below MIN_DRAG_PX = 5)
     const box = await chart.boundingBox();
     expect(box).not.toBeNull();
     const startX = box!.x + box!.width * 0.5;
@@ -66,12 +67,11 @@ test.describe('Zoom via drag', () => {
     await page.mouse.down();
     await page.mouse.move(startX + 2, startY);
     await page.mouse.up();
-    await page.mouse.move(0, 0);
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(150);
 
-    const afterTiny = await chart.screenshot();
-
-    // The tiny drag should NOT have zoomed — screenshot should match reset, not zoomed
-    expect(Buffer.compare(afterTiny, zoomed)).not.toBe(0);
+    // Scale should be unchanged
+    const afterTiny = await getScaleState(page, 'x');
+    expect(afterTiny.min).toBe(resetScale.min);
+    expect(afterTiny.max).toBe(resetScale.max);
   });
 });

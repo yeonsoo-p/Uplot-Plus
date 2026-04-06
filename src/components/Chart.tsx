@@ -88,7 +88,10 @@ export function Chart({
     if (canvasElRef.current === node) return;
     canvasElRef.current = node;
     store.setCanvas(node);
-    if (node) store.scheduleRedraw();
+    if (node) {
+      Object.defineProperty(node, '__chartStore', { value: store, configurable: true });
+      store.scheduleRedraw();
+    }
   }, [store]);
 
   // Stable container callback ref
@@ -206,6 +209,7 @@ export function Chart({
             height: `${height}px`,
             cursor: 'default',
             order: 0,
+            outline: 'none',
           }}
         >
           <canvas

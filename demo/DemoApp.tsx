@@ -23,14 +23,15 @@ function DarkToggle() {
 
 const categories = (() => {
   const cats: { name: string; items: typeof demos }[] = [];
-  const seen = new Set<string>();
+  const map = new Map<string, typeof demos>();
   for (const d of demos) {
-    if (!seen.has(d.category)) {
-      seen.add(d.category);
-      cats.push({ name: d.category, items: [] });
+    let items = map.get(d.category);
+    if (items == null) {
+      items = [];
+      map.set(d.category, items);
+      cats.push({ name: d.category, items });
     }
-    const last = cats[cats.length - 1];
-    if (last != null) last.items.push(d);
+    items.push(d);
   }
   return cats;
 })();

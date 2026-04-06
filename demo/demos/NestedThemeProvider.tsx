@@ -26,10 +26,23 @@ export default function NestedThemeProvider() {
     <div>
       <ThemeProvider theme={DARK_THEME}>
         <div style={{ background: '#1e1e1e', color: '#ccc', padding: 12, borderRadius: 6 }} className="flex gap-4 flex-wrap">
+          <div>
+            <h4 style={{ color: '#ccc' }} className="mb-1">Base Only <span className="text-xs font-normal opacity-60">— inherits outer DARK_THEME</span></h4>
+            <Chart width={240} height={240} data={data}>
+              <Scale id="x" />
+              <Scale id="y" />
+              <Axis scale="x" />
+              <Axis scale="y" />
+              <Series group={0} index={0} label="Primary" />
+              <Series group={0} index={1} label="Secondary" />
+              <Legend />
+            </Chart>
+          </div>
+
           <ThemeProvider theme={redAccent}>
             <div>
-              <h4 style={{ color: '#ccc' }} className="mb-1">Red Accent</h4>
-              <Chart width={380} height={260} data={data}>
+              <h4 style={{ color: '#ccc' }} className="mb-1">Red Accent <span className="text-xs font-normal opacity-60">— overrides seriesColors, cursor</span></h4>
+              <Chart width={240} height={240} data={data}>
                 <Scale id="x" />
                 <Scale id="y" />
                 <Axis scale="x" />
@@ -43,8 +56,8 @@ export default function NestedThemeProvider() {
 
           <ThemeProvider theme={blueAccent}>
             <div>
-              <h4 style={{ color: '#ccc' }} className="mb-1">Blue Accent</h4>
-              <Chart width={380} height={260} data={data}>
+              <h4 style={{ color: '#ccc' }} className="mb-1">Blue Accent <span className="text-xs font-normal opacity-60">— overrides seriesColors, cursor</span></h4>
+              <Chart width={240} height={240} data={data}>
                 <Scale id="x" />
                 <Scale id="y" />
                 <Axis scale="x" />

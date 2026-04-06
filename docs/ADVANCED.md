@@ -30,7 +30,10 @@ All callbacks receive resolved chart data — nearest point, data values, pixel 
 >
 ```
 
-Callbacks are separate from the action map — they fire alongside actions, not instead of them. Use `return false` in `onDblClick` or `onSelect` to prevent the associated action.
+Callbacks are separate from the action map — they fire
+alongside actions, not instead of them. Use `return false`
+in `onDblClick` or `onSelect` to prevent the associated
+action.
 
 ## Controlled Scales
 
@@ -66,7 +69,9 @@ function ZoomableChart({ data }) {
 
 ### `useChart()`
 
-Access the chart store from a child component of `<Chart>`. For building custom sub-components that need direct store access.
+Access the chart store from a child component of `<Chart>`.
+For building custom sub-components that need direct store
+access.
 
 ```tsx
 import { useChart } from 'uplot-plus';
@@ -79,7 +84,10 @@ function CustomControl() {
 
 ### `useDrawHook()` / `useCursorDrawHook()`
 
-Register custom Canvas 2D draw callbacks from child components. `useDrawHook` draws on the persistent layer (after series). `useCursorDrawHook` draws on the cursor overlay (redrawn every frame).
+Register custom Canvas 2D draw callbacks from child
+components. `useDrawHook` draws on the persistent layer
+(after series). `useCursorDrawHook` draws on the cursor
+overlay (redrawn every frame).
 
 ```tsx
 import { useDrawHook } from 'uplot-plus';

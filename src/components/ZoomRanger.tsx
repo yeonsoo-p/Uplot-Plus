@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import type { DataInput } from '../types';
+import type { DataInput, SizeValue } from '../types';
 import { Chart } from './Chart';
 import { Series } from './Series';
 import { clamp } from '../math/utils';
@@ -83,8 +83,8 @@ export function applyDrag(
 }
 
 export interface ZoomRangerProps {
-  /** Chart width in CSS pixels */
-  width: number;
+  /** Chart width in CSS pixels, or 'auto' to fill container */
+  width: SizeValue;
   /** Chart height in CSS pixels */
   height: number;
   /** Data to render in the overview — accepts {x,y}, [{x,y}], or [{x, series:[...]}] */

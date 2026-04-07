@@ -36,7 +36,7 @@ export default function FlexAutoResize() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', width: '100%', height: 400, overflow: 'hidden', border: '1px dashed #999', borderRadius: 6 }}>
+    <div style={{ display: 'flex', width: '100%', height: 400, overflow: 'hidden', border: '1px dashed var(--color-border-light)', borderRadius: 6 }}>
       <div style={{ flex: 1, minWidth: 200, overflow: 'hidden' }}>
         <Chart width="auto" height={400} data={data} xlabel="Index" ylabel="Value">
           <Series group={0} index={0} label="Sin" />
@@ -49,7 +49,7 @@ export default function FlexAutoResize() {
         style={{
           width: 6,
           cursor: 'col-resize',
-          background: '#ccc',
+          background: 'var(--color-border-lighter)',
           flexShrink: 0,
           transition: 'background 0.15s',
         }}
@@ -59,9 +59,9 @@ export default function FlexAutoResize() {
           width: panelWidth,
           flexShrink: 0,
           padding: 16,
-          background: 'var(--color-bg-subtle, #f5f5f5)',
+          background: 'var(--color-surface-light)',
           overflow: 'auto',
-          borderLeft: '1px solid #ddd',
+          borderLeft: '1px solid var(--color-border-light)',
         }}
       >
         <h4 style={{ margin: '0 0 8px' }}>Side Panel</h4>

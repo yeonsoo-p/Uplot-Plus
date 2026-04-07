@@ -44,12 +44,12 @@ export default function DraggableLabelDemo() {
             Custom styled label
           </DraggableLabel>
         </Chart>
-        {pos && <pre className="mt-1 text-xs text-gray-500">Position: x={Math.round(pos.x)}, y={Math.round(pos.y)}</pre>}
+        {pos && <pre className="mt-1 text-xs text-muted dark:text-muted-lighter">Position: x={Math.round(pos.x)}, y={Math.round(pos.y)}</pre>}
       </div>
 
       <div>
         <h4 className="mt-0 mb-2">Keyboard accessible</h4>
-        <p className="mt-0 mb-2 text-sm text-gray-500">Tab to label, arrow keys to move (Shift for fine control)</p>
+        <p className="mt-0 mb-2 text-sm text-muted dark:text-muted-lighter">Tab to label, arrow keys to move (Shift for fine control)</p>
         <Chart width="auto" height={300} data={data} xlabel="Time" ylabel="Value">
           <Series group={0} index={0} label="Sine" />
           <Series group={0} index={1} label="Cosine" />

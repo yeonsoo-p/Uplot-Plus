@@ -53,12 +53,12 @@ describe('bars path builder', () => {
     expect(narrowWidth).toBeLessThan(defaultWidth);
   });
 
-  it('barRadius option uses moveTo/lineTo/arc instead of rect', () => {
+  it('barRadius option uses moveTo/lineTo/arcTo instead of rect', () => {
     const dataY: (number | null)[] = [10, 40, 30, 80, 50];
     const result = builder(dataX, dataY, scaleX, scaleY, 400, 300, 0, 0, 0, 4, 1, pxRound, { barRadius: 0.3 });
     const calls = getMockCalls(result.stroke);
-    // With radius, bars use moveTo/lineTo/arc/closePath instead of rect
-    const arcs = calls.filter((c) => c[0] === 'arc');
+    // With radius, bars use moveTo/lineTo/arcTo/closePath instead of rect
+    const arcs = calls.filter((c) => c[0] === 'arcTo');
     expect(arcs.length).toBeGreaterThan(0);
     // No rect calls when radius is used
     const rects = calls.filter((c) => c[0] === 'rect');

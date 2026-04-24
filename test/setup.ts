@@ -22,6 +22,7 @@ export type PathCall =
   | ['lineTo', number, number]
   | ['rect', number, number, number, number]
   | ['arc', number, number, number, number, number]
+  | ['arcTo', number, number, number, number, number]
   | ['closePath']
   | ['addPath']
   | ['bezierCurveTo', number, number, number, number, number, number]
@@ -40,6 +41,7 @@ export class Path2DMock {
   lineTo(x: number, y: number): void { this._calls.push(['lineTo', x, y]); }
   rect(x: number, y: number, w: number, h: number): void { this._calls.push(['rect', x, y, w, h]); }
   arc(x: number, y: number, r: number, s: number, e: number): void { this._calls.push(['arc', x, y, r, s, e]); }
+  arcTo(x1: number, y1: number, x2: number, y2: number, r: number): void { this._calls.push(['arcTo', x1, y1, x2, y2, r]); }
   closePath(): void { this._calls.push(['closePath']); }
   addPath(_path: Path2DMock): void { this._calls.push(['addPath']); }
   bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void {

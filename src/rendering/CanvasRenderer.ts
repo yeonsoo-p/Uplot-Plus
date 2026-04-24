@@ -1,5 +1,5 @@
 import type { SeriesConfig, ScaleState, BBox } from '../types';
-import { Distribution } from '../types';
+import { Distribution, Orientation } from '../types';
 import type { SeriesPaths } from '../paths/types';
 import { lttbLinear } from '../paths/lttbLinear';
 import { drawSeriesPath } from './drawSeries';
@@ -252,15 +252,24 @@ export class CanvasRenderer {
         fillTo = fillToCfg;
       }
 
+      // Orientation-aware dim/off: each scale maps into width or height based on its ori.
+      // Default (xScale=Horizontal, yScale=Vertical) preserves prior (width, height, left, top) behavior.
+      const xHoriz = info.xScale.ori === Orientation.Horizontal;
+      const yHoriz = info.yScale.ori === Orientation.Horizontal;
+      const xDim = xHoriz ? plotBox.width  : plotBox.height;
+      const yDim = yHoriz ? plotBox.width  : plotBox.height;
+      const xOff = xHoriz ? plotBox.left   : plotBox.top;
+      const yOff = yHoriz ? plotBox.left   : plotBox.top;
+
       paths = pathBuilder(
         info.dataX,
         info.dataY,
         info.xScale,
         info.yScale,
-        plotBox.width,
-        plotBox.height,
-        plotBox.left,
-        plotBox.top,
+        xDim,
+        yDim,
+        xOff,
+        yOff,
         pi0,
         pi1,
         dir,

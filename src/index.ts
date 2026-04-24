@@ -90,7 +90,7 @@ export type { VectorProps } from './components/Vector';
 // Path builders
 export { linear } from './paths/linear';
 export { stepped } from './paths/stepped';
-export { bars, groupedBars, stackedBars } from './paths/bars';
+export { bars, groupedBars, stackedBars, horizontalBars, horizontalGroupedBars, horizontalStackedBars } from './paths/bars';
 export { monotoneCubic } from './paths/monotoneCubic';
 export { catmullRom } from './paths/catmullRom';
 export { points } from './paths/points';

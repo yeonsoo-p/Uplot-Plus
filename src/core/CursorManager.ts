@@ -3,6 +3,15 @@ import type { ChartData } from '../types/data';
 import type { SeriesConfig } from '../types/series';
 import { valToPos, posToVal, isScaleReady } from './Scale';
 import { closestIdx } from '../math/utils';
+import { Orientation } from '../types/common';
+
+/** Orientation-aware (cssCoord, dim, off) for a scale. */
+function axisDims(scale: ScaleState, cssX: number, cssY: number, plotBox: BBox): { css: number; dim: number; off: number } {
+  if (scale.ori === Orientation.Horizontal) {
+    return { css: cssX, dim: plotBox.width, off: plotBox.left };
+  }
+  return { css: cssY, dim: plotBox.height, off: plotBox.top };
+}
 
 /** Minimal store interface to avoid circular dependency with ChartStore. */
 export interface SyncTarget {
@@ -111,13 +120,12 @@ export class CursorManager {
 
       const [wi0, wi1] = getWindow(gi);
 
-      // Find closest x-index to cursor position
-      // Convert cursor CSS X to data value, then find closest index
-      const xDim = plotBox.width;
-      const xOff = plotBox.left;
+      // Orientation-aware: pick cssX/cssY based on each scale's ori. For horizontal
+      // bars (xScale.ori = Vertical), the category position is read from cssY.
+      const xAxis = axisDims(xScale, cssX, cssY, plotBox);
 
       // closestIdx on the x data within the visible window
-      const cursorXVal = posToVal(cssX + xOff, xScale, xDim, xOff);
+      const cursorXVal = posToVal(xAxis.css + xAxis.off, xScale, xAxis.dim, xAxis.off);
       const dataIdx = closestIdx(cursorXVal, xData, wi0, wi1);
 
       // Check adjacent x-indices for better snapping accuracy
@@ -133,7 +141,7 @@ export class CursorManager {
         const xVal = xData[di];
         if (xVal == null) continue;
 
-        const pxX = valToPos(xVal, xScale, xDim, xOff);
+        const pxX = valToPos(xVal, xScale, xAxis.dim, xAxis.off);
 
         // Check each series in this group
         for (const sc of groupedConfigs.get(gi) ?? []) {
@@ -151,13 +159,18 @@ export class CursorManager {
           }
           if (yScaleState == null || !isScaleReady(yScaleState)) continue;
 
-          const yDim = plotBox.height;
-          const yOff = plotBox.top;
-          const pxY = valToPos(yVal, yScaleState, yDim, yOff);
+          const yAxis = axisDims(yScaleState, cssX, cssY, plotBox);
+          const pxY = valToPos(yVal, yScaleState, yAxis.dim, yAxis.off);
+
+          // pxX runs along xScale's screen axis; pxY along yScale's. In any sane setup
+          // one is Horizontal and the other Vertical, so they recombine into (canvasX, canvasY):
+          const xIsHoriz = xScale.ori === Orientation.Horizontal;
+          const pointCanvasX = xIsHoriz ? pxX : pxY;
+          const pointCanvasY = xIsHoriz ? pxY : pxX;
 
           // Euclidean distance in CSS pixel space
-          const dx = (cssX + xOff) - pxX;
-          const dy = (cssY + yOff) - pxY;
+          const dx = (cssX + plotBox.left) - pointCanvasX;
+          const dy = (cssY + plotBox.top)  - pointCanvasY;
           const dist = dx * dx + dy * dy; // skip sqrt for comparison
 
           if (dist < bestDist) {
@@ -204,15 +217,20 @@ export class CursorManager {
     const foundX = group.x[dataIdx];
     if (foundX == null) return;
 
-    // Convert to pixel position
-    const pxX = valToPos(foundX, xScale, store.plotBox.width, store.plotBox.left);
-    this.state.left = pxX - store.plotBox.left;
+    const xIsHoriz = xScale.ori === Orientation.Horizontal;
+    const xDim = xIsHoriz ? store.plotBox.width : store.plotBox.height;
+    const xOff = xIsHoriz ? store.plotBox.left  : store.plotBox.top;
+    const pxX = valToPos(foundX, xScale, xDim, xOff);
+
     this.state.activeGroup = groupIdx;
     this.state.activeDataIdx = dataIdx;
 
-    // Find first visible series to compute proper y position
+    // Find first visible series to compute proper position along the y axis.
+    // Fallback (no series found): center of plot area in canvas coords.
     let bestSeriesIdx = 0;
-    let yPos = store.plotBox.height / 2; // fallback to center
+    let pxY = xIsHoriz
+      ? store.plotBox.top  + store.plotBox.height / 2
+      : store.plotBox.left + store.plotBox.width  / 2;
 
     for (const sc of store.seriesConfigs) {
       if (sc.group !== groupIdx || sc.show === false) continue;
@@ -223,12 +241,19 @@ export class CursorManager {
       const yScale = store.scaleManager.getScale(sc.yScale);
       if (yScale == null || !isScaleReady(yScale)) continue;
 
-      yPos = valToPos(yVal, yScale, store.plotBox.height, store.plotBox.top) - store.plotBox.top;
+      const yIsHoriz = yScale.ori === Orientation.Horizontal;
+      const yDim = yIsHoriz ? store.plotBox.width : store.plotBox.height;
+      const yOff = yIsHoriz ? store.plotBox.left  : store.plotBox.top;
+      pxY = valToPos(yVal, yScale, yDim, yOff);
       bestSeriesIdx = sc.index;
       break;
     }
 
-    this.state.top = yPos;
+    // Recombine pixel positions into (left, top) — pxX is along xScale's axis, pxY along yScale's.
+    const canvasX = xIsHoriz ? pxX : pxY;
+    const canvasY = xIsHoriz ? pxY : pxX;
+    this.state.left = canvasX - store.plotBox.left;
+    this.state.top  = canvasY - store.plotBox.top;
     this.state.activeSeriesIdx = bestSeriesIdx;
   }
 }

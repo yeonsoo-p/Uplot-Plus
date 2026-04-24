@@ -58,6 +58,8 @@ export interface SeriesConfig {
     /** Whether to draw the point indicator on hover (default: true) */
     show?: boolean;
   };
+  /** Render this series transposed: x-scale becomes vertical, y-scale becomes horizontal. Set automatically by horizontal path builders. */
+  transposed?: boolean;
 }
 
 /** @internal Resolved series config with auto-assignment tracking fields. */

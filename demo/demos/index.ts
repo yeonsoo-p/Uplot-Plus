@@ -26,6 +26,9 @@ import StackedSeries from './StackedSeries';
 import ThinBarsStrokeFill from './ThinBarsStrokeFill';
 import BarsValuesAutosize from './BarsValuesAutosize';
 import SparklinesBars from './SparklinesBars';
+import HorizontalBarChart from './HorizontalBarChart';
+import HorizontalGroupedBars from './HorizontalGroupedBars';
+import HorizontalStackedBars from './HorizontalStackedBars';
 
 // --- Scales ---
 import MultipleScales from './MultipleScales';
@@ -183,6 +186,9 @@ export const demos: DemoEntry[] = [
   { id: 'thin-bars-stroke-fill', title: 'Thin Bars Stroke/Fill', description: 'Bar chart variations: stroke-only, fill-only, stroke+fill.', category: 'Bars & Stacking', component: ThinBarsStrokeFill, sourceFile: 'ThinBarsStrokeFill' },
   { id: 'bars-values-autosize', title: 'Bar Value Labels', description: 'Bar chart with value labels drawn above each bar.', category: 'Bars & Stacking', component: BarsValuesAutosize, sourceFile: 'BarsValuesAutosize' },
   { id: 'sparklines-bars', title: 'Sparklines (Bars)', description: 'Sparkline-sized bar charts embedded in a table.', category: 'Layout & Streaming', component: SparklinesBars, sourceFile: 'SparklinesBars' },
+  { id: 'horizontal-bars', title: 'Horizontal Bars', description: 'Horizontal bar chart via horizontalBars() — same data shape as vertical bars, drawn rotated.', category: 'Bars & Stacking', component: HorizontalBarChart, sourceFile: 'HorizontalBarChart' },
+  { id: 'horizontal-grouped-bars', title: 'Horizontal Grouped Bars', description: 'Side-by-side grouped horizontal bars via horizontalGroupedBars().', category: 'Bars & Stacking', component: HorizontalGroupedBars, sourceFile: 'HorizontalGroupedBars' },
+  { id: 'horizontal-stacked-bars', title: 'Horizontal Stacked Bars', description: 'Stacked horizontal bars via horizontalStackedBars() and stackGroup().', category: 'Bars & Stacking', component: HorizontalStackedBars, sourceFile: 'HorizontalStackedBars' },
 
   // --- Scales ---
   { id: 'multiple-scales', title: 'Multiple Scales', description: 'Temperature and humidity on independent y-scales with left/right axes.', category: 'Scales', component: MultipleScales, sourceFile: 'MultipleScales' },

@@ -19,7 +19,7 @@ import type { ResolvedTheme } from '../rendering/theme';
 import { drawPoints, shouldShowPoints } from '../rendering/drawPoints';
 import { buildBandPath, drawBandPath } from '../rendering/drawBands';
 import type { BandConfig } from '../types/bands';
-import { Side, DirtyFlag } from '../types/common';
+import { Side, DirtyFlag, Orientation } from '../types/common';
 import type { DrawContext, DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { valToPos, isScaleReady } from '../core/Scale';
 import type { EventCallbacks } from '../types/events';
@@ -77,6 +77,7 @@ function injectDefaults(store: ChartStore): void {
       scale: 'x', side: Side.Bottom, show: true,
       label: store.xlabel ?? 'X Axis',
       _default: true,
+      _autoSide: true,
     });
   } else {
     // Update label on existing default x-axis
@@ -94,6 +95,7 @@ function injectDefaults(store: ChartStore): void {
         scale: yId, side: Side.Left, show: true,
         label: store.ylabel ?? 'Y Axis',
         _default: true,
+        _autoSide: true,
       });
       axisScales.add(yId);
     } else {
@@ -104,6 +106,68 @@ function injectDefaults(store: ChartStore): void {
       }
     }
   }
+}
+
+/**
+ * Apply per-series orientation hints to scales.
+ * A series with `transposed: true` (set by horizontalBars()) flips its xScale to
+ * Vertical and its yScale to Horizontal. Resets each pass from scaleConfigs so
+ * user-declared `<Scale ori={...} />` is preserved when no transposed series is active.
+ *
+ * Conflict (the same scale requested in both orientations) logs a warning and
+ * keeps the first-requested orientation.
+ */
+function applySeriesOrientations(store: ChartStore): void {
+  // Reset to user-declared (or id-default) orientation each pass.
+  for (const scale of store.scaleManager.getAllScales()) {
+    const cfg = store.scaleConfigs.find(s => s.id === scale.id);
+    const idDefault = scale.id === 'x' ? Orientation.Horizontal : Orientation.Vertical;
+    scale.ori = cfg?.ori ?? idDefault;
+  }
+
+  const requested = new Map<string, Orientation>();
+  for (const cfg of store.seriesConfigs) {
+    if (!cfg.transposed) continue;
+    const xScaleKey = store.scaleManager.getGroupXScaleKey(cfg.group);
+    if (xScaleKey == null) continue;
+    requestOri(requested, xScaleKey, Orientation.Vertical);
+    requestOri(requested, cfg.yScale, Orientation.Horizontal);
+  }
+
+  for (const [scaleId, ori] of requested) {
+    const scale = store.scaleManager.getScale(scaleId);
+    if (scale != null) scale.ori = ori;
+  }
+
+  // Warn if a flipped scale is also referenced by a non-transposed series
+  // (e.g. bars() and horizontalBars() sharing the same y-scale would render incorrectly).
+  for (const cfg of store.seriesConfigs) {
+    if (cfg.transposed) continue;
+    const xScaleKey = store.scaleManager.getGroupXScaleKey(cfg.group);
+    if (xScaleKey != null && requested.has(xScaleKey)) {
+      console.warn(`[uPlot+] Scale "${xScaleKey}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
+    }
+    if (requested.has(cfg.yScale)) {
+      console.warn(`[uPlot+] Scale "${cfg.yScale}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
+    }
+  }
+
+  // Re-derive default sides for axes that didn't have an explicit `side` prop.
+  for (const axis of store.axisConfigs) {
+    if (axis._autoSide !== true) continue;
+    const scale = store.scaleManager.getScale(axis.scale);
+    if (scale == null) continue;
+    axis.side = scale.ori === Orientation.Horizontal ? Side.Bottom : Side.Left;
+  }
+}
+
+function requestOri(map: Map<string, Orientation>, scaleId: string, ori: Orientation): void {
+  const existing = map.get(scaleId);
+  if (existing != null && existing !== ori) {
+    console.warn(`[uPlot+] Scale "${scaleId}" used by both vertical and horizontal bars. Use separate scales for each orientation.`);
+    return;
+  }
+  map.set(scaleId, ori);
 }
 
 /** Build a DrawContext with valToX/valToY helpers bound to current scales. */
@@ -512,6 +576,9 @@ export function createChartStore(): ChartStore {
 
       // 0. Inject defaults for missing y-scales, series, and axes
       injectDefaults(store);
+
+      // 0b. Apply per-series orientation hints (horizontalBars sets transposed: true)
+      applySeriesOrientations(store);
 
       // 1. Auto-range x-scales (cheap: reads first/last x values only)
       scaleManager.autoRangeX(dataStore.data);

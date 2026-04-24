@@ -1,11 +1,59 @@
 import { useEffect } from 'react';
 import type { ChartStore } from './useChartStore';
-import type { SelectState } from '../types/cursor';
+import type { SelectState, ScaleState } from '../types';
 import type { ChartEventInfo, NearestPoint, SelectEventInfo } from '../types/events';
 import type { ActionContext, ActionKey, ReactionValue, DragContinuation } from '../types/interaction';
 import { posToVal, valToPos, invalidateScaleCache, isScaleReady } from '../core/Scale';
 import { Side, Orientation, sideOrientation, DirtyFlag } from '../types/common';
 import { clamp } from '../math/utils';
+
+// ---------------------------------------------------------------------------
+// Axis-role filters
+//
+// Reactions like zoomX/panX historically meant "act on horizontal-screen scales".
+// That works for normal charts where x-scale is Horizontal, but breaks for
+// transposed charts (horizontal bars) where x-scale is Vertical. Reactions are
+// now defined as "act on the X data axis (or Y)" — orientation-agnostic.
+// ---------------------------------------------------------------------------
+
+type ScaleFilter = (s: ScaleState) => boolean;
+
+/** Returns predicates that classify a scale as the X data axis or Y data axis for this store. */
+function buildScaleFilters(store: ChartStore): { isX: ScaleFilter; isY: ScaleFilter; isAny: ScaleFilter } {
+  const xIds = new Set<string>();
+  for (const id of store.scaleManager.groupXScales.values()) xIds.add(id);
+  const yIds = new Set<string>();
+  for (const cfg of store.seriesConfigs) yIds.add(cfg.yScale);
+  return {
+    isX: (s) => xIds.has(s.id),
+    isY: (s) => yIds.has(s.id),
+    isAny: () => true,
+  };
+}
+
+/** Pick (cssCoord, dim, off) for a scale based on its current orientation. */
+function axisDimsForScale(scale: ScaleState, ctx: ActionContext, plotBox: { left: number; top: number; width: number; height: number }):
+  { cursorPx: number; dim: number; off: number } {
+  const isHoriz = scale.ori === Orientation.Horizontal;
+  return {
+    cursorPx: isHoriz ? ctx.cx + plotBox.left : ctx.cy + plotBox.top,
+    dim: isHoriz ? plotBox.width : plotBox.height,
+    off: isHoriz ? plotBox.left  : plotBox.top,
+  };
+}
+
+/** Determine which screen directions the filtered scales span. */
+function selectionAxisExtents(store: ChartStore, filterScale: ScaleFilter): { spansHoriz: boolean; spansVert: boolean } {
+  let spansHoriz = false;
+  let spansVert = false;
+  for (const s of store.scaleManager.getAllScales()) {
+    if (!isScaleReady(s)) continue;
+    if (!filterScale(s)) continue;
+    if (s.ori === Orientation.Horizontal) spansHoriz = true;
+    else spansVert = true;
+  }
+  return { spansHoriz, spansVert };
+}
 
 /** Minimum drag distance (CSS pixels) to trigger a zoom selection */
 const MIN_DRAG_PX = 5;
@@ -76,12 +124,12 @@ type ReactionFn = (store: ChartStore, e: Event, ctx: ActionContext) => DragConti
 /** Capture current scale states for pan initialization. */
 function captureScales(
   store: ChartStore,
-  filter?: (ori: Orientation) => boolean,
+  filter?: ScaleFilter,
 ): Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> {
   const result: Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> = [];
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
-    if (filter != null && !filter(scale.ori)) continue;
+    if (filter != null && !filter(scale)) continue;
     result.push({ id: scale.id, ori: scale.ori, dir: scale.dir, startMin: scale.min, startMax: scale.max });
   }
   return result;
@@ -100,10 +148,10 @@ function fireScaleChange(store: ChartStore): void {
   }
 }
 
-/** Apply wheel zoom to scales matching the given axis filter. */
+/** Apply wheel zoom to scales matching the given filter. */
 function applyWheelZoom(
   store: ChartStore, e: Event, ctx: ActionContext,
-  filterOri: (ori: Orientation) => boolean,
+  filterScale: ScaleFilter,
 ): void {
   if (!(e instanceof WheelEvent)) return;
   const factor = clamp(1 - e.deltaY * WHEEL_ZOOM_SENSITIVITY, WHEEL_ZOOM_MIN, WHEEL_ZOOM_MAX);
@@ -111,13 +159,10 @@ function applyWheelZoom(
 
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
-    if (!filterOri(scale.ori)) continue;
+    if (!filterScale(scale)) continue;
 
-    const isX = scale.ori === Orientation.Horizontal;
-    const dim = isX ? plotBox.width : plotBox.height;
-    const off = isX ? plotBox.left : plotBox.top;
-    const cursorPos = isX ? ctx.cx + plotBox.left : ctx.cy + plotBox.top;
-    const cursorVal = posToVal(cursorPos, scale, dim, off);
+    const { cursorPx, dim, off } = axisDimsForScale(scale, ctx, plotBox);
+    const cursorVal = posToVal(cursorPx, scale, dim, off);
 
     const newMin = cursorVal - (cursorVal - scale.min) * factor;
     const newMax = cursorVal + (scale.max - cursorVal) * factor;
@@ -132,14 +177,16 @@ function applyWheelZoom(
   fireScaleChange(store);
 }
 
-/** Create a drag-to-zoom continuation for the given axis filter. */
+/** Create a drag-to-zoom continuation for the given scale filter. */
 function startDragZoom(
   store: ChartStore, ctx: ActionContext,
-  filterOri: (ori: Orientation) => boolean,
+  filterScale: ScaleFilter,
 ): DragContinuation {
   const selectState: SelectState = { show: false, left: 0, top: 0, width: 0, height: 0 };
   const startX = ctx.cx;
   const startY = ctx.cy;
+  // Capture which screen directions the filtered scales currently span — drives selection geometry.
+  const { spansHoriz, spansVert } = selectionAxisExtents(store, filterScale);
 
   return {
     onMove(_store: ChartStore, _e: Event, moveCtx: ActionContext) {
@@ -153,12 +200,12 @@ function startDragZoom(
       selectState.width = Math.abs(clampedCx - startX);
       selectState.height = Math.abs(clampedCy - startY);
 
-      // For single-axis zoom, span the full other dimension
-      if (!filterOri(Orientation.Vertical)) {
+      // Span fully along axes that aren't being zoomed
+      if (!spansVert) {
         selectState.top = 0;
         selectState.height = plotBox.height;
       }
-      if (!filterOri(Orientation.Horizontal)) {
+      if (!spansHoriz) {
         selectState.left = 0;
         selectState.width = plotBox.width;
       }
@@ -168,20 +215,20 @@ function startDragZoom(
     },
     onEnd(_store: ChartStore, _e: Event, _endCtx: ActionContext) {
       // Only check threshold on axes the user actually dragged (not the auto-spanned dimension)
-      const widthOk = filterOri(Orientation.Horizontal) && selectState.width > MIN_DRAG_PX;
-      const heightOk = filterOri(Orientation.Vertical) && selectState.height > MIN_DRAG_PX;
+      const widthOk = spansHoriz && selectState.width > MIN_DRAG_PX;
+      const heightOk = spansVert && selectState.height > MIN_DRAG_PX;
       if (widthOk || heightOk) {
         // Fire onSelect callback
         let shouldZoom = true;
         if (store.eventCallbacks.onSelect != null) {
-          const selInfo = buildSelectInfo(store, selectState);
+          const selInfo = buildSelectInfo(store, selectState, filterScale);
           let selResult: unknown;
           try { selResult = store.eventCallbacks.onSelect(selInfo); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
           if (selResult === false) shouldZoom = false;
         }
 
         if (shouldZoom) {
-          applySelectionZoom(store, selectState, filterOri);
+          applySelectionZoom(store, selectState, filterScale);
           fireScaleChange(store);
         }
       }
@@ -199,19 +246,19 @@ function startDragZoom(
 /** Apply zoom from a completed selection. */
 function applySelectionZoom(
   store: ChartStore, sel: SelectState,
-  filterOri: (ori: Orientation) => boolean,
+  filterScale: ScaleFilter,
 ): void {
   const plotBox = store.plotBox;
 
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
-    if (!filterOri(scale.ori)) continue;
+    if (!filterScale(scale)) continue;
 
-    const isX = scale.ori === Orientation.Horizontal;
-    const dim = isX ? plotBox.width : plotBox.height;
-    const off = isX ? plotBox.left : plotBox.top;
-    const selStart = isX ? sel.left : sel.top;
-    const selSize = isX ? sel.width : sel.height;
+    const isHoriz = scale.ori === Orientation.Horizontal;
+    const dim = isHoriz ? plotBox.width : plotBox.height;
+    const off = isHoriz ? plotBox.left : plotBox.top;
+    const selStart = isHoriz ? sel.left : sel.top;
+    const selSize = isHoriz ? sel.width : sel.height;
     const fracStart = selStart / dim;
     const fracEnd = (selStart + selSize) / dim;
 
@@ -225,13 +272,13 @@ function applySelectionZoom(
   }
 }
 
-/** Create a drag-to-pan continuation for the given axis filter. */
+/** Create a drag-to-pan continuation for the given scale filter. */
 function startDragPan(
   store: ChartStore, e: Event,
-  filterOri: (ori: Orientation) => boolean,
+  filterScale: ScaleFilter,
   _ctx: ActionContext,
 ): DragContinuation {
-  const scales = captureScales(store, filterOri);
+  const scales = captureScales(store, filterScale);
   if (!(e instanceof MouseEvent)) return { onMove() {}, onEnd() {} };
   const startClientX = e.clientX;
   const startClientY = e.clientY;
@@ -310,14 +357,14 @@ function startGutterPan(
 /** Apply wheel-based pan offset. */
 function applyWheelPan(
   store: ChartStore, e: Event,
-  filterOri: (ori: Orientation) => boolean,
+  filterScale: ScaleFilter,
 ): void {
   if (!(e instanceof WheelEvent)) return;
   const panFrac = e.deltaY * WHEEL_ZOOM_SENSITIVITY * 10;
 
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
-    if (!filterOri(scale.ori)) continue;
+    if (!filterScale(scale)) continue;
 
     const range = scale.max - scale.min;
     scale.min += panFrac * range;
@@ -331,36 +378,42 @@ function applyWheelPan(
   fireScaleChange(store);
 }
 
-const isHoriz = (ori: Orientation): boolean => ori === Orientation.Horizontal;
-const isVert = (ori: Orientation): boolean => ori === Orientation.Vertical;
-const isAny = (): boolean => true;
-
-/** Registry of built-in string reactions → handler functions. */
+/** Registry of built-in string reactions → handler functions.
+ *  zoomX/panX target the X data axis (group's xScale), zoomY/panY target the Y data axis,
+ *  regardless of current screen orientation. For non-transposed charts (xScale=Horizontal,
+ *  yScale=Vertical) this is identical to the prior screen-orientation semantics.
+ */
 function getBuiltinReaction(name: string): ReactionFn | undefined {
   switch (name) {
     case 'zoomX': return (store, e, ctx) => {
-      if (e instanceof WheelEvent) { applyWheelZoom(store, e, ctx, isHoriz); return; }
-      return startDragZoom(store, ctx, isHoriz);
+      const { isX } = buildScaleFilters(store);
+      if (e instanceof WheelEvent) { applyWheelZoom(store, e, ctx, isX); return; }
+      return startDragZoom(store, ctx, isX);
     };
     case 'zoomY': return (store, e, ctx) => {
-      if (e instanceof WheelEvent) { applyWheelZoom(store, e, ctx, isVert); return; }
-      return startDragZoom(store, ctx, isVert);
+      const { isY } = buildScaleFilters(store);
+      if (e instanceof WheelEvent) { applyWheelZoom(store, e, ctx, isY); return; }
+      return startDragZoom(store, ctx, isY);
     };
     case 'zoomXY': return (store, e, ctx) => {
+      const { isAny } = buildScaleFilters(store);
       if (e instanceof WheelEvent) { applyWheelZoom(store, e, ctx, isAny); return; }
       return startDragZoom(store, ctx, isAny);
     };
     case 'panX': return (store, e, ctx) => {
-      if (e instanceof WheelEvent) { applyWheelPan(store, e, isHoriz); return; }
+      const { isX } = buildScaleFilters(store);
+      if (e instanceof WheelEvent) { applyWheelPan(store, e, isX); return; }
       if (ctx.scaleId != null) return startGutterPan(store, e, ctx);
-      return startDragPan(store, e, isHoriz, ctx);
+      return startDragPan(store, e, isX, ctx);
     };
     case 'panY': return (store, e, ctx) => {
-      if (e instanceof WheelEvent) { applyWheelPan(store, e, isVert); return; }
+      const { isY } = buildScaleFilters(store);
+      if (e instanceof WheelEvent) { applyWheelPan(store, e, isY); return; }
       if (ctx.scaleId != null) return startGutterPan(store, e, ctx);
-      return startDragPan(store, e, isVert, ctx);
+      return startDragPan(store, e, isY, ctx);
     };
     case 'panXY': return (store, e, ctx) => {
+      const { isAny } = buildScaleFilters(store);
       if (e instanceof WheelEvent) { applyWheelPan(store, e, isAny); return; }
       return startDragPan(store, e, isAny, ctx);
     };
@@ -386,18 +439,28 @@ function resolveReaction(reaction: ReactionValue): ReactionFn | undefined {
 // Helper: build event info
 // ---------------------------------------------------------------------------
 
-function buildSelectInfo(store: ChartStore, sel: SelectState): SelectEventInfo {
+function buildSelectInfo(store: ChartStore, sel: SelectState, filterScale?: ScaleFilter): SelectEventInfo {
   const plotBox = store.plotBox;
   const fracLeft = sel.left / plotBox.width;
   const fracRight = (sel.left + sel.width) / plotBox.width;
 
   const ranges: Record<string, { min: number; max: number }> = {};
   for (const scale of store.scaleManager.getAllScales()) {
-    if (scale.ori !== Orientation.Horizontal) continue;
     if (!isScaleReady(scale)) continue;
+    // If a filter is provided (e.g. from a zoom reaction), only report on those scales.
+    // Otherwise default to all scales — caller decides which ranges are meaningful.
+    if (filterScale != null && !filterScale(scale)) continue;
 
-    const minVal = posToVal(plotBox.left + fracLeft * plotBox.width, scale, plotBox.width, plotBox.left);
-    const maxVal = posToVal(plotBox.left + fracRight * plotBox.width, scale, plotBox.width, plotBox.left);
+    const isHoriz = scale.ori === Orientation.Horizontal;
+    const dim = isHoriz ? plotBox.width : plotBox.height;
+    const off = isHoriz ? plotBox.left  : plotBox.top;
+    const selStart = isHoriz ? sel.left : sel.top;
+    const selSize  = isHoriz ? sel.width : sel.height;
+    const fracStart = selStart / dim;
+    const fracEnd   = (selStart + selSize) / dim;
+
+    const minVal = posToVal(off + fracStart * dim, scale, dim, off);
+    const maxVal = posToVal(off + fracEnd   * dim, scale, dim, off);
 
     ranges[scale.id] = { min: Math.min(minVal, maxVal), max: Math.max(minVal, maxVal) };
   }
@@ -857,15 +920,24 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
         const midCtx = buildContext({ clientX: pinchState.midX, clientY: pinchState.midY });
         const fn = dispatch('pinch', e, midCtx);
         if (fn != null) {
-          // Apply pinch as a zoom factor
+          // Apply pinch as a zoom factor on whichever scales the 'pinch' reaction targets.
+          // Default 'pinch' = zoomX, so by default this zooms the x-axis regardless of orientation.
+          const reaction = store.actionMap.get('pinch');
+          const filters = buildScaleFilters(store);
+          const filterScale: ScaleFilter =
+            reaction === 'zoomY' ? filters.isY :
+            reaction === 'zoomXY' ? filters.isAny :
+            filters.isX;
+
           const factor = newDist / pinchState.dist;
           const plotBox = store.plotBox;
 
           for (const scale of store.scaleManager.getAllScales()) {
-            if (scale.ori !== Orientation.Horizontal) continue;
             if (!isScaleReady(scale)) continue;
+            if (!filterScale(scale)) continue;
 
-            const cursorVal = posToVal(midCtx.cx + plotBox.left, scale, plotBox.width, plotBox.left);
+            const { cursorPx, dim, off } = axisDimsForScale(scale, midCtx, plotBox);
+            const cursorVal = posToVal(cursorPx, scale, dim, off);
             const newMin = cursorVal - (cursorVal - scale.min) / factor;
             const newMax = cursorVal + (scale.max - cursorVal) / factor;
 

@@ -1,4 +1,4 @@
-import { BAR_DEFAULTS } from './types';
+import { BAR_DEFAULTS, H_BAR_DEFAULTS } from './types';
 import type { SeriesPaths, PathBuilder, PathBuilderOpts } from './types';
 export type { PathBuilderOpts } from './types';
 import type { ScaleState } from '../types';
@@ -11,9 +11,26 @@ function withBarDefaults(fn: PathBuilder): PathBuilder {
   return fn;
 }
 
+function withHBarDefaults(fn: PathBuilder): PathBuilder {
+  fn.defaults = H_BAR_DEFAULTS;
+  return fn;
+}
+
+/**
+ * (col, val) → (canvasX, canvasY) projection.
+ * Vertical bars: identity — column axis is canvas X, value axis is canvas Y.
+ * Horizontal bars: swap — column axis is canvas Y, value axis is canvas X.
+ *
+ * Geometry math throughout this file is written in axis-neutral (col, val) terms;
+ * the projection is the single point where orientation collapses to canvas coords.
+ */
+type Projection = (col: number, val: number) => [number, number];
+
 /**
  * Bar/column chart path builder.
- * Draws vertical (or horizontal) bars at each data point.
+ * Draws bars at each data point. Direction follows scaleX.ori:
+ *   Horizontal x-scale → vertical bars (default)
+ *   Vertical x-scale → horizontal bars
  *
  * Ported from uPlot/src/paths/bars.js
  */
@@ -39,10 +56,13 @@ export function bars(): PathBuilder {
     const groupIdx = opts?.barGroupIdx ?? 0;
     const groupCount = opts?.barGroupCount ?? 1;
 
-    const pixelForX = (val: number) => pxRound(valToPos(val, scaleX, xDim, xOff));
-    const pixelForY = (val: number) => pxRound(valToPos(val, scaleY, yDim, yOff));
+    // Column axis = scaleX (categories); value axis = scaleY (values).
+    // Pixel mapping is the same in both orientations — the renderer feeds
+    // the appropriate dim/off based on each scale's ori.
+    const pixelForCol = (val: number) => pxRound(valToPos(val, scaleX, xDim, xOff));
+    const pixelForVal = (val: number) => pxRound(valToPos(val, scaleY, yDim, yOff));
 
-    // Find minimum column width from adjacent x-values
+    // Find minimum column spacing from adjacent x-values
     let colWid = xDim;
     if (idx1 > idx0) {
       let minDelta = Infinity;
@@ -53,7 +73,7 @@ export function bars(): PathBuilder {
           if (prevIdx >= 0) {
             const dx = at(dataX, i);
             const dprev = at(dataX, prevIdx);
-            const delta = Math.abs(pixelForX(dx) - pixelForX(dprev));
+            const delta = Math.abs(pixelForCol(dx) - pixelForCol(dprev));
             if (delta < minDelta) minDelta = delta;
           }
           prevIdx = i;
@@ -70,47 +90,55 @@ export function bars(): PathBuilder {
     const barWid = groupCount > 1 ? Math.max(1, pxRound(totalBarWid / Math.max(1, groupCount))) : totalBarWid;
 
     const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
-    const fillToY = pixelForY(fillToVal);
+    const fillToValPx = pixelForVal(fillToVal);
     const fillToData = opts?.fillToData;
 
     const stroke = new Path2D();
-    const isHorizontal = scaleX.ori === Orientation.Horizontal;
+
+    // Single orientation decision — all geometry below is axis-neutral.
+    const project: Projection = scaleX.ori === Orientation.Horizontal
+      ? (c, v) => [c, v]
+      : (c, v) => [v, c];
 
     for (let i = dir === Direction.Forward ? idx0 : idx1; i >= idx0 && i <= idx1; i += dir) {
       const yVal = dataY[i];
       if (yVal == null) continue;
 
-      const xPos = pixelForX(at(dataX, i));
-      const yPos = pixelForY(yVal);
+      const colPx = pixelForCol(at(dataX, i));
+      const valPx = pixelForVal(yVal);
 
       // Per-point baseline for stacked bars, falling back to fixed fillTo
       const ptFillToVal = fillToData != null && fillToData[i] != null
         ? at(fillToData, i) ?? fillToVal
         : fillToVal;
-      const ptFillToY = fillToData != null && fillToData[i] != null
-        ? pixelForY(ptFillToVal)
-        : fillToY;
+      const ptFillToValPx = fillToData != null && fillToData[i] != null
+        ? pixelForVal(ptFillToVal)
+        : fillToValPx;
 
       // Offset for grouped bars: center the group, then shift by groupIdx
       const groupOffset = groupCount > 1
         ? (groupIdx - (groupCount - 1) / 2) * barWid
         : 0;
 
-      const lft = pxRound(xPos - barWid / 2 + groupOffset);
-      const top = Math.min(yPos, ptFillToY);
-      const btm = Math.max(yPos, ptFillToY);
-      const barHgt = btm - top;
+      // Bar in (col, val) space:
+      //   - centered at colPx (with group offset) along the column axis
+      //   - extends from ptFillToValPx to valPx along the value axis
+      const colStart = pxRound(colPx - barWid / 2 + groupOffset);
+      const valStart = Math.min(valPx, ptFillToValPx);
+      const valEnd = Math.max(valPx, ptFillToValPx);
+      const barLen = valEnd - valStart;
 
-      if (barHgt === 0) continue;
+      if (barLen === 0) continue;
 
       if (radiusFrac > 0) {
-        const rad = Math.min(radiusFrac * barWid, barHgt / 2);
-        drawRoundedRect(stroke, isHorizontal, lft, top, barWid, barHgt, rad, yVal < ptFillToVal);
+        const rad = Math.min(radiusFrac * barWid, barLen / 2);
+        // isNeg = bar's value-end is at valEnd (the larger pixel coord).
+        // For positive bars, the value-end is at valStart (smaller pixel = "top" in vertical).
+        drawRoundedRect(stroke, project, colStart, valStart, barWid, barLen, rad, yVal < ptFillToVal);
       } else {
-        if (isHorizontal)
-          stroke.rect(lft, top, barWid, barHgt);
-        else
-          stroke.rect(top, lft, barHgt, barWid);
+        const [x, y] = project(colStart, valStart);
+        const [w, h] = project(barWid, barLen);
+        stroke.rect(x, y, w, h);
       }
     }
 
@@ -165,57 +193,87 @@ export function stackedBars(baselineData?: ArrayLike<number | null>): PathBuilde
   return withBarDefaults(fn);
 }
 
-/** Draw a rounded rectangle with radius only on the value end (top for positive, bottom for negative). */
+/**
+ * Horizontal bar chart path builder.
+ * Identical to bars() except declares `transposed: true` via defaults, which causes
+ * the chart to flip xScale.ori → Vertical and yScale.ori → Horizontal. The same
+ * geometry math then produces horizontal bars via the (col, val) projection.
+ */
+export function horizontalBars(): PathBuilder {
+  const inner = bars();
+  const fn: PathBuilder = (dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts) => {
+    return inner(dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts);
+  };
+  return withHBarDefaults(fn);
+}
+
+/** Horizontal grouped bars: side-by-side bars within each category, drawn horizontally. */
+export function horizontalGroupedBars(groupIdx: number, groupCount: number): PathBuilder {
+  const inner = groupedBars(groupIdx, groupCount);
+  const fn: PathBuilder = (dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts) => {
+    return inner(dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts);
+  };
+  return withHBarDefaults(fn);
+}
+
+/** Horizontal stacked bars: cumulative values stacked along the value axis, drawn horizontally. */
+export function horizontalStackedBars(baselineData?: ArrayLike<number | null>): PathBuilder {
+  const inner = stackedBars(baselineData);
+  const fn: PathBuilder = (dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts) => {
+    return inner(dataX, dataY, scaleX, scaleY, xDim, yDim, xOff, yOff, idx0, idx1, dir, pxRound, opts);
+  };
+  return withHBarDefaults(fn);
+}
+
+/**
+ * Draw a rounded rectangle in (col, val) space with the radius on the value-end of the bar.
+ * Uses arcTo (geometric, no angle math) so the drawing reflects correctly under any projection.
+ *
+ * @param isNeg - True if the bar's value-end is at val+valSpan (negative bar). False if at val.
+ */
 function drawRoundedRect(
   path: Path2D,
-  isHorizontal: boolean,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
+  project: Projection,
+  col: number,
+  val: number,
+  colSpan: number,
+  valSpan: number,
   r: number,
   isNeg: boolean,
 ): void {
-  r = Math.min(r, w / 2, h / 2);
+  r = Math.min(r, colSpan / 2, valSpan / 2);
 
-  if (isHorizontal) {
-    if (isNeg) {
-      // Radius on bottom
-      path.moveTo(x, y);
-      path.lineTo(x + w, y);
-      path.lineTo(x + w, y + h - r);
-      path.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
-      path.lineTo(x + r, y + h);
-      path.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
-      path.closePath();
-    } else {
-      // Radius on top
-      path.moveTo(x, y + h);
-      path.lineTo(x, y + r);
-      path.arc(x + r, y + r, r, Math.PI, Math.PI * 1.5);
-      path.lineTo(x + w - r, y);
-      path.arc(x + w - r, y + r, r, Math.PI * 1.5, 0);
-      path.lineTo(x + w, y + h);
-      path.closePath();
-    }
+  const moveTo = (c: number, v: number): void => {
+    const [x, y] = project(c, v);
+    path.moveTo(x, y);
+  };
+  const lineTo = (c: number, v: number): void => {
+    const [x, y] = project(c, v);
+    path.lineTo(x, y);
+  };
+  const arcTo = (c1: number, v1: number, c2: number, v2: number, radius: number): void => {
+    const [x1, y1] = project(c1, v1);
+    const [x2, y2] = project(c2, v2);
+    path.arcTo(x1, y1, x2, y2, radius);
+  };
+
+  if (!isNeg) {
+    // Positive bar: round corners at val=val (the value-end)
+    moveTo(col, val + valSpan);
+    lineTo(col, val + r);
+    arcTo(col, val, col + r, val, r);
+    lineTo(col + colSpan - r, val);
+    arcTo(col + colSpan, val, col + colSpan, val + r, r);
+    lineTo(col + colSpan, val + valSpan);
+    path.closePath();
   } else {
-    // Vertical orientation — swap x/y semantics
-    if (isNeg) {
-      path.moveTo(y, x);
-      path.lineTo(y, x + w);
-      path.lineTo(y + h - r, x + w);
-      path.arc(y + h - r, x + w - r, r, Math.PI / 2, 0, true);
-      path.lineTo(y + h, x + r);
-      path.arc(y + h - r, x + r, r, 0, -Math.PI / 2, true);
-      path.closePath();
-    } else {
-      path.moveTo(y + h, x);
-      path.lineTo(y + r, x);
-      path.arc(y + r, x + r, r, -Math.PI / 2, Math.PI, true);
-      path.lineTo(y, x + w - r);
-      path.arc(y + r, x + w - r, r, Math.PI, Math.PI / 2, true);
-      path.lineTo(y + h, x + w);
-      path.closePath();
-    }
+    // Negative bar: round corners at val=val+valSpan (the value-end)
+    moveTo(col, val);
+    lineTo(col + colSpan, val);
+    lineTo(col + colSpan, val + valSpan - r);
+    arcTo(col + colSpan, val + valSpan, col + colSpan - r, val + valSpan, r);
+    lineTo(col + r, val + valSpan);
+    arcTo(col, val + valSpan, col, val + valSpan - r, r);
+    path.closePath();
   }
 }

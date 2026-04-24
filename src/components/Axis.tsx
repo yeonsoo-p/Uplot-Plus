@@ -5,7 +5,13 @@ import { useRegisterConfig } from '../hooks/useRegisterConfig';
 export type AxisProps = Omit<AxisConfig, 'side'> & { side?: Side };
 
 function resolveAxis(p: AxisProps): AxisConfig {
-  return { ...p, side: p.side ?? (p.scale === 'x' ? Side.Bottom : Side.Left), show: p.show ?? true };
+  const autoSide = p.side == null;
+  return {
+    ...p,
+    side: p.side ?? (p.scale === 'x' ? Side.Bottom : Side.Left),
+    show: p.show ?? true,
+    _autoSide: autoSide,
+  };
 }
 
 /**

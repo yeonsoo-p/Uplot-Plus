@@ -42,6 +42,8 @@ export interface AxisConfig {
   border?: BorderConfig;
   /** Internal: marks axes auto-created by injectDefaults */
   _default?: boolean;
+  /** Internal: marks the side as auto-derived (user did not specify), so it can be re-derived from scale.ori later */
+  _autoSide?: boolean;
 }
 
 export interface GridConfig {

@@ -170,6 +170,26 @@ function requestOri(map: Map<string, Orientation>, scaleId: string, ori: Orienta
   map.set(scaleId, ori);
 }
 
+/**
+ * Fire onScaleChange for any scales whose ranges changed since the last call,
+ * then update the snapshot. Used by both the redraw path and interaction
+ * end-of-gesture hooks; calling more than once per change is a no-op because
+ * the snapshot is updated in lockstep with the fire.
+ */
+export function notifyScaleChanges(store: ChartStore): void {
+  const cb = store.eventCallbacks.onScaleChange;
+  for (const scale of store.scaleManager.getAllScales()) {
+    if (!isScaleReady(scale)) continue;
+    const prev = store._prevScaleRanges.get(scale.id);
+    if (prev == null || prev.min !== scale.min || prev.max !== scale.max) {
+      if (cb != null) {
+        try { cb(scale.id, scale.min, scale.max); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
+      }
+      store._prevScaleRanges.set(scale.id, { min: scale.min, max: scale.max });
+    }
+  }
+}
+
 /** Build a DrawContext with valToX/valToY helpers bound to current scales. */
 function buildDrawContext(
   ctx: CanvasRenderingContext2D,
@@ -822,24 +842,10 @@ export function createChartStore(): ChartStore {
       for (const fn of store.listeners) fn();
       for (const fn of store.cursorListeners) fn();
 
-      // 14. Fire onScaleChange for scales whose ranges changed
-      if (store._prevScaleRanges.size > 0 && store.eventCallbacks.onScaleChange != null) {
-        for (const scale of scaleManager.getAllScales()) {
-          if (!isScaleReady(scale)) continue;
-          const prev = store._prevScaleRanges.get(scale.id);
-          if (prev == null || prev.min !== scale.min || prev.max !== scale.max) {
-            try { store.eventCallbacks.onScaleChange(scale.id, scale.min, scale.max); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
-          }
-        }
-      }
-
-      // Update previous scale ranges snapshot
-      store._prevScaleRanges.clear();
-      for (const scale of scaleManager.getAllScales()) {
-        if (isScaleReady(scale)) {
-          store._prevScaleRanges.set(scale.id, { min: scale.min, max: scale.max });
-        }
-      }
+      // 14. Fire onScaleChange for any range changes the redraw introduced
+      // (interaction handlers also notify on gesture end; either side is idempotent
+      // because notifyScaleChanges updates _prevScaleRanges as it fires).
+      notifyScaleChanges(store);
 
     },
 

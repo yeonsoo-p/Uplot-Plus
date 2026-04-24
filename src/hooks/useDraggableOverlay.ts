@@ -1,5 +1,34 @@
 import type React from 'react';
 import { useRef, useState, useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
+
+/**
+ * Measure an overlay panel's offsetWidth/offsetHeight after every commit and
+ * return the latest size. Falls back to `fallback` until the first measurement
+ * lands. Used by cursor-anchored overlays whose content (and thus size) changes
+ * with cursor position.
+ *
+ * State guard prevents the layout-effect from looping; intentional no-deps so
+ * it re-runs on every render. Mirrors the in-hook measurement effect used by
+ * useDraggableOverlay's cursor mode.
+ */
+export function useMeasuredOverlay(
+  panelRef: React.RefObject<HTMLElement>,
+  fallback: { w: number; h: number },
+): { w: number; h: number } {
+  const [measured, setMeasured] = useState({ w: 0, h: 0 });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional no-deps; state guard prevents loop
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (w !== measured.w || h !== measured.h) setMeasured({ w, h });
+  });
+  return {
+    w: measured.w || fallback.w,
+    h: measured.h || fallback.h,
+  };
+}
 import { useStore } from './useChart';
 import { clamp } from '../math/utils';
 import type { CornerPosition, OverlayPosition, OverlayOffset } from '../types/common';

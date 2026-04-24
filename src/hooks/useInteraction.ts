@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { ChartStore } from './useChartStore';
+import { notifyScaleChanges } from './useChartStore';
 import type { SelectState, ScaleState } from '../types';
 import type { ChartEventInfo, NearestPoint, SelectEventInfo } from '../types/events';
 import type { ActionContext, ActionKey, ReactionValue, DragContinuation } from '../types/interaction';
@@ -135,18 +136,9 @@ function captureScales(
   return result;
 }
 
-/** Fire onScaleChange for all scales that changed. */
-function fireScaleChange(store: ChartStore): void {
-  const cb = store.eventCallbacks.onScaleChange;
-  if (cb == null) return;
-  for (const scale of store.scaleManager.getAllScales()) {
-    if (!isScaleReady(scale)) continue;
-    const prev = store._prevScaleRanges.get(scale.id);
-    if (prev == null || prev.min !== scale.min || prev.max !== scale.max) {
-      cb(scale.id, scale.min, scale.max);
-    }
-  }
-}
+// Fire onScaleChange + advance _prevScaleRanges via the shared store helper.
+// The next redraw's notifyScaleChanges call is a no-op for the same change.
+const fireScaleChange = notifyScaleChanges;
 
 /** Apply wheel zoom to scales matching the given filter. */
 function applyWheelZoom(

@@ -246,30 +246,26 @@ export const autoRangePart: RangePartConfig = {
   soft: null,
 };
 
-/** Shared mutable range config for the dual-mode rangeNum wrapper */
-const _eqRangePart: RangePartConfig = { pad: 0, soft: null, mode: 0 };
-const _eqRange = { min: _eqRangePart, max: _eqRangePart };
+/**
+ * Convenience for the simple case: same pad on both sides, optional soft-zero
+ * (soft=0, mode=3) when `hasSoftZero` is true. Forwards to rangeNum().
+ *
+ * Replaces the prior dual calling convention that mutated a module-level
+ * RangePartConfig (re-entrant calls would clobber).
+ */
+export function rangeNumPad(_min: number, _max: number, pad: number, hasSoftZero = false): [number, number] {
+  const part: RangePartConfig = { pad, soft: hasSoftZero ? 0 : null, mode: hasSoftZero ? 3 : 0 };
+  return rangeNum(_min, _max, { min: part, max: part });
+}
 
 /**
  * Compute a nice range for numeric data with padding and soft/hard limits.
- * Supports both (min, max, cfg) and (min, max, mult, extra) calling conventions.
  */
 export function rangeNum(
   _min: number,
   _max: number,
-  cfgOrMult: { min: RangePartConfig; max: RangePartConfig } | number,
-  extra?: boolean,
+  cfg: { min: RangePartConfig; max: RangePartConfig },
 ): [number, number] {
-  let cfg: { min: RangePartConfig; max: RangePartConfig };
-
-  if (typeof cfgOrMult === 'number') {
-    _eqRangePart.pad = cfgOrMult;
-    _eqRangePart.soft = extra ? 0 : null;
-    _eqRangePart.mode = extra ? 3 : 0;
-    cfg = _eqRange;
-  } else {
-    cfg = cfgOrMult;
-  }
   const cmin = cfg.min;
   const cmax = cfg.max;
 

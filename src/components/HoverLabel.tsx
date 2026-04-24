@@ -1,11 +1,14 @@
-import React, { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useStore } from '../hooks/useChart';
 import { Panel, SeriesRow } from './overlay/SeriesPanel';
-import { clamp } from '../math/utils';
+import { useMeasuredOverlay, computeCursorPos } from '../hooks/useDraggableOverlay';
 import { getSeriesColor } from '../types/series';
 import { estimatePanelSize } from '../utils/estimatePanelSize';
 
 const hoverPanelStyle: React.CSSProperties = { pointerEvents: 'none' };
+
+/** Pixel gap between the cursor and the bottom of the floating label */
+const CURSOR_GAP = 12;
 
 export interface HoverLabelProps {
   /** Delay in milliseconds before label appears (default: 1000) */
@@ -31,19 +34,14 @@ export function HoverLabel({
   const trackedSeries = useRef(-1);
   const timerRef = useRef(0);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [measured, setMeasured] = useState({ w: 0, h: 0 });
 
-  // Measure after every DOM commit so clamping uses real dimensions.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => {
-    const el = panelRef.current;
-    if (!el) return;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    if (w !== measured.w || h !== measured.h) {
-      setMeasured({ w, h });
-    }
-  });
+  // Compute estimated size eagerly so first render places the panel close to its final spot
+  // even before the layout-effect measurement lands.
+  const cfg = store.seriesConfigs.find(
+    (s) => s.group === snap.activeGroup && s.index === snap.activeSeriesIdx,
+  );
+  const estimated = estimatePanelSize({ rows: [{ label: cfg?.label ?? '' }] }, store.theme);
+  const { w: mW, h: mH } = useMeasuredOverlay(panelRef, estimated);
 
   // Track series changes and manage timer
   useEffect(() => {
@@ -62,28 +60,21 @@ export function HoverLabel({
   useEffect(() => () => { window.clearTimeout(timerRef.current); }, []);
 
   if (!show || !visible || snap.left < 0) return null;
-
-  const cfg = store.seriesConfigs.find(
-    (s) => s.group === snap.activeGroup && s.index === snap.activeSeriesIdx,
-  );
   if (!cfg?.label || cfg.legend === false) return null;
 
-  const color = getSeriesColor(cfg);
-
-  // Pre-compute dimensions from text content to avoid double render
-  const estimated = estimatePanelSize({ rows: [{ label: cfg.label }] }, store.theme);
-
-  // Position above cursor, clamped to plot
-  const mW = measured.w || estimated.w;
-  const mH = measured.h || estimated.h;
-  const cx = snap.left + snap.plotLeft;
-  const cy = snap.top + snap.plotTop;
-  const x = clamp(cx - mW / 2, snap.plotLeft, snap.plotLeft + snap.plotWidth - mW);
-  const y = clamp(cy - mH - 12, snap.plotTop, snap.plotTop + snap.plotHeight - mH);
+  // Position centered above cursor (offset = (-w/2, -h - gap)) — uses the same clamp
+  // logic as the rest of the cursor-anchored overlays.
+  const pos = computeCursorPos(
+    snap.left, snap.top,
+    snap.plotLeft, snap.plotTop, snap.plotWidth, snap.plotHeight,
+    -mW / 2, -mH - CURSOR_GAP,
+    mW, mH,
+  );
+  if (pos == null) return null;
 
   return (
-    <Panel ref={panelRef} left={x} top={y} className={className} style={hoverPanelStyle}>
-      <SeriesRow label={cfg.label} color={color} />
+    <Panel ref={panelRef} left={pos.x} top={pos.y} className={className} style={hoverPanelStyle}>
+      <SeriesRow label={cfg.label} color={getSeriesColor(cfg)} />
     </Panel>
   );
 }

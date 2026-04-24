@@ -33,7 +33,11 @@ const swatchStyle: React.CSSProperties = {
   flexShrink: 0,
 };
 
-const valueStyle: React.CSSProperties = { fontWeight: 600 };
+/** Bold value text — shared by Legend and Tooltip rows. */
+export const overlayValueStyle: React.CSSProperties = { fontWeight: 600 };
+
+/** Opacity applied to hidden/toggled-off series rows. Resolves at render time via cssVar. */
+export const overlayHiddenOpacity = cssVar('overlayHiddenOpacity');
 
 const rowStyle: React.CSSProperties = {
   display: 'flex',
@@ -54,10 +58,11 @@ const rowVisibleDefault: React.CSSProperties = { ...rowStyle, opacity: 1, cursor
 const rowHiddenPointer: React.CSSProperties = { ...rowStyle, opacity: cssVar('overlayHiddenOpacity'), cursor: 'pointer' };
 const rowHiddenDefault: React.CSSProperties = { ...rowStyle, opacity: cssVar('overlayHiddenOpacity'), cursor: 'default' };
 
-// Swatch style cache keyed by color string
+// Swatch style cache keyed by color string. Shared by Legend and Tooltip rows
+// so adding a swatch property (e.g. border) lands in one place.
 const swatchStyleCache = new Map<string, React.CSSProperties>();
 
-function getSwatchStyle(color: string): React.CSSProperties {
+export function getSwatchStyle(color: string): React.CSSProperties {
   let cached = swatchStyleCache.get(color);
   if (cached == null) {
     cached = { ...swatchStyle, backgroundColor: color };
@@ -88,7 +93,7 @@ export function SeriesRow({
       <button type="button" onClick={onClick} style={style} aria-label={`Toggle ${label}`}>
         <span style={getSwatchStyle(color)} />
         <span>{label}</span>
-        {value && <span style={valueStyle}>{value}</span>}
+        {value && <span style={overlayValueStyle}>{value}</span>}
       </button>
     );
   }
@@ -97,7 +102,7 @@ export function SeriesRow({
     <div style={style}>
       <span style={getSwatchStyle(color)} />
       <span>{label}</span>
-      {value && <span style={valueStyle}>{value}</span>}
+      {value && <span style={overlayValueStyle}>{value}</span>}
     </div>
   );
 }

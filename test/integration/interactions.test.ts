@@ -453,6 +453,38 @@ describe('Interaction: wheel zoom', () => {
     const calls = cb.mock.calls.filter((c: unknown[]) => c[0] === 'x');
     expect(calls.length).toBeGreaterThan(0);
   });
+
+  it('onScaleChange fires exactly once per wheel zoom (no double-fire across interaction + redraw paths)', () => {
+    const cb = vi.fn();
+    h.store.eventCallbacks.onScaleChange = cb;
+
+    const { clientX, clientY } = plotToClient(h, 350, 280);
+    h.el.dispatchEvent(new WheelEvent('wheel', {
+      clientX, clientY, deltaY: 200, bubbles: true,
+    }));
+
+    // Run any pending redraw the interaction scheduled
+    h.store.redraw();
+
+    const xCalls = cb.mock.calls.filter((c: unknown[]) => c[0] === 'x');
+    expect(xCalls.length).toBe(1);
+  });
+
+  it('onScaleChange callback errors are caught and logged from interaction path', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    h.store.eventCallbacks.onScaleChange = () => { throw new Error('boom'); };
+
+    const { clientX, clientY } = plotToClient(h, 350, 280);
+    // Must not throw
+    expect(() => {
+      h.el.dispatchEvent(new WheelEvent('wheel', {
+        clientX, clientY, deltaY: 200, bubbles: true,
+      }));
+    }).not.toThrow();
+
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
 });
 
 describe('Interaction: callback error resilience', () => {

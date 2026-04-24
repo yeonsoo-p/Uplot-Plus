@@ -3,24 +3,22 @@ import { useStore } from '../hooks/useChart';
 import type { LegendConfig } from '../types/legend';
 import type { ChartStore } from '../hooks/useChartStore';
 import { getSeriesColor } from '../types/series';
-import { SWATCH_W, SWATCH_H, SWATCH_RADIUS, ROW_GAP } from './overlay/tokens';
+import { ROW_GAP } from './overlay/tokens';
 import { cssVar } from '../rendering/theme';
-import { formatSeriesValue } from './overlay/SeriesPanel';
+import {
+  formatSeriesValue,
+  getSwatchStyle,
+  overlayValueStyle,
+  overlayHiddenOpacity,
+} from './overlay/SeriesPanel';
 
 interface LegendProps extends LegendConfig {
   className?: string;
 }
 
-// Static styles hoisted out of render to avoid re-allocation
-const swatchStyle: React.CSSProperties = {
-  width: SWATCH_W,
-  height: SWATCH_H,
-  borderRadius: SWATCH_RADIUS,
-  display: 'inline-block',
-};
-
-const valueStyle: React.CSSProperties = { fontWeight: 600 };
-
+// Legend rows are inline pills in a wrapping container — distinct layout from
+// SeriesPanel's stacked full-width rows — but the swatch, value text, and
+// hidden-opacity styling come from the shared overlay tokens.
 const baseItemStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -35,8 +33,7 @@ const baseItemStyle: React.CSSProperties = {
 };
 
 const itemStyleVisible: React.CSSProperties = { ...baseItemStyle, opacity: 1 };
-const itemStyleHidden: React.CSSProperties = { ...baseItemStyle, opacity: cssVar('overlayHiddenOpacity') };
-const swatchStyleCache = new Map<string, React.CSSProperties>();
+const itemStyleHidden: React.CSSProperties = { ...baseItemStyle, opacity: overlayHiddenOpacity };
 
 const wrapperStyleTop: React.CSSProperties = {
   display: 'flex', flexWrap: 'wrap', justifyContent: 'center', order: -1, padding: '4px 0',
@@ -56,12 +53,6 @@ interface LegendItemProps {
 }
 
 function LegendItem({ group, index, label, color, isHidden, valueStr, store }: LegendItemProps) {
-  let cachedSwatch = swatchStyleCache.get(color);
-  if (cachedSwatch == null) {
-    cachedSwatch = { ...swatchStyle, backgroundColor: color };
-    swatchStyleCache.set(color, cachedSwatch);
-  }
-
   return (
     <button
       type="button"
@@ -71,9 +62,9 @@ function LegendItem({ group, index, label, color, isHidden, valueStr, store }: L
       aria-label={`Toggle ${label}`}
       style={isHidden ? itemStyleHidden : itemStyleVisible}
     >
-      <span style={cachedSwatch} />
+      <span style={getSwatchStyle(color)} />
       <span>{label}</span>
-      {valueStr && <span style={valueStyle}>{valueStr}</span>}
+      {valueStr && <span style={overlayValueStyle}>{valueStr}</span>}
     </button>
   );
 }

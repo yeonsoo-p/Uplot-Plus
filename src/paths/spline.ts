@@ -4,7 +4,7 @@ import type { ScaleState } from '../types';
 import { Orientation, Direction } from '../types';
 import { valToPos } from '../core/Scale';
 import { nonNullIdxs } from '../math/utils';
-import { lineToH, lineToV, findGaps, clipGaps } from './utils';
+import { lineToH, lineToV, closeFill, attachGapClip } from './utils';
 import { at } from '../utils/at';
 
 /**
@@ -68,38 +68,12 @@ export function splineInterp(
       gaps: null,
     };
 
-    // Build fill path
     if (stroke != null) {
-      const fill = _paths.fill = new Path2D(stroke);
-      const fillToData = opts?.fillToData;
-
-      if (fillToData != null) {
-        // Per-point baseline: trace backwards along baseline data
-        for (let i = dir === Direction.Forward ? idx1 : idx0; i >= idx0 && i <= idx1; i -= dir) {
-          const bv = fillToData[i];
-          const xv = dataX[i];
-          if (bv != null && xv != null)
-            lineTo(fill, pixelForX(xv), pixelForY(bv));
-        }
-      } else {
-        const fillToVal = opts?.fillTo ?? scaleY.min ?? 0;
-        const fillToY = pixelForY(fillToVal);
-
-        let frX = pixelForX(at(dataX, idx0));
-        let toX = pixelForX(at(dataX, idx1));
-        if (dir === Direction.Backward) [toX, frX] = [frX, toX];
-
-        lineTo(fill, toX, fillToY);
-        lineTo(fill, frX, fillToY);
-      }
+      _paths.fill = new Path2D(stroke);
+      closeFill(_paths.fill, lineTo, pixelForX, pixelForY, scaleY, dataX, idx0, idx1, dir, opts);
     }
 
-    // Build clip path for gaps
-    if (hasGap) {
-      const gaps = findGaps(dataX, dataY, idx0, idx1, dir, pixelForX);
-      _paths.gaps = gaps;
-      _paths.clip = clipGaps(gaps, scaleX.ori, xOff, yOff, xDim, yDim);
-    }
+    if (hasGap) attachGapClip(_paths, dataX, dataY, idx0, idx1, dir, pixelForX, scaleX, xOff, yOff, xDim, yDim);
 
     return _paths;
   };

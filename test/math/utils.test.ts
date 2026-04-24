@@ -14,6 +14,7 @@ import {
   fmtNum,
   hasData,
   rangeNum,
+  rangeNumPad,
   rangeLog,
   rangeAsinh,
   numIntDigits,
@@ -222,13 +223,13 @@ describe('hasData', () => {
 });
 
 // ---- rangeNum ----
-describe('rangeNum', () => {
+describe('rangeNum / rangeNumPad', () => {
   it('returns [-1, 1] for zero range at zero', () => {
-    expect(rangeNum(0, 0, 0.1)).toEqual([-1, 1]);
+    expect(rangeNumPad(0, 0, 0.1)).toEqual([-1, 1]);
   });
 
-  it('adds padding to normal range', () => {
-    const [mn, mx] = rangeNum(0, 10, 0.1, true);
+  it('adds padding to normal range (with soft-zero floor)', () => {
+    const [mn, mx] = rangeNumPad(0, 10, 0.1, true);
     expect(mn).toBe(0);
     expect(mx).toBe(11);
   });
@@ -244,9 +245,20 @@ describe('rangeNum', () => {
   });
 
   it('handles equal min/max with padding', () => {
-    const [mn, mx] = rangeNum(5, 5, 0.1);
+    const [mn, mx] = rangeNumPad(5, 5, 0.1);
     expect(mn).toBe(0);
     expect(mx).toBe(10);
+  });
+
+  it('rangeNumPad does not share mutable state across calls (re-entrancy safe)', () => {
+    // The previous implementation reused a module-level RangePartConfig,
+    // which would clobber a concurrent call. With per-call objects this is fine.
+    const a = rangeNumPad(0, 10, 0.1, true);   // soft-zero
+    const b = rangeNumPad(50, 100, 0.0, false); // no pad, no soft
+    // a's soft-zero must not have leaked into b
+    expect(a).toEqual([0, 11]);
+    expect(b[0]).toBe(50);
+    expect(b[1]).toBe(100);
   });
 });
 

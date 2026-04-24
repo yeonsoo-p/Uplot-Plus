@@ -4,7 +4,7 @@ import { notifyScaleChanges } from './useChartStore';
 import type { SelectState, ScaleState } from '../types';
 import type { ChartEventInfo, NearestPoint, SelectEventInfo } from '../types/events';
 import type { ActionContext, ActionKey, ReactionValue, DragContinuation } from '../types/interaction';
-import { posToVal, projectPoint, invalidateScaleCache, isScaleReady } from '../core/Scale';
+import { posToVal, projectPoint, invalidateScaleCache, isScaleReady, scaleTransform } from '../core/Scale';
 import { Side, Orientation, sideOrientation, DirtyFlag } from '../types/common';
 import { clamp } from '../math/utils';
 
@@ -122,16 +122,35 @@ function lookupReaction(
 
 type ReactionFn = (store: ChartStore, e: Event, ctx: ActionContext) => DragContinuation | void;
 
-/** Capture current scale states for pan initialization. */
+/** Capture current scale states for pan initialization (in transformed space). */
+interface PanCapture {
+  id: string;
+  ori: Orientation;
+  dir: number;
+  startMin: number;
+  startMax: number;
+  /** Transformed start min (log/asinh-aware) */
+  startTMin: number;
+  /** Transformed start max (log/asinh-aware) */
+  startTMax: number;
+  /** Inverse transform from transformed space back to data values */
+  inv: (t: number) => number;
+}
+
 function captureScales(
   store: ChartStore,
   filter?: ScaleFilter,
-): Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> {
-  const result: Array<{ id: string; ori: Orientation; dir: number; startMin: number; startMax: number }> = [];
+): PanCapture[] {
+  const result: PanCapture[] = [];
   for (const scale of store.scaleManager.getAllScales()) {
     if (!isScaleReady(scale)) continue;
     if (filter != null && !filter(scale)) continue;
-    result.push({ id: scale.id, ori: scale.ori, dir: scale.dir, startMin: scale.min, startMax: scale.max });
+    const { tMin, tMax, inv } = scaleTransform(scale);
+    result.push({
+      id: scale.id, ori: scale.ori, dir: scale.dir,
+      startMin: scale.min, startMax: scale.max,
+      startTMin: tMin, startTMax: tMax, inv,
+    });
   }
   return result;
 }
@@ -156,8 +175,13 @@ function applyWheelZoom(
     const { cursorPx, dim, off } = axisDimsForScale(scale, ctx, plotBox);
     const cursorVal = posToVal(cursorPx, scale, dim, off);
 
-    const newMin = cursorVal - (cursorVal - scale.min) * factor;
-    const newMax = cursorVal + (scale.max - cursorVal) * factor;
+    // Pivot in transformed space so log/asinh scales keep the cursor anchored.
+    const { tMin, tMax, fwd, inv } = scaleTransform(scale);
+    const cursorT = fwd(cursorVal);
+    const newTMin = cursorT - (cursorT - tMin) * factor;
+    const newTMax = cursorT + (tMax - cursorT) * factor;
+    const newMin = inv(newTMin);
+    const newMax = inv(newTMax);
 
     scale.min = Math.min(newMin, newMax);
     scale.max = Math.max(newMin, newMax);
@@ -235,7 +259,9 @@ function startDragZoom(
       // Clear selection
       selectState.show = false;
       selectState.left = 0;
+      selectState.top = 0;
       selectState.width = 0;
+      selectState.height = 0;
       store.selectState = selectState;
       store.scheduleRedraw();
     },
@@ -294,9 +320,11 @@ function startDragPan(
         const dim = isHoriz ? plotBox.width : plotBox.height;
         const delta = isHoriz ? me.clientX - startClientX : me.clientY - startClientY;
         const sign = (isHoriz ? -1 : 1) * s.dir;
-        const range = s.startMax - s.startMin;
-        scale.min = s.startMin + sign * (delta / dim) * range;
-        scale.max = s.startMax + sign * (delta / dim) * range;
+        // Translate in transformed space so log/asinh pan tracks the cursor uniformly.
+        const tRange = s.startTMax - s.startTMin;
+        const tShift = sign * (delta / dim) * tRange;
+        scale.min = s.inv(s.startTMin + tShift);
+        scale.max = s.inv(s.startTMax + tShift);
         scale.auto = false;
         invalidateScaleCache(scale);
       }
@@ -323,8 +351,8 @@ function startGutterPan(
   if (rect == null) return undefined;
   if (!(e instanceof MouseEvent)) return undefined;
   const startPos = isVert ? e.clientY - rect.top : e.clientX - rect.left;
-  const startMin = scale.min;
-  const startMax = scale.max;
+  // Capture transformed start bounds so log/asinh gutter pan tracks uniformly.
+  const { tMin: startTMin, tMax: startTMax, inv } = scaleTransform(scale);
   const scaleId = ctx.scaleId;
 
   return {
@@ -335,12 +363,13 @@ function startGutterPan(
       const pos = isVert ? moveE.clientY - rect.top : moveE.clientX - rect.left;
       const deltaFrac = (pos - startPos) / dim;
       const sign = (isVert ? 1 : -1) * scale.dir;
-      const range = startMax - startMin;
+      const tRange = startTMax - startTMin;
+      const tShift = sign * deltaFrac * tRange;
 
       const s = store.scaleManager.getScale(scaleId);
       if (s != null) {
-        s.min = startMin + sign * deltaFrac * range;
-        s.max = startMax + sign * deltaFrac * range;
+        s.min = inv(startTMin + tShift);
+        s.max = inv(startTMax + tShift);
         s.auto = false;
         invalidateScaleCache(s);
         store.renderer.clearCache();
@@ -365,9 +394,11 @@ function applyWheelPan(
     if (!isScaleReady(scale)) continue;
     if (!filterScale(scale)) continue;
 
-    const range = scale.max - scale.min;
-    scale.min += panFrac * range;
-    scale.max += panFrac * range;
+    // Translate in transformed space — uniform pan distance for log/asinh.
+    const { tMin, tMax, inv } = scaleTransform(scale);
+    const tRange = tMax - tMin;
+    scale.min = inv(tMin + panFrac * tRange);
+    scale.max = inv(tMax + panFrac * tRange);
     scale.auto = false;
     invalidateScaleCache(scale);
   }
@@ -531,18 +562,29 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       const plotBox = store.plotBox;
 
       for (const axState of store.axisStates) {
+        if (!axState._show) continue;
         const cfg = axState.config;
         const side = cfg.side;
         const size = axState._size;
         if (size <= 0) continue;
+        // Extend hit region to include the label slot when present.
+        const labelSize = cfg.label != null ? (cfg.labelSize ?? 20) : 0;
+        const totalSize = size + labelSize;
 
         const inVertRange = localY >= plotBox.top && localY <= plotBox.top + plotBox.height;
         const inHorizRange = localX >= plotBox.left && localX <= plotBox.left + plotBox.width;
+
+        // axState._pos is the inner edge of the axis ticks (set in calcAxesRects):
+        //   Left:   right edge   → band = [_pos - totalSize, _pos]
+        //   Right:  left edge    → band = [_pos, _pos + totalSize]
+        //   Top:    bottom edge  → band = [_pos - totalSize, _pos]
+        //   Bottom: top edge     → band = [_pos, _pos + totalSize]
+        const pos = axState._pos;
         const inAxis =
-          (side === Side.Left && localX < plotBox.left && inVertRange) ||
-          (side === Side.Right && localX > plotBox.left + plotBox.width && inVertRange) ||
-          (side === Side.Top && localY < plotBox.top && inHorizRange) ||
-          (side === Side.Bottom && localY > plotBox.top + plotBox.height && inHorizRange);
+          (side === Side.Left   && inVertRange  && localX >= pos - totalSize && localX < pos) ||
+          (side === Side.Right  && inVertRange  && localX >= pos && localX < pos + totalSize) ||
+          (side === Side.Top    && inHorizRange && localY >= pos - totalSize && localY < pos) ||
+          (side === Side.Bottom && inHorizRange && localY >= pos && localY < pos + totalSize);
 
         if (inAxis) {
           return { scaleId: cfg.scale, ori: sideOrientation(side) };
@@ -751,11 +793,14 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       }
 
       ctx.action = actionStr;
-      const fn = dispatch(actionStr, e, ctx, false);  // string keys only — mousedown is for drags
+      const fn = dispatch(actionStr, e, ctx);
       if (fn == null) return;
 
-      // Prevent default for non-left-button or gutter drags (but not left-click — would suppress click event)
-      if (e.button !== 0 || axisHit != null) e.preventDefault();
+      // Always preventDefault when a reaction is bound: suppresses native text/image
+      // selection that would otherwise overlap the drag-zoom rectangle. preventDefault
+      // on mousedown does NOT suppress the subsequent click event; focus is handled
+      // by onMouseEnter, so blocking the implicit focus shift is safe.
+      e.preventDefault();
       const cont = fn(store, e, ctx);
       if (cont != null) {
         activeDrag = cont;
@@ -947,8 +992,13 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
 
           const { cursorPx, dim, off } = axisDimsForScale(scale, midCtx, plotBox);
           const cursorVal = posToVal(cursorPx, scale, dim, off);
-          const newMin = cursorVal - (cursorVal - scale.min) / factor;
-          const newMax = cursorVal + (scale.max - cursorVal) / factor;
+          // Pivot in transformed space so log/asinh pinch keeps the midpoint anchored.
+          const { tMin, tMax, fwd, inv } = scaleTransform(scale);
+          const cursorT = fwd(cursorVal);
+          const newTMin = cursorT - (cursorT - tMin) / factor;
+          const newTMax = cursorT + (tMax - cursorT) / factor;
+          const newMin = inv(newTMin);
+          const newMax = inv(newTMax);
 
           scale.min = Math.min(newMin, newMax);
           scale.max = Math.max(newMin, newMax);
@@ -979,6 +1029,22 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
     function onTouchEnd(e: TouchEvent): void {
       if (pinchState != null) {
         pinchState = null;
+        // Pinch → single finger transition: bootstrap a fresh touchDrag
+        // so the remaining finger can continue panning/zooming without lift+retouch.
+        const remaining = e.touches[0];
+        if (remaining != null) {
+          const ctx = buildContext(remaining);
+          if (ctx.inPlot) {
+            const fn = dispatch('touchDrag', e, ctx);
+            if (fn != null) {
+              const cont = fn(store, e, ctx);
+              if (cont != null) {
+                activeDrag = cont;
+                didDrag = false;
+              }
+            }
+          }
+        }
         return;
       }
 

@@ -29,8 +29,10 @@ export interface ChartProps {
   onDraw?: DrawCallback;
   /** Draw on the cursor overlay (redrawn every frame). */
   onCursorDraw?: CursorDrawCallback;
-  /** Sync key — charts with the same key synchronize their cursors. */
-  syncKey?: string;
+  /** Cursor sync key — charts with the same key share cursor position. */
+  syncCursorKey?: string;
+  /** Scale sync key — charts (and ZoomRangers) with the same key share scale ranges. */
+  syncScaleKey?: string;
   /** Chart title displayed above the plot area */
   title?: string;
   /** X-axis label for the default axis (default: 'X Axis') */

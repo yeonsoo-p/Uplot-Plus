@@ -185,6 +185,11 @@ export function notifyScaleChanges(store: ChartStore): void {
       if (cb != null) {
         try { cb(scale.id, scale.min, scale.max); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
       }
+      // Internal listeners (e.g. ScaleSyncGroup hooks) — fired even when no user
+      // callback is set, so that scale-sync continues to work transparently.
+      for (const fn of store.scaleListeners) {
+        try { fn(scale.id, scale.min, scale.max); } catch (err) { console.warn('[uPlot+] scale listener error:', err); }
+      }
       store._prevScaleRanges.set(scale.id, { min: scale.min, max: scale.max });
     }
   }
@@ -308,6 +313,9 @@ export interface ChartStore {
   listeners: Set<() => void>;
   /** Cursor-only subscribers — fired on cursor redraws without full redraw overhead */
   cursorListeners: Set<() => void>;
+  /** Internal scale-change subscribers — fired by notifyScaleChanges per scale that changed.
+   *  Used by sync hooks (ScaleSyncGroup) to publish range changes to peers. */
+  scaleListeners: Set<(scaleId: string, min: number, max: number) => void>;
 
   // Render scheduler with dirty flags
   scheduler: RenderScheduler;
@@ -446,6 +454,7 @@ export function createChartStore(): ChartStore {
     canvas: null,
     listeners: new Set(),
     cursorListeners: new Set(),
+    scaleListeners: new Set(),
     scheduler: new RenderScheduler(),
     drawHooks: new Set(),
     unclippedDrawHooks: new Set(),

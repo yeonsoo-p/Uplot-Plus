@@ -1,16 +1,16 @@
 import type { ChartStore } from '../hooks/useChartStore';
 
-/** Global registry of sync groups by key. */
-const groups = new Map<string, SyncGroup>();
+/** Global registry of cursor sync groups by key. */
+const groups = new Map<string, CursorSyncGroup>();
 
 /**
- * Get or create a sync group by key.
- * Charts with the same sync key share cursor position.
+ * Get or create a cursor sync group by key.
+ * Charts with the same key share cursor position.
  */
-export function getSyncGroup(key: string): SyncGroup {
+export function getCursorSyncGroup(key: string): CursorSyncGroup {
   let group = groups.get(key);
   if (group == null) {
-    group = new SyncGroup(key);
+    group = new CursorSyncGroup(key);
     groups.set(key, group);
   }
   return group;
@@ -26,7 +26,7 @@ export function getSyncGroup(key: string): SyncGroup {
  * 2. `syncedStores` WeakSet blocks stores that were just synced-to
  *    from echoing back on their next async redraw
  */
-export class SyncGroup {
+export class CursorSyncGroup {
   readonly key: string;
   private members: Set<ChartStore> = new Set();
   private publishing = false;

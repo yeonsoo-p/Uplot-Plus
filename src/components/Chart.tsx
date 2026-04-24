@@ -5,7 +5,8 @@ import type { DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { useChartStore } from '../hooks/useChartStore';
 import { ChartContext } from '../hooks/useChart';
 import { useInteraction } from '../hooks/useInteraction';
-import { useSyncGroup } from '../sync/useSyncGroup';
+import { useCursorSyncGroup } from '../sync/useCursorSyncGroup';
+import { useScaleSyncGroup } from '../sync/useScaleSyncGroup';
 import { normalizeData } from '../core/normalizeData';
 import { themeToVars } from '../rendering/theme';
 import { ThemeRevisionContext } from './ThemeProvider';
@@ -18,7 +19,7 @@ import { ThemeRevisionContext } from './ThemeProvider';
 export function Chart({
   width, height, data, children, className, pxRatio: pxRatioOverride, title, xlabel, ylabel, ariaLabel,
   minWidth, minHeight,
-  onDraw, onCursorDraw, syncKey, actions, theme, locale, timezone,
+  onDraw, onCursorDraw, syncCursorKey, syncScaleKey, actions, theme, locale, timezone,
   onClick, onContextMenu, onDblClick, onCursorMove, onCursorLeave,
   onScaleChange, onSelect,
 }: ChartProps) {
@@ -104,7 +105,9 @@ export function Chart({
   useInteraction(store, containerEl);
 
   // Cursor sync across charts with same key
-  useSyncGroup(store, syncKey);
+  useCursorSyncGroup(store, syncCursorKey);
+  // Scale-range sync (charts + ZoomRangers with the same key)
+  useScaleSyncGroup(store, syncScaleKey);
 
   // Stable canvas callback ref — useCallback keeps identity stable so React
   // won't tear down (null) and re-set (node) on every render.
@@ -287,6 +290,8 @@ export function Chart({
             cursor: 'default',
             order: 0,
             outline: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
           }}
         >
           {measured && (

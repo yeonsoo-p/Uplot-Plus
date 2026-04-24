@@ -49,15 +49,18 @@ function setup(): TestHarness {
 
   // For a transposed chart, the x-axis (categories) lives on the LEFT side and
   // the y-axis (values) on the BOTTOM. Wire up axisStates for hitTestAxis.
+  // _pos is the inner edge of each axis (calcAxesRects convention):
+  //   Side.Left   → plotBox.left                            = 50
+  //   Side.Bottom → plotBox.top + plotBox.height            = 580
   store.axisStates = [
     {
       config: { scale: 'x', side: Side.Left, show: true },
-      _show: true, _size: 50, _pos: 0, _lpos: 0,
+      _show: true, _size: 50, _pos: 50, _lpos: 0,
       _splits: [], _values: [], _incr: 10, _space: 50, _rotate: 0,
     },
     {
       config: { scale: 'y', side: Side.Bottom, show: true },
-      _show: true, _size: 30, _pos: 0, _lpos: 0,
+      _show: true, _size: 30, _pos: 580, _lpos: 0,
       _splits: [], _values: [], _incr: 10, _space: 50, _rotate: 0,
     },
   ];

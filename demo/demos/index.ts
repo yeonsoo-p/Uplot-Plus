@@ -81,6 +81,7 @@ import YScaleDrag from './YScaleDrag';
 import ZoomRangerDemo from './ZoomRanger';
 import ZoomRangerGrips from './ZoomRangerGrips';
 import ZoomRangerXY from './ZoomRangerXY';
+import ZoomRangerSync from './ZoomRangerSync';
 import EventCallbacks from './EventCallbacks';
 import CustomActions from './CustomActions';
 import SelectFetch from './SelectFetch';
@@ -220,8 +221,8 @@ export const demos: DemoEntry[] = [
   { id: 'timeline-discrete', title: 'Timeline (Discrete)', description: 'Discrete event spans as horizontal colored bars with lane labels.', category: 'Specialized Charts', component: TimelineDiscrete, sourceFile: 'TimelineDiscrete' },
 
   // --- Cursor & Interaction ---
-  { id: 'sync-cursor', title: 'Sync Cursor', description: 'Two charts sharing cursor position via syncKey.', category: 'Cursor & Interaction', component: SyncCursor, sourceFile: 'SyncCursor' },
-  { id: 'cursor-bind', title: 'Cursor Bind', description: 'Two charts synced via syncKey with different data.', category: 'Cursor & Interaction', component: CursorBind, sourceFile: 'CursorBind' },
+  { id: 'sync-cursor', title: 'Sync Cursor', description: 'Two charts sharing cursor position via syncCursorKey.', category: 'Cursor & Interaction', component: SyncCursor, sourceFile: 'SyncCursor' },
+  { id: 'cursor-bind', title: 'Cursor Bind', description: 'Two charts synced via syncCursorKey with different data.', category: 'Cursor & Interaction', component: CursorBind, sourceFile: 'CursorBind' },
   { id: 'cursor-snap', title: 'Cursor Snap', description: 'Cursor snapping with sparse data (30 points).', category: 'Cursor & Interaction', component: CursorSnap, sourceFile: 'CursorSnap' },
   { id: 'focus-cursor', title: 'Focus Cursor', description: 'Proximity-based focus dims non-closest series on hover.', category: 'Cursor & Interaction', component: FocusCursor, sourceFile: 'FocusCursor' },
   { id: 'nearest-non-null', title: 'Nearest Non-Null', description: 'Cursor snapping that skips over null values.', category: 'Cursor & Interaction', component: NearestNonNull, sourceFile: 'NearestNonNull' },
@@ -242,6 +243,7 @@ export const demos: DemoEntry[] = [
   { id: 'zoom-ranger', title: 'Zoom Ranger', description: 'Overview mini-chart with draggable selection controlling detail chart zoom.', category: 'Zoom & Pan', component: ZoomRangerDemo, sourceFile: 'ZoomRanger' },
   { id: 'zoom-ranger-grips', title: 'Zoom Ranger (Grips)', description: 'Zoom ranger with visible grip handles on selection edges.', category: 'Zoom & Pan', component: ZoomRangerGrips, sourceFile: 'ZoomRangerGrips' },
   { id: 'zoom-ranger-xy', title: 'Zoom Ranger (XY)', description: 'Zoom ranger with dual y-axes and wheel zoom on detail chart.', category: 'Zoom & Pan', component: ZoomRangerXY, sourceFile: 'ZoomRangerXY' },
+  { id: 'zoom-ranger-sync', title: 'Zoom Ranger (Sync)', description: 'Bidirectional sync via syncScaleKey — wheel-zoom on chart updates ranger and vice versa.', category: 'Zoom & Pan', component: ZoomRangerSync, sourceFile: 'ZoomRangerSync' },
   { id: 'custom-actions', title: 'Custom Actions', description: 'Function→function action matchers: shift+click toggles stroke width, ctrl+click logs data, middle-drag pans.', category: 'Cursor & Interaction', component: CustomActions, sourceFile: 'CustomActions' },
   { id: 'event-callbacks', title: 'Event Callbacks', description: 'Click, right-click context menu, and programmatic zoom via controlled Scale props.', category: 'Cursor & Interaction', component: EventCallbacks, sourceFile: 'EventCallbacks' },
   { id: 'select-fetch', title: 'Select \u2192 Fetch', description: 'Intercept drag selection to fetch detail data instead of zooming via onSelect.', category: 'Cursor & Interaction', component: SelectFetch, sourceFile: 'SelectFetch' },

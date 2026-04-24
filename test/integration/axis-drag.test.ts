@@ -42,12 +42,13 @@ function setup(): TestHarness {
     return key != null ? store.scaleManager.getScale(key) : undefined;
   });
 
-  // Register a left y-axis so hitTestAxis can find it
+  // Register a left y-axis so hitTestAxis can find it.
+  // _pos is the inner edge of the axis (= plotBox.left for a Side.Left axis).
   store.axisStates = [{
     config: { scale: 'y', side: Side.Left, show: true },
     _show: true,
     _size: 50, // 50px wide axis gutter
-    _pos: 0,
+    _pos: 50,  // matches plotBox.left
     _lpos: 0,
     _splits: [],
     _values: [],

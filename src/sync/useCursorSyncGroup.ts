@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
 import type { ChartStore } from '../hooks/useChartStore';
-import { getSyncGroup } from './SyncGroup';
+import { getCursorSyncGroup } from './CursorSyncGroup';
 
 /**
- * Hook that joins a chart to a sync group for cursor synchronization.
- * Charts with the same syncKey will have their cursors linked.
+ * Hook that joins a chart to a cursor sync group.
+ * Charts with the same `syncCursorKey` will have their cursors linked.
  * Only publishes when cursor state actually changes to prevent infinite loops.
  */
-export function useSyncGroup(store: ChartStore, syncKey: string | undefined): void {
+export function useCursorSyncGroup(store: ChartStore, syncCursorKey: string | undefined): void {
   useEffect(() => {
-    if (syncKey == null) return;
+    if (syncCursorKey == null) return;
 
-    const group = getSyncGroup(syncKey);
+    const group = getCursorSyncGroup(syncCursorKey);
     group.join(store);
 
     // Track last-published state to avoid redundant publishes
@@ -30,5 +30,5 @@ export function useSyncGroup(store: ChartStore, syncKey: string | undefined): vo
       unsub();
       group.leave(store);
     };
-  }, [store, syncKey]);
+  }, [store, syncCursorKey]);
 }

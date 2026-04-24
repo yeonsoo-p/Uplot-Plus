@@ -184,6 +184,44 @@ export function projectPoint(
 }
 
 /**
+ * Distribution-aware forward/inverse transform for a scale.
+ * Linear/Ordinal use identity. Log uses logN/powN. Asinh uses asinh/sinh.
+ * Use to do zoom/pan math in transformed space so cursor pivots stay anchored
+ * on log/asinh scales.
+ */
+export interface ScaleTransform {
+  tMin: number;
+  tMax: number;
+  fwd: (v: number) => number;
+  inv: (t: number) => number;
+}
+
+const IDENTITY = (v: number): number => v;
+
+export function scaleTransform(scale: ScaleState): ScaleTransform {
+  const tMin = getTransformedMin(scale);
+  const tMax = getTransformedMax(scale);
+  if (scale.distr === Distribution.Log) {
+    const base = scale.log;
+    const logFn = base === 10 ? log10 : log2;
+    return {
+      tMin, tMax,
+      fwd: (v: number) => logFn(v > 0 ? v : 1e-10),
+      inv: (t: number) => Math.pow(base, t),
+    };
+  }
+  if (scale.distr === Distribution.Asinh) {
+    const a = scale.asinh;
+    return {
+      tMin, tMax,
+      fwd: (v: number) => asinh(v, a),
+      inv: (t: number) => sinh(t, a),
+    };
+  }
+  return { tMin, tMax, fwd: IDENTITY, inv: IDENTITY };
+}
+
+/**
  * Convert a CSS pixel position to a data value.
  */
 export function posToVal(pos: number, scale: ScaleState, dim: number, off: number): number {

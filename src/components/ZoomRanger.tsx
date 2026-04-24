@@ -6,6 +6,7 @@ import { clamp } from '../math/utils';
 import { Axis } from './Axis';
 import { normalizeData } from '../core/normalizeData';
 import { cssVar } from '../rendering/theme';
+import { getScaleSyncGroup } from '../sync/ScaleSyncGroup';
 
 /** Grip hit-target width in CSS pixels */
 export const GRIP_THRESHOLD_PX = 8;
@@ -99,6 +100,15 @@ export interface ZoomRangerProps {
   colors?: string[];
   /** Show grip handles on edges */
   grips?: boolean;
+  /**
+   * Scale sync key — when set, the ranger publishes its selection range
+   * to (and receives updates from) any chart sharing the same key via
+   * `syncScaleKey`. Drops the need for a controlled `<Scale min/max>` and
+   * `onRangeChange` plumbing in the parent.
+   */
+  syncScaleKey?: string;
+  /** Scale id to sync (default: "x"). */
+  scaleId?: string;
 }
 
 /**
@@ -114,6 +124,8 @@ export function ZoomRanger({
   className,
   colors,
   grips = false,
+  syncScaleKey,
+  scaleId = 'x',
 }: ZoomRangerProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -154,10 +166,14 @@ export function ZoomRanger({
     setSelFrac(rangeToFrac(initialRange, xFirst, xLast));
   }, [initialRange, normalized]);
 
-  // Fire onRangeChange when selection changes
+  // Stable callback identity for the scale-sync registration so the join effect
+  // doesn't tear down on every render.
+  const syncCbRef = useRef<(scaleId: string, min: number, max: number) => void>(() => {});
+
+  // Fire onRangeChange (and scale-sync publish) when selection changes
   const prevRangeRef = useRef<[number, number] | null>(null);
   useEffect(() => {
-    if (onRangeChange == null || normalized.length === 0) return;
+    if (normalized.length === 0) return;
     const group = normalized[0];
     if (group == null || group.x.length < 2) return;
 
@@ -170,8 +186,35 @@ export function ZoomRanger({
     const eps = Math.max(1e-10, Math.abs(max - min) * 1e-12);
     if (prev != null && Math.abs(prev[0] - min) < eps && Math.abs(prev[1] - max) < eps) return;
     prevRangeRef.current = [min, max];
-    onRangeChange(min, max);
-  }, [selFrac, normalized, onRangeChange]);
+    onRangeChange?.(min, max);
+    if (syncScaleKey != null) {
+      getScaleSyncGroup(syncScaleKey).pubFromCallback(syncCbRef.current, scaleId, min, max);
+    }
+  }, [selFrac, normalized, onRangeChange, syncScaleKey, scaleId]);
+
+  // Join the scale sync group; receive peer-driven range updates by mapping
+  // them back to a selection fraction.
+  useEffect(() => {
+    if (syncScaleKey == null || normalized.length === 0) return;
+    const group = normalized[0];
+    if (group == null || group.x.length < 2) return;
+    const xMin = group.x[0];
+    const xMax = group.x[group.x.length - 1];
+    if (xMin == null || xMax == null) return;
+
+    const onPeerRange = (incomingScaleId: string, min: number, max: number): void => {
+      if (incomingScaleId !== scaleId) return;
+      const newFrac = rangeToFrac([min, max], xMin, xMax);
+      // Swallow our own re-broadcast so the publish-effect above doesn't echo.
+      prevRangeRef.current = [min, max];
+      setSelFrac(newFrac);
+    };
+    syncCbRef.current = onPeerRange;
+
+    const syncGroup = getScaleSyncGroup(syncScaleKey);
+    const member = syncGroup.joinCallback(onPeerRange);
+    return () => { syncGroup.leave(member); };
+  }, [syncScaleKey, scaleId, normalized]);
 
   // Drag state
   const dragRef = useRef<{

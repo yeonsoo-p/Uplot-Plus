@@ -2,8 +2,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act } from '@testing-library/react';
 import { renderChart, flushEffects } from '../helpers/rtl';
 import { useStore } from '@/hooks/useChart';
-import { useSyncGroup } from '@/sync/useSyncGroup';
-import { getSyncGroup, SyncGroup } from '@/sync/SyncGroup';
+import { useCursorSyncGroup } from '@/sync/useCursorSyncGroup';
+import { getCursorSyncGroup, CursorSyncGroup } from '@/sync/CursorSyncGroup';
 import { Series } from '@/components/Series';
 import { rebuildSnapshot } from '@/hooks/useChartStore';
 import type { ChartStore } from '@/hooks/useChartStore';
@@ -13,10 +13,10 @@ const testData: DataInput = [
   { x: [0, 25, 50, 75, 100], series: [[10, 40, 70, 30, 90]] },
 ];
 
-/** Component that calls useSyncGroup with the chart's store */
+/** Component that calls useCursorSyncGroup with the chart's store */
 function SyncProbe({ syncKey }: { syncKey: string | undefined }) {
   const store = useStore();
-  useSyncGroup(store, syncKey);
+  useCursorSyncGroup(store, syncKey);
   return null;
 }
 
@@ -26,7 +26,7 @@ function StoreCapture({ storeRef }: { storeRef: { current: ChartStore | null } }
   return null;
 }
 
-describe('useSyncGroup hook', () => {
+describe('useCursorSyncGroup hook', () => {
   const spies: ReturnType<typeof vi.spyOn>[] = [];
 
   afterEach(() => {
@@ -35,7 +35,7 @@ describe('useSyncGroup hook', () => {
   });
 
   it('calls group.join(store) on mount', async () => {
-    const joinSpy = vi.spyOn(SyncGroup.prototype, 'join');
+    const joinSpy = vi.spyOn(CursorSyncGroup.prototype, 'join');
     spies.push(joinSpy);
 
     const storeRef: { current: ChartStore | null } = { current: null };
@@ -55,8 +55,8 @@ describe('useSyncGroup hook', () => {
   });
 
   it('calls group.leave(store) on unmount', async () => {
-    const joinSpy = vi.spyOn(SyncGroup.prototype, 'join');
-    const leaveSpy = vi.spyOn(SyncGroup.prototype, 'leave');
+    const joinSpy = vi.spyOn(CursorSyncGroup.prototype, 'join');
+    const leaveSpy = vi.spyOn(CursorSyncGroup.prototype, 'leave');
     spies.push(joinSpy, leaveSpy);
 
     const storeRef: { current: ChartStore | null } = { current: null };
@@ -81,7 +81,7 @@ describe('useSyncGroup hook', () => {
   });
 
   it('does not call join when syncKey is undefined', async () => {
-    const joinSpy = vi.spyOn(SyncGroup.prototype, 'join');
+    const joinSpy = vi.spyOn(CursorSyncGroup.prototype, 'join');
     spies.push(joinSpy);
 
     renderChart(
@@ -106,7 +106,7 @@ describe('useSyncGroup hook', () => {
     );
     await flushEffects();
 
-    const group = getSyncGroup('test-pub');
+    const group = getCursorSyncGroup('test-pub');
     const pubSpy = vi.spyOn(group, 'pub');
 
     // Simulate cursor change
@@ -133,7 +133,7 @@ describe('useSyncGroup hook', () => {
     );
     await flushEffects();
 
-    const group = getSyncGroup('test-dedup');
+    const group = getCursorSyncGroup('test-dedup');
     const pubSpy = vi.spyOn(group, 'pub');
 
     // First cursor change

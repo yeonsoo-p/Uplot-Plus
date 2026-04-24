@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getSyncGroup } from '@/sync/SyncGroup';
+import { getCursorSyncGroup } from '@/sync/CursorSyncGroup';
 import { createChartStore } from '@/hooks/useChartStore';
 import type { ChartStore } from '@/hooks/useChartStore';
 import { Orientation, Direction } from '@/types';
@@ -29,26 +29,26 @@ function makeStoreWithData(xValues: number[]): ChartStore {
   return store;
 }
 
-describe('SyncGroup', () => {
+describe("CursorSyncGroup", () => {
   beforeEach(() => {
     // Clear any lingering groups between tests
-    // getSyncGroup creates on demand, so we just use fresh keys
+    // getCursorSyncGroup creates on demand, so we just use fresh keys
   });
 
-  it('getSyncGroup returns the same instance for the same key', () => {
-    const g1 = getSyncGroup('test-same-key');
-    const g2 = getSyncGroup('test-same-key');
+  it('getCursorSyncGroup returns the same instance for the same key', () => {
+    const g1 = getCursorSyncGroup('test-same-key');
+    const g2 = getCursorSyncGroup('test-same-key');
     expect(g1).toBe(g2);
   });
 
-  it('getSyncGroup returns different instances for different keys', () => {
-    const g1 = getSyncGroup('key-a');
-    const g2 = getSyncGroup('key-b');
+  it('getCursorSyncGroup returns different instances for different keys', () => {
+    const g1 = getCursorSyncGroup('key-a');
+    const g2 = getCursorSyncGroup('key-b');
     expect(g1).not.toBe(g2);
   });
 
   it('join/leave manages members correctly', () => {
-    const group = getSyncGroup('join-leave-test');
+    const group = getCursorSyncGroup('join-leave-test');
     const store1 = createChartStore();
     const store2 = createChartStore();
 
@@ -60,7 +60,7 @@ describe('SyncGroup', () => {
   });
 
   it('pub syncs cursor to other members', () => {
-    const group = getSyncGroup('pub-test');
+    const group = getCursorSyncGroup('pub-test');
     const source = makeStoreWithData([0, 1, 2, 3, 4]);
     const target = makeStoreWithData([0, 1, 2, 3, 4]);
 
@@ -82,7 +82,7 @@ describe('SyncGroup', () => {
   });
 
   it('pub hides cursor on targets when source cursor is inactive', () => {
-    const group = getSyncGroup('hide-test');
+    const group = getCursorSyncGroup('hide-test');
     const source = makeStoreWithData([0, 1, 2, 3, 4]);
     const target = makeStoreWithData([0, 1, 2, 3, 4]);
 
@@ -106,7 +106,7 @@ describe('SyncGroup', () => {
   });
 
   it('pub does not affect the source chart', () => {
-    const group = getSyncGroup('no-self-test');
+    const group = getCursorSyncGroup('no-self-test');
     const source = makeStoreWithData([0, 1, 2, 3, 4]);
 
     group.join(source);
@@ -125,7 +125,7 @@ describe('SyncGroup', () => {
   });
 
   it('prevents feedback loops — synced-to stores are blocked from echoing', () => {
-    const group = getSyncGroup('loop-test');
+    const group = getCursorSyncGroup('loop-test');
     const store1 = makeStoreWithData([0, 1, 2, 3, 4]);
     const store2 = makeStoreWithData([0, 1, 2, 3, 4]);
 

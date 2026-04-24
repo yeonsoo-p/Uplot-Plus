@@ -229,6 +229,47 @@ describe('Interaction: drag-to-zoom', () => {
     expect(xScale?.max).toBe(100);
   });
 
+  it('zoomXY drag mostly-vertical zooms only y-scale (horizontal selection under threshold)', () => {
+    h.store.actionMap.set('leftDrag', 'zoomXY');
+
+    const xScale = h.store.scaleManager.getScale('x');
+    const yScale = h.store.scaleManager.getScale('y');
+
+    // 2px horizontal × 200px vertical — only y clears the threshold
+    const start = plotToClient(h, 200, 100);
+    const end = plotToClient(h, 202, 300);
+
+    h.el.dispatchEvent(mouseEvent('mousedown', start.clientX, start.clientY));
+    h.el.dispatchEvent(mouseEvent('mousemove', end.clientX, end.clientY));
+    h.el.dispatchEvent(mouseEvent('mouseup', end.clientX, end.clientY));
+
+    // x-scale untouched (sliver drag must not collapse it)
+    expect(xScale?.min).toBe(0);
+    expect(xScale?.max).toBe(100);
+    // y-scale zoomed
+    expect(yScale?.auto).toBe(false);
+    expect(yScale!.max! - yScale!.min!).toBeLessThan(100);
+  });
+
+  it('zoomXY drag mostly-horizontal zooms only x-scale (vertical selection under threshold)', () => {
+    h.store.actionMap.set('leftDrag', 'zoomXY');
+
+    const xScale = h.store.scaleManager.getScale('x');
+    const yScale = h.store.scaleManager.getScale('y');
+
+    const start = plotToClient(h, 100, 280);
+    const end = plotToClient(h, 400, 282);
+
+    h.el.dispatchEvent(mouseEvent('mousedown', start.clientX, start.clientY));
+    h.el.dispatchEvent(mouseEvent('mousemove', end.clientX, end.clientY));
+    h.el.dispatchEvent(mouseEvent('mouseup', end.clientX, end.clientY));
+
+    expect(yScale?.min).toBe(0);
+    expect(yScale?.max).toBe(100);
+    expect(xScale?.auto).toBe(false);
+    expect(xScale!.max! - xScale!.min!).toBeLessThan(100);
+  });
+
   it('click does not fire after drag', () => {
     const cb = vi.fn();
     h.store.eventCallbacks.onClick = cb;

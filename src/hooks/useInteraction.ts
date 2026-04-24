@@ -218,17 +218,24 @@ function startDragZoom(
       const widthOk = spansHoriz && selectState.width > MIN_DRAG_PX;
       const heightOk = spansVert && selectState.height > MIN_DRAG_PX;
       if (widthOk || heightOk) {
+        // Narrow the filter: drop scales on an axis that didn't clear the threshold, so a
+        // mostly-vertical drag under zoomXY doesn't collapse the x-range from a 2px sliver.
+        const effectiveFilter: ScaleFilter = (s) => {
+          if (!filterScale(s)) return false;
+          return s.ori === Orientation.Horizontal ? widthOk : heightOk;
+        };
+
         // Fire onSelect callback
         let shouldZoom = true;
         if (store.eventCallbacks.onSelect != null) {
-          const selInfo = buildSelectInfo(store, selectState, filterScale);
+          const selInfo = buildSelectInfo(store, selectState, effectiveFilter);
           let selResult: unknown;
           try { selResult = store.eventCallbacks.onSelect(selInfo); } catch (err) { console.warn('[uPlot+] event callback error:', err); }
           if (selResult === false) shouldZoom = false;
         }
 
         if (shouldZoom) {
-          applySelectionZoom(store, selectState, filterScale);
+          applySelectionZoom(store, selectState, effectiveFilter);
           fireScaleChange(store);
         }
       }
@@ -918,40 +925,44 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
         const newDist = Math.sqrt(dx * dx + dy * dy);
 
         const midCtx = buildContext({ clientX: pinchState.midX, clientY: pinchState.midY });
-        const fn = dispatch('pinch', e, midCtx);
-        if (fn != null) {
-          // Apply pinch as a zoom factor on whichever scales the 'pinch' reaction targets.
-          // Default 'pinch' = zoomX, so by default this zooms the x-axis regardless of orientation.
-          const reaction = store.actionMap.get('pinch');
-          const filters = buildScaleFilters(store);
-          const filterScale: ScaleFilter =
-            reaction === 'zoomY' ? filters.isY :
-            reaction === 'zoomXY' ? filters.isAny :
-            filters.isX;
+        const factor = newDist / pinchState.dist;
+        pinchState.dist = newDist;
 
-          const factor = newDist / pinchState.dist;
-          const plotBox = store.plotBox;
+        const reaction = store.actionMap.get('pinch');
+        if (reaction == null || reaction === 'none') return;
 
-          for (const scale of store.scaleManager.getAllScales()) {
-            if (!isScaleReady(scale)) continue;
-            if (!filterScale(scale)) continue;
-
-            const { cursorPx, dim, off } = axisDimsForScale(scale, midCtx, plotBox);
-            const cursorVal = posToVal(cursorPx, scale, dim, off);
-            const newMin = cursorVal - (cursorVal - scale.min) / factor;
-            const newMax = cursorVal + (scale.max - cursorVal) / factor;
-
-            scale.min = Math.min(newMin, newMax);
-            scale.max = Math.max(newMin, newMax);
-            scale.auto = false;
-            invalidateScaleCache(scale);
-          }
-
-          pinchState.dist = newDist;
-          store.renderer.clearCache();
-          store.scheduleRedraw();
-          fireScaleChange(store);
+        if (typeof reaction === 'function') {
+          reaction(store, e, midCtx);
+          return;
         }
+
+        const filters = buildScaleFilters(store);
+        const filterScale: ScaleFilter | null =
+          reaction === 'zoomX' ? filters.isX :
+          reaction === 'zoomY' ? filters.isY :
+          reaction === 'zoomXY' ? filters.isAny :
+          null;
+        if (filterScale == null) return;
+
+        const plotBox = store.plotBox;
+        for (const scale of store.scaleManager.getAllScales()) {
+          if (!isScaleReady(scale)) continue;
+          if (!filterScale(scale)) continue;
+
+          const { cursorPx, dim, off } = axisDimsForScale(scale, midCtx, plotBox);
+          const cursorVal = posToVal(cursorPx, scale, dim, off);
+          const newMin = cursorVal - (cursorVal - scale.min) / factor;
+          const newMax = cursorVal + (scale.max - cursorVal) / factor;
+
+          scale.min = Math.min(newMin, newMax);
+          scale.max = Math.max(newMin, newMax);
+          scale.auto = false;
+          invalidateScaleCache(scale);
+        }
+
+        store.renderer.clearCache();
+        store.scheduleRedraw();
+        fireScaleChange(store);
         return;
       }
 

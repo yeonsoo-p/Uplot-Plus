@@ -191,6 +191,94 @@ describe('Interaction: pinch zoom', () => {
     expect(xScale!.max! - xScale!.min!).toBe(rangeAfterPinch);
   });
 
+  it("pinch with action='none' leaves scales untouched", () => {
+    h.store.actionMap.set('pinch', 'none');
+    const plotBox = h.store.plotBox;
+    const centerX = plotBox.left + plotBox.width / 2;
+    const centerY = plotBox.top + plotBox.height / 2;
+    const xScale = h.store.scaleManager.getScale('x');
+    const yScale = h.store.scaleManager.getScale('y');
+    const xRange = xScale!.max! - xScale!.min!;
+    const yRange = yScale!.max! - yScale!.min!;
+
+    h.el.dispatchEvent(touchEvent('touchstart', [
+      { clientX: centerX - 50, clientY: centerY },
+      { clientX: centerX + 50, clientY: centerY },
+    ]));
+    h.el.dispatchEvent(touchEvent('touchmove', [
+      { clientX: centerX - 100, clientY: centerY },
+      { clientX: centerX + 100, clientY: centerY },
+    ]));
+
+    expect(xScale!.max! - xScale!.min!).toBe(xRange);
+    expect(yScale!.max! - yScale!.min!).toBe(yRange);
+  });
+
+  it("pinch with action='zoomY' narrows y-scale only", () => {
+    h.store.actionMap.set('pinch', 'zoomY');
+    const plotBox = h.store.plotBox;
+    const centerX = plotBox.left + plotBox.width / 2;
+    const centerY = plotBox.top + plotBox.height / 2;
+    const xScale = h.store.scaleManager.getScale('x');
+    const yScale = h.store.scaleManager.getScale('y');
+    const xRangeBefore = xScale!.max! - xScale!.min!;
+
+    h.el.dispatchEvent(touchEvent('touchstart', [
+      { clientX: centerX - 50, clientY: centerY },
+      { clientX: centerX + 50, clientY: centerY },
+    ]));
+    h.el.dispatchEvent(touchEvent('touchmove', [
+      { clientX: centerX - 100, clientY: centerY },
+      { clientX: centerX + 100, clientY: centerY },
+    ]));
+
+    expect(yScale!.max! - yScale!.min!).toBeLessThan(100);
+    expect(xScale!.max! - xScale!.min!).toBe(xRangeBefore);
+  });
+
+  it("pinch with action='zoomXY' narrows both scales", () => {
+    h.store.actionMap.set('pinch', 'zoomXY');
+    const plotBox = h.store.plotBox;
+    const centerX = plotBox.left + plotBox.width / 2;
+    const centerY = plotBox.top + plotBox.height / 2;
+    const xScale = h.store.scaleManager.getScale('x');
+    const yScale = h.store.scaleManager.getScale('y');
+
+    h.el.dispatchEvent(touchEvent('touchstart', [
+      { clientX: centerX - 50, clientY: centerY },
+      { clientX: centerX + 50, clientY: centerY },
+    ]));
+    h.el.dispatchEvent(touchEvent('touchmove', [
+      { clientX: centerX - 100, clientY: centerY },
+      { clientX: centerX + 100, clientY: centerY },
+    ]));
+
+    expect(xScale!.max! - xScale!.min!).toBeLessThan(100);
+    expect(yScale!.max! - yScale!.min!).toBeLessThan(100);
+  });
+
+  it('pinch with custom function invokes the function and skips built-in zoom', () => {
+    let calls = 0;
+    h.store.actionMap.set('pinch', () => { calls++; });
+    const plotBox = h.store.plotBox;
+    const centerX = plotBox.left + plotBox.width / 2;
+    const centerY = plotBox.top + plotBox.height / 2;
+    const xScale = h.store.scaleManager.getScale('x');
+    const xRangeBefore = xScale!.max! - xScale!.min!;
+
+    h.el.dispatchEvent(touchEvent('touchstart', [
+      { clientX: centerX - 50, clientY: centerY },
+      { clientX: centerX + 50, clientY: centerY },
+    ]));
+    h.el.dispatchEvent(touchEvent('touchmove', [
+      { clientX: centerX - 100, clientY: centerY },
+      { clientX: centerX + 100, clientY: centerY },
+    ]));
+
+    expect(calls).toBe(1);
+    expect(xScale!.max! - xScale!.min!).toBe(xRangeBefore);
+  });
+
   it('pinch cancels any active drag', () => {
     const plotBox = h.store.plotBox;
     const startX = plotBox.left + 100;

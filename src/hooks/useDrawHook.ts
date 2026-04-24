@@ -10,7 +10,10 @@ import { useStore } from './useChart';
 export function useDrawHook(fn: DrawCallback, opts?: { clipped?: boolean }): void {
   const store = useStore();
   const fnRef = useRef(fn);
-  useLayoutEffect(() => { fnRef.current = fn; });
+  useLayoutEffect(() => {
+    fnRef.current = fn;
+    store.scheduleRedraw();
+  });
   const clipped = opts?.clipped !== false;
 
   useLayoutEffect(() => {
@@ -43,7 +46,10 @@ export function useDrawHook(fn: DrawCallback, opts?: { clipped?: boolean }): voi
 export function useCursorDrawHook(fn: CursorDrawCallback): void {
   const store = useStore();
   const fnRef = useRef(fn);
-  useLayoutEffect(() => { fnRef.current = fn; });
+  useLayoutEffect(() => {
+    fnRef.current = fn;
+    store.scheduleCursorRedraw();
+  });
 
   useLayoutEffect(() => {
     const wrapper: CursorDrawCallback = (dc, cursor) => fnRef.current(dc, cursor);

@@ -104,6 +104,27 @@ describe('useDrawHook', () => {
     expect(fn2).toHaveBeenCalledTimes(1);
     expect(fn1).not.toHaveBeenCalled();
   });
+
+  it('schedules a redraw when the callback identity changes', async () => {
+    const fn1 = vi.fn();
+    const fn2 = vi.fn();
+
+    let swapFn: (next: DrawCallback) => void = () => {};
+    function SwappableProbe() {
+      const [fn, setFn] = useState<DrawCallback>(() => fn1);
+      swapFn = (next: DrawCallback) => setFn(() => next);
+      useDrawHook(fn);
+      return null;
+    }
+
+    const { store } = renderChart({}, <SwappableProbe />);
+    await flushEffects();
+
+    const spy = vi.spyOn(store, 'scheduleRedraw');
+    act(() => { swapFn(fn2); });
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
 });
 
 describe('useCursorDrawHook', () => {
@@ -142,5 +163,26 @@ describe('useCursorDrawHook', () => {
     for (const w of store.cursorDrawHooks) w(mockDc, mockCursor);
 
     expect(fn).toHaveBeenCalledWith(mockDc, mockCursor);
+  });
+
+  it('schedules a cursor redraw when the callback identity changes', async () => {
+    const fn1 = vi.fn();
+    const fn2 = vi.fn();
+
+    let swapFn: (next: CursorDrawCallback) => void = () => {};
+    function SwappableProbe() {
+      const [fn, setFn] = useState<CursorDrawCallback>(() => fn1);
+      swapFn = (next: CursorDrawCallback) => setFn(() => next);
+      useCursorDrawHook(fn);
+      return null;
+    }
+
+    const { store } = renderChart({}, <SwappableProbe />);
+    await flushEffects();
+
+    const spy = vi.spyOn(store, 'scheduleCursorRedraw');
+    act(() => { swapFn(fn2); });
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

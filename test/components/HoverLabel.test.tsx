@@ -10,8 +10,8 @@ function simulateCursor(store: ChartStore, dataIdx: number, seriesIdx = 0) {
   store.cursorManager.state.left = 100;
   store.cursorManager.state.top = 100;
   store.cursorManager.state.activeGroup = 0;
-  store.cursorManager.state.activeSeriesIdx = seriesIdx;
-  store.cursorManager.state.activeDataIdx = dataIdx;
+  store.cursorManager.state.activeSeriesIndex = seriesIdx;
+  store.cursorManager.state.activeDataIndex = dataIdx;
   rebuildSnapshot(store);
   for (const fn of store.cursorListeners) fn();
 }
@@ -20,8 +20,8 @@ function clearCursor(store: ChartStore) {
   store.cursorManager.state.left = -10;
   store.cursorManager.state.top = -10;
   store.cursorManager.state.activeGroup = -1;
-  store.cursorManager.state.activeSeriesIdx = -1;
-  store.cursorManager.state.activeDataIdx = -1;
+  store.cursorManager.state.activeSeriesIndex = -1;
+  store.cursorManager.state.activeDataIndex = -1;
   rebuildSnapshot(store);
   for (const fn of store.cursorListeners) fn();
 }

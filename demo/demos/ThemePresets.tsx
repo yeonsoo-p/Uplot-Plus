@@ -57,7 +57,7 @@ const presets: Record<string, { theme: ChartTheme; bg: string; label: string }> 
       gridStroke: 'rgba(255,255,255,0.2)',
       titleFill: '#fff',
       seriesColors: ['#ff0', '#0ff', '#f0f'],
-      cursor: { stroke: '#fff', width: 2 },
+      cursor: { stroke: '#fff', strokeWidth: 2 },
       select: { fill: 'rgba(255,255,255,0.12)', stroke: '#fff' },
       overlay: { panelBg: 'rgba(0,0,0,0.95)', panelBorder: '#666' },
     },

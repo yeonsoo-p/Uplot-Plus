@@ -167,7 +167,7 @@ export default function FpsStressTest() {
 
       {data.length > 0 && (
         <Chart width="auto" height={300} data={data} xlabel="Index" ylabel="Value">
-          <Series label="Random Walk" width={1} />
+          <Series label="Random Walk" strokeWidth={1} />
         </Chart>
       )}
 
@@ -175,8 +175,8 @@ export default function FpsStressTest() {
         <div className="mt-4">
           <Chart width="auto" height={250} data={fpsChartData} xlabel="Points" ylabel="FPS">
             <Scale id="x" distr={Distribution.Log} log={10} />
-            <Axis scale="x" values={fmtCompact()} />
-            <Series label="FPS" width={2} stroke="#e74c3c" />
+            <Axis scaleId="x" values={fmtCompact()} />
+            <Series label="FPS" strokeWidth={2} stroke="#e74c3c" />
           </Chart>
         </div>
       )}

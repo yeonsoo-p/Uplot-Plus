@@ -18,7 +18,7 @@ function makeScale(id: string, min: number, max: number): ScaleState {
 
 function makeRenderInfo(xScale: ScaleState, yScale: ScaleState): RenderableSeriesInfo {
   return {
-    config: { group: 0, index: 0, yScale: 'y', show: true, stroke: 'red' },
+    config: { group: 0, index: 0, yScaleId: 'y', show: true, stroke: 'red' },
     dataX: [0, 1, 2, 3, 4],
     dataY: [10, 20, 30, 40, 50],
     xScale,

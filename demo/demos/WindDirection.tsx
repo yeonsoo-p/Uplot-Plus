@@ -30,7 +30,7 @@ export default function WindDirection() {
 
   return (
     <Chart width="auto" height={400} data={chartData} ylabel="Wind Speed (km/h)">
-      <Axis scale="x" label="Time (hours)" values={fmtSuffix('h')} />
+      <Axis scaleId="x" label="Time (hours)" values={fmtSuffix('h')} />
       <Series label="Speed"
         dash={[4, 3]} />
       <Vector directions={directions} />

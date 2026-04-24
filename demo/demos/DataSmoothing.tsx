@@ -41,7 +41,7 @@ export default function DataSmoothing() {
       <Series
         label="Noisy" />
       <Series
-        width={2.5}
+        strokeWidth={2.5}
         label="Smoothed (MA-15)" />
       <Legend />
     </Chart>

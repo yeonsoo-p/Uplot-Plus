@@ -19,10 +19,10 @@ export function useCursorSyncGroup(store: ChartStore, syncCursorKey: string | un
     let lastIdx = -1;
 
     const unsub = store.subscribeCursor(() => {
-      const { activeGroup, activeDataIdx } = store.cursorManager.state;
-      if (activeGroup === lastGroup && activeDataIdx === lastIdx) return;
+      const { activeGroup, activeDataIndex } = store.cursorManager.state;
+      if (activeGroup === lastGroup && activeDataIndex === lastIdx) return;
       lastGroup = activeGroup;
-      lastIdx = activeDataIdx;
+      lastIdx = activeDataIndex;
       group.pub(store);
     });
 

@@ -84,7 +84,7 @@ export function Candlestick({
   return (
     <>
       {seriesIndices.map(idx => (
-        <Series key={idx} group={group} index={idx} yScale={yScaleId} show={false}
+        <Series key={idx} group={group} index={idx} yScaleId={yScaleId} show={false}
           _internal={!exposeUnderlyingSeries} />
       ))}
     </>

@@ -83,7 +83,7 @@ export function BoxWhisker({
     <>
       <Scale id="x" auto={false} min={0.5} max={boxes.length + 0.5} />
       <Scale id={yScaleId} auto={false} min={yMin - pad} max={yMax + pad} />
-      <Series group={0} index={0} yScale={yScaleId} show={false}
+      <Series group={0} index={0} yScaleId={yScaleId} show={false}
         _internal={!exposeUnderlyingSeries} />
     </>
   );

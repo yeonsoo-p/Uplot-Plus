@@ -17,8 +17,8 @@ export interface SparklineProps {
   stroke?: ColorValue;
   /** Fill color */
   fill?: ColorValue;
-  /** Line width in CSS pixels (default: 1) */
-  lineWidth?: number;
+  /** Stroke width in CSS pixels (default: 1) */
+  strokeWidth?: number;
   /** Path builder — pass bars() for bar sparklines (default: linear) */
   paths?: PathBuilder;
   /** Fill target value (e.g. 0 for bars) */
@@ -31,13 +31,13 @@ export interface SparklineProps {
 function SparklineSeries({
   stroke,
   fill,
-  lineWidth,
+  strokeWidth,
   paths,
   fillTo,
 }: {
   stroke?: ColorValue;
   fill?: ColorValue;
-  lineWidth: number;
+  strokeWidth: number;
   paths?: PathBuilder;
   fillTo?: number;
 }) {
@@ -46,10 +46,10 @@ function SparklineSeries({
     <Series
       group={0}
       index={0}
-      yScale="y"
+      yScaleId="y"
       stroke={stroke ?? store.theme.sparklineStroke}
       fill={fill}
-      width={lineWidth}
+      strokeWidth={strokeWidth}
       paths={paths}
       fillTo={fillTo}
     />
@@ -66,7 +66,7 @@ export function Sparkline({
   height = 30,
   stroke,
   fill,
-  lineWidth = 1,
+  strokeWidth = 1,
   paths,
   fillTo,
   className,
@@ -74,12 +74,12 @@ export function Sparkline({
   return (
     <div style={{ pointerEvents: 'none' }} className={className}>
       <Chart width={width} height={height} data={data}>
-        <Axis scale="x" show={false} />
-        <Axis scale="y" show={false} />
+        <Axis scaleId="x" show={false} />
+        <Axis scaleId="y" show={false} />
         <SparklineSeries
           stroke={stroke}
           fill={fill}
-          lineWidth={lineWidth}
+          strokeWidth={strokeWidth}
           paths={paths}
           fillTo={fillTo}
         />

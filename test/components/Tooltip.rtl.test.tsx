@@ -20,8 +20,8 @@ function simulateCursor(store: ChartStore, dataIdx: number) {
   store.cursorManager.state.left = 100;
   store.cursorManager.state.top = 100;
   store.cursorManager.state.activeGroup = 0;
-  store.cursorManager.state.activeSeriesIdx = 0;
-  store.cursorManager.state.activeDataIdx = dataIdx;
+  store.cursorManager.state.activeSeriesIndex = 0;
+  store.cursorManager.state.activeDataIndex = dataIdx;
   rebuildSnapshot(store);
   for (const fn of store.cursorListeners) fn();
 }

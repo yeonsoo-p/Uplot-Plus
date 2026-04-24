@@ -9,7 +9,7 @@ All callbacks receive resolved chart data — nearest point, data values, pixel 
   data={data} width={800} height={400}
   onClick={(info) => {
     if (info.point) {
-      console.log(`Clicked series ${info.point.seriesIdx} at y=${info.point.yVal}`);
+      console.log(`Clicked series ${info.point.index} at y=${info.point.yVal}`);
     }
   }}
   onContextMenu={(info) => {
@@ -59,8 +59,8 @@ function ZoomableChart({ data }) {
       <Chart data={data} width={800} height={400} onScaleChange={onScaleChange}>
         <Scale id="x" auto={xRange == null} min={xRange?.[0]} max={xRange?.[1]} />
         <Scale id="y" />
-        <Axis scale="x" />
-        <Axis scale="y" />
+        <Axis scaleId="x" />
+        <Axis scaleId="y" />
         <Series stroke="#e74c3c" />
       </Chart>
     </>

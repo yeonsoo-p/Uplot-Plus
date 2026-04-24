@@ -22,7 +22,7 @@ describe('useChart hook', () => {
 
     expect(api).not.toBeNull();
     expect(api!.activeGroup).toBe(-1);
-    expect(api!.activeDataIdx).toBe(-1);
+    expect(api!.activeDataIndex).toBe(-1);
     expect(typeof api!.left).toBe('number');
     expect(typeof api!.top).toBe('number');
   });

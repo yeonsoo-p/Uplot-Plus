@@ -24,8 +24,8 @@ describe('CursorManager: multi-group snapping', () => {
   ];
 
   const seriesConfigs: SeriesConfig[] = [
-    { group: 0, index: 0, yScale: 'y' },
-    { group: 1, index: 0, yScale: 'y' },
+    { group: 0, index: 0, yScaleId: 'y' },
+    { group: 1, index: 0, yScaleId: 'y' },
   ];
 
   const scales: Record<string, ScaleState> = {
@@ -38,7 +38,7 @@ describe('CursorManager: multi-group snapping', () => {
     if (_gi === 0) return [0, 4];
     return [0, 2];
   };
-  const getGroupXScaleKey = () => 'x';
+  const getGroupXScaleId = () => 'x';
 
   it('picks the nearest point across multiple groups', () => {
     const mgr = new CursorManager();
@@ -57,11 +57,11 @@ describe('CursorManager: multi-group snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
     expect(mgr.state.activeGroup).toBe(1);
-    expect(mgr.state.activeDataIdx).toBe(1);
+    expect(mgr.state.activeDataIndex).toBe(1);
   });
 
   it('falls back to group 0 when equidistant', () => {
@@ -79,11 +79,11 @@ describe('CursorManager: multi-group snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
     expect(mgr.state.activeGroup).toBe(0);
-    expect(mgr.state.activeDataIdx).toBe(0);
+    expect(mgr.state.activeDataIndex).toBe(0);
   });
 });
 
@@ -107,14 +107,14 @@ describe('CursorManager: hidden series', () => {
 
   const getScale = (id: string) => scales[id];
   const getWindow = (): [number, number] => [0, 2];
-  const getGroupXScaleKey = () => 'x';
+  const getGroupXScaleId = () => 'x';
 
   it('skips hidden series (show: false)', () => {
     const mgr = new CursorManager();
 
     const seriesConfigs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: false },
-      { group: 0, index: 1, yScale: 'y', show: true },
+      { group: 0, index: 0, yScaleId: 'y', show: false },
+      { group: 0, index: 1, yScaleId: 'y', show: true },
     ];
 
     // Place cursor at x=50, y=50 — both series have y=50 at index 1
@@ -130,18 +130,18 @@ describe('CursorManager: hidden series', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
-    expect(mgr.state.activeSeriesIdx).toBe(1);
+    expect(mgr.state.activeSeriesIndex).toBe(1);
   });
 
   it('returns no active series when all are hidden', () => {
     const mgr = new CursorManager();
 
     const seriesConfigs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: false },
-      { group: 0, index: 1, yScale: 'y', show: false },
+      { group: 0, index: 0, yScaleId: 'y', show: false },
+      { group: 0, index: 1, yScaleId: 'y', show: false },
     ];
 
     const xPixel = valToPos(50, scales['x']!, plotBox.width, plotBox.left);
@@ -154,11 +154,11 @@ describe('CursorManager: hidden series', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
     expect(mgr.state.activeGroup).toBe(-1);
-    expect(mgr.state.activeSeriesIdx).toBe(-1);
+    expect(mgr.state.activeSeriesIndex).toBe(-1);
   });
 });
 
@@ -172,7 +172,7 @@ describe('CursorManager: null data handling', () => {
 
   const getScale = (id: string) => scales[id];
   const getWindow = (): [number, number] => [0, 4];
-  const getGroupXScaleKey = () => 'x';
+  const getGroupXScaleId = () => 'x';
 
   it('skips null y-values', () => {
     const mgr = new CursorManager();
@@ -185,7 +185,7 @@ describe('CursorManager: null data handling', () => {
     ];
 
     const seriesConfigs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y' },
+      { group: 0, index: 0, yScaleId: 'y' },
     ];
 
     // Cursor near x=25 (index 1) which has null y — should snap to index 0 or 2
@@ -199,11 +199,11 @@ describe('CursorManager: null data handling', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
     // Should have found a valid point (not index 1 which is null)
-    expect(mgr.state.activeDataIdx).not.toBe(1);
+    expect(mgr.state.activeDataIndex).not.toBe(1);
     expect(mgr.state.activeGroup).toBe(0);
   });
 });
@@ -232,18 +232,18 @@ describe('CursorManager: syncToValue', () => {
         getWindow: (): [number, number] => [0, 4],
       },
       scaleManager: {
-        getGroupXScaleKey: (): string | undefined => 'x',
+        getGroupXScaleId: (): string | undefined => 'x',
         getScale: (id: string) => scales[id],
       },
       seriesConfigs: [
-        { group: 0, index: 0, yScale: 'y' },
+        { group: 0, index: 0, yScaleId: 'y' },
       ],
       plotBox,
     };
 
     mgr.syncToValue(50, store);
 
-    expect(mgr.state.activeDataIdx).toBe(2);
+    expect(mgr.state.activeDataIndex).toBe(2);
     expect(mgr.state.activeGroup).toBe(0);
     // CSS position should correspond to x=50
     const expectedLeft = valToPos(50, scales['x']!, plotBox.width, plotBox.left) - plotBox.left;
@@ -271,11 +271,11 @@ describe('CursorManager: syncToValue', () => {
         getWindow: (): [number, number] => [0, 2],
       },
       scaleManager: {
-        getGroupXScaleKey: (): string | undefined => 'x',
+        getGroupXScaleId: (): string | undefined => 'x',
         getScale: (id: string) => scales[id],
       },
       seriesConfigs: [
-        { group: 0, index: 0, yScale: 'y' },
+        { group: 0, index: 0, yScaleId: 'y' },
       ],
       plotBox,
     };
@@ -283,7 +283,7 @@ describe('CursorManager: syncToValue', () => {
     mgr.syncToValue(0, store);
 
     // Should snap to the leftmost point (x=10, index 0)
-    expect(mgr.state.activeDataIdx).toBe(0);
+    expect(mgr.state.activeDataIndex).toBe(0);
     expect(mgr.state.activeGroup).toBe(0);
   });
 });

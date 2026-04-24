@@ -2,7 +2,7 @@
 
 High-performance React charting library ripped off from [uPlot](https://github.com/leeoniya/uplot). Might perform occasionally better than original uPlot in React context (or worse). Definitely easier to use in React context.
 
-**[Live Demo (107 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
+**[Live Demo (105 examples)](https://yeonsoo-p.github.io/uPlot-Plus/)**
 
 ## Quick Start
 
@@ -146,7 +146,9 @@ Custom function matchers for actions the built-in classifiers don't cover:
 | `<Vector>` | Directional arrows overlaid on data points |
 | `<HLine>` | Horizontal line annotation |
 | `<VLine>` | Vertical line annotation |
-| `<Region>` | Shaded region annotation |
+| `<Region>` | Shaded region between two y-values |
+| `<VRegion>` | Shaded region between two x-values |
+| `<DiagonalLine>` | Diagonal line from two points or slope/intercept |
 | `<AnnotationLabel>` | Text label at data coordinates |
 
 > Full props reference: [docs/COMPONENTS.md](docs/COMPONENTS.md)
@@ -225,7 +227,7 @@ import { Chart, ThemeProvider, DARK_THEME } from 'uplot-plus';
 ## Development
 
 ```sh
-npm run dev         # Start demo dev server (107 examples)
+npm run dev         # Start demo dev server (105 examples)
 npm run build       # Build library (ES + CJS to dist/)
 npm run typecheck   # TypeScript strict check
 npm run lint        # ESLint

@@ -22,7 +22,7 @@ function makeSeries(overrides: Partial<ResolvedSeriesConfig> = {}): ResolvedSeri
   return {
     group: 0,
     index: 0,
-    yScale: 'y',
+    yScaleId: 'y',
     show: true,
     stroke: '#000',
     ...overrides,
@@ -53,8 +53,8 @@ describe('horizontalBars: scale orientation flip', () => {
     store.registerSeries(makeSeries({ paths: horizontalBars(), transposed: true }));
     store.redraw();
 
-    const xAxis = store.axisConfigs.find(a => a.scale === 'x');
-    const yAxis = store.axisConfigs.find(a => a.scale === 'y');
+    const xAxis = store.axisConfigs.find(a => a.scaleId === 'x');
+    const yAxis = store.axisConfigs.find(a => a.scaleId === 'y');
     expect(xAxis?.side).toBe(Side.Left);
     expect(yAxis?.side).toBe(Side.Bottom);
   });
@@ -127,9 +127,9 @@ describe('horizontalBars: orientation flow end-to-end', () => {
 describe('horizontalBars: auto-side axis updates survive orientation flips', () => {
   it('updateAxis preserves the store-derived side after flip (label update applies to flipped axis)', () => {
     const store = setupStore(data);
-    // Register an auto-side x-axis (mirrors <Axis scale="x" /> with no side prop)
+    // Register an auto-side x-axis (mirrors <Axis scaleId="x" /> with no side prop)
     store.registerAxis({
-      scale: 'x',
+      scaleId: 'x',
       side: Side.Bottom,
       show: true,
       label: 'Time',
@@ -139,49 +139,49 @@ describe('horizontalBars: auto-side axis updates survive orientation flips', () 
     store.redraw();
 
     // After orientation flip, the stored auto-side x-axis should now be on the Left
-    const flipped = store.axisConfigs.find(a => a.scale === 'x' && a._autoSide === true);
+    const flipped = store.axisConfigs.find(a => a.scaleId === 'x' && a._autoSide === true);
     expect(flipped?.side).toBe(Side.Left);
 
     // React re-renders Axis with a new label prop — resolveAxis resets side back
     // to the default (Bottom), but _autoSide is still true. updateAxis must
     // preserve the store-derived Left side while taking the new label.
     store.updateAxis({
-      scale: 'x',
+      scaleId: 'x',
       side: Side.Bottom, // stale default from resolveAxis
       show: true,
       label: 'Category',
       _autoSide: true,
     });
 
-    const afterUpdate = store.axisConfigs.find(a => a.scale === 'x' && a._autoSide === true);
+    const afterUpdate = store.axisConfigs.find(a => a.scaleId === 'x' && a._autoSide === true);
     expect(afterUpdate?.side).toBe(Side.Left);       // preserved
     expect(afterUpdate?.label).toBe('Category');     // label applied
   });
 
   it('explicit-side axes still dedupe by (scale, side)', () => {
     const store = setupStore(data);
-    store.registerAxis({ scale: 'y', side: Side.Left, show: true, _autoSide: false });
-    store.registerAxis({ scale: 'y', side: Side.Right, show: true, _autoSide: false });
-    expect(store.axisConfigs.filter(a => a.scale === 'y').length).toBe(2);
+    store.registerAxis({ scaleId: 'y', side: Side.Left, show: true, _autoSide: false });
+    store.registerAxis({ scaleId: 'y', side: Side.Right, show: true, _autoSide: false });
+    expect(store.axisConfigs.filter(a => a.scaleId === 'y').length).toBe(2);
 
     // Update the right axis — should not touch the left one
-    store.updateAxis({ scale: 'y', side: Side.Right, show: true, label: 'Updated', _autoSide: false });
-    const rightAxis = store.axisConfigs.find(a => a.scale === 'y' && a.side === Side.Right);
-    const leftAxis = store.axisConfigs.find(a => a.scale === 'y' && a.side === Side.Left);
+    store.updateAxis({ scaleId: 'y', side: Side.Right, show: true, label: 'Updated', _autoSide: false });
+    const rightAxis = store.axisConfigs.find(a => a.scaleId === 'y' && a.side === Side.Right);
+    const leftAxis = store.axisConfigs.find(a => a.scaleId === 'y' && a.side === Side.Left);
     expect(rightAxis?.label).toBe('Updated');
     expect(leftAxis?.label).toBeUndefined();
   });
 
   it('unregisterAxis matches auto-side axes by scale alone even after flip', () => {
     const store = setupStore(data);
-    store.registerAxis({ scale: 'x', side: Side.Bottom, show: true, _autoSide: true });
+    store.registerAxis({ scaleId: 'x', side: Side.Bottom, show: true, _autoSide: true });
     store.registerSeries(makeSeries({ paths: horizontalBars(), transposed: true }));
     store.redraw();
 
     // Stored side is now Left, but React's unregister still passes Bottom
-    const before = store.axisConfigs.filter(a => a.scale === 'x').length;
-    store.unregisterAxis({ scale: 'x', side: Side.Bottom, show: true, _autoSide: true });
-    const after = store.axisConfigs.filter(a => a.scale === 'x').length;
+    const before = store.axisConfigs.filter(a => a.scaleId === 'x').length;
+    store.unregisterAxis({ scaleId: 'x', side: Side.Bottom, show: true, _autoSide: true });
+    const after = store.axisConfigs.filter(a => a.scaleId === 'x').length;
     expect(after).toBe(before - 1);
   });
 });

@@ -29,7 +29,7 @@ describe('drawHLine (imperative)', () => {
   it('draws a horizontal line at the correct position', () => {
     const scale = makeScale(0, 100);
     const { dc, mockCtx } = makeDC();
-    drawHLine(dc, scale, 50, { stroke: 'red', width: 2 });
+    drawHLine(dc, scale, 50, { stroke: 'red', strokeWidth: 2 });
 
     expect(mockCtx.beginPath).toHaveBeenCalled();
     expect(mockCtx.stroke).toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('drawRegion (imperative)', () => {
   it('draws border when stroke is provided', () => {
     const scale = makeScale(0, 100);
     const { dc, mockCtx } = makeDC();
-    drawRegion(dc, scale, 25, 75, { fill: 'rgba(0,0,0,0.1)', stroke: 'green', width: 2 });
+    drawRegion(dc, scale, 25, 75, { fill: 'rgba(0,0,0,0.1)', stroke: 'green', strokeWidth: 2 });
 
     expect(mockCtx.strokeRect).toHaveBeenCalled();
     expect(mockCtx.strokeStyle).toBe('green');
@@ -92,7 +92,7 @@ describe('drawVRegion (imperative)', () => {
   it('draws border when stroke is provided', () => {
     const scale = makeScale(0, 200);
     const { dc, mockCtx } = makeDC();
-    drawVRegion(dc, scale, 50, 150, { fill: 'rgba(0,0,0,0.1)', stroke: 'purple', width: 2 });
+    drawVRegion(dc, scale, 50, 150, { fill: 'rgba(0,0,0,0.1)', stroke: 'purple', strokeWidth: 2 });
 
     expect(mockCtx.strokeRect).toHaveBeenCalled();
     expect(mockCtx.strokeStyle).toBe('purple');

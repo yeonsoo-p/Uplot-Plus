@@ -23,7 +23,7 @@ export default function AsinhScales() {
   return (
     <Chart width="auto" height={400} data={data} xlabel="Sample">
       <Scale id="y"  distr={Distribution.Asinh} asinh={1} />
-      <Axis scale="y" label="Value (asinh)" values={fmtVal} />
+      <Axis scaleId="y" label="Value (asinh)" values={fmtVal} />
       <Series stroke="#8e44ad" fill="rgba(142,68,173,0.1)" label="Symmetric Data" />
     </Chart>
   );

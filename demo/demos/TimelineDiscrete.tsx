@@ -59,7 +59,7 @@ export default function TimelineDiscreteDemo() {
       <Scale id="x"  />
       <Scale id="y"  />
       <Axis
-        scale="x"
+        scaleId="x"
         side={Side.Bottom}
         label="Time of Day"
         values={(splits: number[]) => splits.map(v => {
@@ -67,7 +67,7 @@ export default function TimelineDiscreteDemo() {
           return `${h.toString().padStart(2, '0')}:00`;
         })}
       />
-      <Axis scale="y" show={false} size={80} />
+      <Axis scaleId="y" show={false} size={80} />
       <Timeline lanes={lanes} laneHeight={28} gap={4} scaleId="x" />
     </Chart>
   );

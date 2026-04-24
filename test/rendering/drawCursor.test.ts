@@ -14,8 +14,8 @@ function makeCursor(overrides?: Partial<CursorState>): CursorState {
     left: 350,
     top: 280,
     activeGroup: -1,
-    activeSeriesIdx: -1,
-    activeDataIdx: -1,
+    activeSeriesIndex: -1,
+    activeDataIndex: -1,
     ...overrides,
   };
 }
@@ -123,7 +123,7 @@ describe('drawCursor', () => {
       { x: [0, 25, 50, 75, 100], series: [[10, 40, 70, 30, 90]] },
     ];
     const configs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', stroke: 'green', show: true },
+      { group: 0, index: 0, yScaleId: 'y', stroke: 'green', show: true },
     ];
     const configMap = new Map([['0:0', configs[0]!]]);
 
@@ -136,13 +136,13 @@ describe('drawCursor', () => {
       return undefined;
     }
 
-    function getGroupXScaleKey(gi: number): string | undefined {
+    function getGroupXScaleId(gi: number): string | undefined {
       return gi === 0 ? 'x' : undefined;
     }
 
     it('draws point indicator at snapped data position', () => {
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap);
 
       expect(ctx.arc).toHaveBeenCalledTimes(1);
       expect(ctx.fill).toHaveBeenCalled();
@@ -152,8 +152,8 @@ describe('drawCursor', () => {
     });
 
     it('uses series stroke color for point indicator', () => {
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap);
 
       // After arc, strokeStyle should be set to the series color 'green'
       // It gets set right before the final stroke() call
@@ -164,28 +164,28 @@ describe('drawCursor', () => {
 
     it('skips point when series cursor.show===false', () => {
       const hiddenConfigs: SeriesConfig[] = [
-        { group: 0, index: 0, yScale: 'y', stroke: 'green', show: true, cursor: { show: false } },
+        { group: 0, index: 0, yScaleId: 'y', stroke: 'green', show: true, cursor: { show: false } },
       ];
       const hiddenMap = new Map([['0:0', hiddenConfigs[0]!]]);
 
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, hiddenConfigs, getScale, getGroupXScaleKey, undefined, hiddenMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, hiddenConfigs, getScale, getGroupXScaleId, undefined, hiddenMap);
 
       expect(ctx.arc).not.toHaveBeenCalled();
     });
 
     it('applies theme pointFill override', () => {
       const theme: ResolvedTheme = { ...THEME_DEFAULTS, pointFill: '#000' };
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap, theme);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap, theme);
 
       expect(ctx.arc).toHaveBeenCalled();
       expect(ctx.fillStyle).toBe('#000');
     });
 
     it('uses default white pointFill when no theme', () => {
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap);
 
       expect(ctx.fillStyle).toBe('#fff');
     });
@@ -195,30 +195,30 @@ describe('drawCursor', () => {
         return undefined;
       }
 
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, noReadyScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, noReadyScale, getGroupXScaleId, undefined, configMap);
 
       expect(ctx.arc).not.toHaveBeenCalled();
     });
 
     it('falls back to findYScaleId when seriesConfigMap is undefined', () => {
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 2 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 2 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId);
 
       // Should still draw the point using fallback lookup
       expect(ctx.arc).toHaveBeenCalled();
     });
 
     it('skips point when data index is out of bounds', () => {
-      const cursor = makeCursor({ activeGroup: 0, activeSeriesIdx: 0, activeDataIdx: 999 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 0, activeSeriesIndex: 0, activeDataIndex: 999 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap);
 
       expect(ctx.arc).not.toHaveBeenCalled();
     });
 
     it('skips point when group does not exist in data', () => {
-      const cursor = makeCursor({ activeGroup: 5, activeSeriesIdx: 0, activeDataIdx: 0 });
-      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleKey, undefined, configMap);
+      const cursor = makeCursor({ activeGroup: 5, activeSeriesIndex: 0, activeDataIndex: 0 });
+      drawCursor(ctx, cursor, plotBox, 1, data, configs, getScale, getGroupXScaleId, undefined, configMap);
 
       expect(ctx.arc).not.toHaveBeenCalled();
     });

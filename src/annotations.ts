@@ -8,7 +8,7 @@ const LABEL_OFFSET_Y = 4;
 
 function applyStrokeStyle(ctx: CanvasRenderingContext2D, style: AnnotationStyle): void {
   ctx.strokeStyle = style.stroke ?? 'red';
-  ctx.lineWidth = style.width ?? 1;
+  ctx.lineWidth = style.strokeWidth ?? 1;
   if (style.dash) ctx.setLineDash(style.dash);
 }
 
@@ -18,7 +18,7 @@ function resetDash(ctx: CanvasRenderingContext2D, style: AnnotationStyle): void 
 
 export interface AnnotationStyle {
   stroke?: string;
-  width?: number;
+  strokeWidth?: number;
   dash?: number[];
   fill?: string;
   font?: string;

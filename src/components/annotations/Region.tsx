@@ -8,7 +8,7 @@ export interface RegionProps {
   /** Upper y data value */
   yMax: number;
   /** Scale id for the y-axis (default: 'y') */
-  yScale?: string;
+  yScaleId?: string;
   /** Fill color (default: 'rgba(255,0,0,0.1)') */
   fill?: string;
   /** Border stroke color */
@@ -25,11 +25,13 @@ export interface RegionProps {
  */
 export function Region(props: RegionProps): null {
   const store = useStore();
-  useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
+  useAnnotationDraw(props, (dc, p) => {
+    const scale = dc.getScale(p.yScaleId ?? 'y');
+    if (scale == null) return;
     drawRegion(dc, scale, p.yMin, p.yMax, {
       fill: p.fill ?? store.theme.annotationFill,
       stroke: p.stroke,
-      width: p.strokeWidth,
+      strokeWidth: p.strokeWidth,
       dash: p.dash,
     });
   });

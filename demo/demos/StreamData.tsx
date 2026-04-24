@@ -104,8 +104,8 @@ export default function StreamData() {
         </span>
       </div>
       <Chart width="auto" height={350} data={data} xlabel="Tick" ylabel="Value">
-        <Series width={1.5} label="Random Walk" />
-        <Series width={1.5} label="Oscillating" />
+        <Series strokeWidth={1.5} label="Random Walk" />
+        <Series strokeWidth={1.5} label="Oscillating" />
         <Series label="Spiky" />
         <Legend />
       </Chart>

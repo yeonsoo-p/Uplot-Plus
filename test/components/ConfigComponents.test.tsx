@@ -49,7 +49,7 @@ describe('Series config registration', () => {
   it('defaults yScale to "y"', async () => {
     const { store } = renderChart({}, <Series group={0} index={0} />);
     await flushEffects();
-    expect(store.seriesConfigs[0]?.yScale).toBe('y');
+    expect(store.seriesConfigs[0]?.yScaleId).toBe('y');
   });
 
   it('defaults show to true', async () => {
@@ -79,34 +79,34 @@ describe('Scale config registration', () => {
 
 describe('Axis config registration', () => {
   it('registers axis with default side for x scale', async () => {
-    const { store } = renderChart({}, <Axis scale="x" />);
+    const { store } = renderChart({}, <Axis scaleId="x" />);
     await flushEffects();
-    const found = store.axisConfigs.find(a => a.scale === 'x');
+    const found = store.axisConfigs.find(a => a.scaleId === 'x');
     expect(found).toBeDefined();
     expect(found?.side).toBe(Side.Bottom);
   });
 
   it('registers axis with default side for y scale', async () => {
-    const { store } = renderChart({}, <Axis scale="y" />);
+    const { store } = renderChart({}, <Axis scaleId="y" />);
     await flushEffects();
-    const found = store.axisConfigs.find(a => a.scale === 'y' && a._default !== true);
+    const found = store.axisConfigs.find(a => a.scaleId === 'y' && a._default !== true);
     expect(found).toBeDefined();
     expect(found?.side).toBe(Side.Left);
   });
 
   it('registers axis with explicit side', async () => {
-    const { store } = renderChart({}, <Axis scale="y" side={Side.Right} />);
+    const { store } = renderChart({}, <Axis scaleId="y" side={Side.Right} />);
     await flushEffects();
-    const found = store.axisConfigs.find(a => a.scale === 'y' && a.side === Side.Right);
+    const found = store.axisConfigs.find(a => a.scaleId === 'y' && a.side === Side.Right);
     expect(found).toBeDefined();
   });
 
   it('unregisters axis on unmount', async () => {
-    const { store, unmount } = renderChart({}, <Axis scale="y" side={Side.Right} />);
+    const { store, unmount } = renderChart({}, <Axis scaleId="y" side={Side.Right} />);
     await flushEffects();
-    expect(store.axisConfigs.some(a => a.scale === 'y' && a.side === Side.Right)).toBe(true);
+    expect(store.axisConfigs.some(a => a.scaleId === 'y' && a.side === Side.Right)).toBe(true);
     unmount();
-    expect(store.axisConfigs.some(a => a.scale === 'y' && a.side === Side.Right)).toBe(false);
+    expect(store.axisConfigs.some(a => a.scaleId === 'y' && a.side === Side.Right)).toBe(false);
   });
 });
 

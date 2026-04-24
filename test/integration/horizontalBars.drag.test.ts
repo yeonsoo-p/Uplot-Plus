@@ -37,13 +37,13 @@ function setup(): TestHarness {
   store.scaleManager.addScale({ id: 'y', min: 0, max: 100, ori: Orientation.Horizontal });
   store.scaleManager.setGroupXScale(0, 'x');
 
-  store.registerSeries({ group: 0, index: 0, yScale: 'y', stroke: 'red', show: true, transposed: true });
+  store.registerSeries({ group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true, transposed: true });
   store.dataStore.setData([{
     x: [0, 25, 50, 75, 100],
     series: [[10, 40, 70, 30, 90]],
   }]);
   store.dataStore.updateWindows((gi) => {
-    const key = store.scaleManager.getGroupXScaleKey(gi);
+    const key = store.scaleManager.getGroupXScaleId(gi);
     return key != null ? store.scaleManager.getScale(key) : undefined;
   });
 
@@ -54,12 +54,12 @@ function setup(): TestHarness {
   //   Side.Bottom → plotBox.top + plotBox.height            = 580
   store.axisStates = [
     {
-      config: { scale: 'x', side: Side.Left, show: true },
+      config: { scaleId: 'x', side: Side.Left, show: true },
       _show: true, _size: 50, _pos: 50, _lpos: 0,
       _splits: [], _values: [], _incr: 10, _space: 50, _rotate: 0,
     },
     {
-      config: { scale: 'y', side: Side.Bottom, show: true },
+      config: { scaleId: 'y', side: Side.Bottom, show: true },
       _show: true, _size: 30, _pos: 580, _lpos: 0,
       _splits: [], _values: [], _incr: 10, _space: 50, _rotate: 0,
     },
@@ -180,7 +180,7 @@ describe('Horizontal bars: cursor event coordinates', () => {
     expect(cb).toHaveBeenCalledTimes(1);
     const point = cb.mock.calls[0]![0].point;
     expect(point).not.toBeNull();
-    expect(point!.dataIdx).toBe(2);
+    expect(point!.dataIndex).toBe(2);
     expect(point!.pxX).toBeCloseTo(490, 0);
     expect(point!.pxY).toBeCloseTo(280, 0);
     expect(point!.dist).toBeCloseTo(0, 6);

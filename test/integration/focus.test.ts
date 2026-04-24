@@ -23,7 +23,7 @@ describe('Focus mode', () => {
 
   it('toggleSeries flips show flag', () => {
     const store = createChartStore();
-    store.registerSeries({ group: 0, index: 1, yScale: 'y', stroke: 'red' });
+    store.registerSeries({ group: 0, index: 1, yScaleId: 'y', stroke: 'red' });
 
     store.toggleSeries(0, 1);
     const cfg = store.seriesConfigs.find(s => s.group === 0 && s.index === 1);

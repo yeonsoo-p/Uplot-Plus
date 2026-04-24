@@ -3,9 +3,9 @@ export interface NearestPoint {
   /** XGroup index */
   group: number;
   /** Series index within the group */
-  seriesIdx: number;
+  index: number;
   /** Data array index */
-  dataIdx: number;
+  dataIndex: number;
   /** X data value */
   xVal: number;
   /** Y data value */

@@ -13,10 +13,10 @@ import { THEME_DEFAULTS } from '../rendering/theme';
  * pin a slot. `_internal` is a renderer-internal escape hatch used by
  * specialized components (Candlestick, BoxWhisker) to mark helper series.
  */
-export type SeriesProps = Omit<SeriesConfig, 'yScale' | 'group' | 'index'> & {
+export type SeriesProps = Omit<SeriesConfig, 'yScaleId' | 'group' | 'index'> & {
   group?: number;
   index?: number;
-  yScale?: string;
+  yScaleId?: string;
   _internal?: boolean;
 };
 
@@ -85,7 +85,7 @@ function resolveDefaults(
     ...p,
     group: slot.group,
     index: slot.index,
-    yScale: p.yScale ?? 'y',
+    yScaleId: p.yScaleId ?? 'y',
     show: p.show ?? true,
     stroke,
     fill,

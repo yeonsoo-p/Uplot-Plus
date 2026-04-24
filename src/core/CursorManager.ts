@@ -16,7 +16,7 @@ function axisDims(scale: ScaleState, cssX: number, cssY: number, plotBox: BBox):
 /** Minimal store interface to avoid circular dependency with ChartStore. */
 export interface SyncTarget {
   dataStore: { data: ChartData; getWindow(gi: number): [number, number] };
-  scaleManager: { getGroupXScaleKey(gi: number): string | undefined; getScale(id: string): ScaleState | undefined };
+  scaleManager: { getGroupXScaleId(gi: number): string | undefined; getScale(id: string): ScaleState | undefined };
   seriesConfigs: SeriesConfig[];
   plotBox: BBox;
 }
@@ -34,8 +34,8 @@ export class CursorManager {
     left: CURSOR_HIDDEN,
     top: CURSOR_HIDDEN,
     activeGroup: -1,
-    activeSeriesIdx: -1,
-    activeDataIdx: -1,
+    activeSeriesIndex: -1,
+    activeDataIndex: -1,
   };
 
   /** Cached grouping of visible series configs by group index */
@@ -70,8 +70,8 @@ export class CursorManager {
     this.state.left = CURSOR_HIDDEN;
     this.state.top = CURSOR_HIDDEN;
     this.state.activeGroup = -1;
-    this.state.activeSeriesIdx = -1;
-    this.state.activeDataIdx = -1;
+    this.state.activeSeriesIndex = -1;
+    this.state.activeDataIndex = -1;
   }
 
   /**
@@ -92,7 +92,7 @@ export class CursorManager {
     seriesConfigs: SeriesConfig[],
     getScale: (id: string) => ScaleState | undefined,
     getWindow: (groupIdx: number) => [number, number],
-    getGroupXScaleKey: (groupIdx: number) => string | undefined,
+    getGroupXScaleId: (groupIdx: number) => string | undefined,
   ): void {
     this.state.left = cssX;
     this.state.top = cssY;
@@ -113,7 +113,7 @@ export class CursorManager {
       if (xData.length === 0) continue;
 
       // Determine x-scale for this group
-      const xScaleId = getGroupXScaleKey(gi);
+      const xScaleId = getGroupXScaleId(gi);
       if (xScaleId == null) continue;
       const xScale = getScale(xScaleId);
       if (xScale == null || !isScaleReady(xScale)) continue;
@@ -152,10 +152,10 @@ export class CursorManager {
           const yVal = yData[di];
           if (yVal == null) continue;
 
-          let yScaleState = yScaleCache.get(sc.yScale);
-          if (yScaleState == null && !yScaleCache.has(sc.yScale)) {
-            yScaleState = getScale(sc.yScale);
-            yScaleCache.set(sc.yScale, yScaleState);
+          let yScaleState = yScaleCache.get(sc.yScaleId);
+          if (yScaleState == null && !yScaleCache.has(sc.yScaleId)) {
+            yScaleState = getScale(sc.yScaleId);
+            yScaleCache.set(sc.yScaleId, yScaleState);
           }
           if (yScaleState == null || !isScaleReady(yScaleState)) continue;
 
@@ -189,8 +189,8 @@ export class CursorManager {
     }
 
     this.state.activeGroup = bestGroup;
-    this.state.activeSeriesIdx = bestSeries;
-    this.state.activeDataIdx = bestIdx;
+    this.state.activeSeriesIndex = bestSeries;
+    this.state.activeDataIndex = bestIdx;
   }
 
   /**
@@ -207,9 +207,9 @@ export class CursorManager {
     const group = data[groupIdx];
     if (group == null) return;
 
-    const xScaleKey = store.scaleManager.getGroupXScaleKey(groupIdx);
-    if (xScaleKey == null) return;
-    const xScale = store.scaleManager.getScale(xScaleKey);
+    const xScaleId = store.scaleManager.getGroupXScaleId(groupIdx);
+    if (xScaleId == null) return;
+    const xScale = store.scaleManager.getScale(xScaleId);
     if (xScale == null || !isScaleReady(xScale)) return;
 
     const [wi0, wi1] = store.dataStore.getWindow(groupIdx);
@@ -223,7 +223,7 @@ export class CursorManager {
     const pxX = valToPos(foundX, xScale, xDim, xOff);
 
     this.state.activeGroup = groupIdx;
-    this.state.activeDataIdx = dataIdx;
+    this.state.activeDataIndex = dataIdx;
 
     // Find first visible series to compute proper position along the y axis.
     // Fallback (no series found): center of plot area in canvas coords.
@@ -238,7 +238,7 @@ export class CursorManager {
       if (yData == null) continue;
       const yVal = yData[dataIdx];
       if (yVal == null) continue;
-      const yScale = store.scaleManager.getScale(sc.yScale);
+      const yScale = store.scaleManager.getScale(sc.yScaleId);
       if (yScale == null || !isScaleReady(yScale)) continue;
 
       const yIsHoriz = yScale.ori === Orientation.Horizontal;
@@ -254,6 +254,6 @@ export class CursorManager {
     const canvasY = xIsHoriz ? pxY : pxX;
     this.state.left = canvasX - store.plotBox.left;
     this.state.top  = canvasY - store.plotBox.top;
-    this.state.activeSeriesIdx = bestSeriesIdx;
+    this.state.activeSeriesIndex = bestSeriesIdx;
   }
 }

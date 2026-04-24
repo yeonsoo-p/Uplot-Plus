@@ -92,9 +92,9 @@ export default function RealtimeSine() {
       </div>
       <Chart width="auto" height={350} data={data} xlabel="Time (s)" ylabel="Amplitude">
         <Scale id="y" min={-1.5} max={1.5} />
-        <Series width={1.5} label="1 Hz" />
-        <Series width={1.5} label="2.5 Hz" />
-        <Series width={1.5} label="4 Hz" />
+        <Series strokeWidth={1.5} label="1 Hz" />
+        <Series strokeWidth={1.5} label="2.5 Hz" />
+        <Series strokeWidth={1.5} label="4 Hz" />
         <Legend />
       </Chart>
     </div>

@@ -32,12 +32,12 @@ function makeScales(nPoints: number) {
 function makeAxes(): AxisState[] {
   return [
     {
-      config: { scale: 'x', side: Side.Bottom },
+      config: { scaleId: 'x', side: Side.Bottom },
       _show: true, _size: 50, _pos: 0, _lpos: 0,
       _splits: null, _values: null, _incr: 1, _space: 50, _rotate: 0,
     },
     {
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _show: true, _size: 50, _pos: 0, _lpos: 0,
       _splits: null, _values: null, _incr: 1, _space: 50, _rotate: 0,
     },

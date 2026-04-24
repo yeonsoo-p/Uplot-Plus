@@ -37,8 +37,8 @@ export function useDrawHook(fn: DrawCallback, opts?: { clipped?: boolean }): voi
  * ```ts
  * const lastIdx = useRef(-1);
  * useCursorDrawHook((dc, cursor) => {
- *   if (cursor.activeDataIdx === lastIdx.current) return;
- *   lastIdx.current = cursor.activeDataIdx;
+ *   if (cursor.activeDataIndex === lastIdx.current) return;
+ *   lastIdx.current = cursor.activeDataIndex;
  *   // expensive drawing here
  * });
  * ```

@@ -54,7 +54,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtCompact — SI suffixes (K, M, B)">
           <Chart width={W} height={H} data={compactData}>
             <Scale id="y" auto />
-            <Axis scale="y" side={Side.Left} values={fmtCompact()} />
+            <Axis scaleId="y" side={Side.Left} values={fmtCompact()} />
             <Series stroke="#e74c3c" />
           </Chart>
         </SmallChart>
@@ -62,7 +62,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtSuffix — append units (°C)">
           <Chart width={W} height={H} data={suffData}>
             <Scale id="y" auto />
-            <Axis scale="y" side={Side.Left} values={fmtSuffix('°C', 1)} />
+            <Axis scaleId="y" side={Side.Left} values={fmtSuffix('°C', 1)} />
             <Series stroke="#3498db" />
           </Chart>
         </SmallChart>
@@ -70,7 +70,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtHourMin — HH:MM from timestamps">
           <Chart width={W} height={H} data={hourData}>
             <Scale id="x" time auto />
-            <Axis scale="x" side={Side.Bottom} values={fmtHourMin()} />
+            <Axis scaleId="x" side={Side.Bottom} values={fmtHourMin()} />
             <Series stroke="#2ecc71" />
           </Chart>
         </SmallChart>
@@ -78,7 +78,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtMonthName — month names">
           <Chart width={W} height={H} data={monthData}>
             <Scale id="x" time auto />
-            <Axis scale="x" side={Side.Bottom} values={fmtMonthName()} />
+            <Axis scaleId="x" side={Side.Bottom} values={fmtMonthName()} />
             <Series stroke="#9b59b6" />
           </Chart>
         </SmallChart>
@@ -86,7 +86,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtDateStr — custom Intl format">
           <Chart width={W} height={H} data={dateData}>
             <Scale id="x" time auto />
-            <Axis scale="x" side={Side.Bottom} values={fmtDateStr({ month: 'short', day: 'numeric' })} />
+            <Axis scaleId="x" side={Side.Bottom} values={fmtDateStr({ month: 'short', day: 'numeric' })} />
             <Series stroke="#e67e22" />
           </Chart>
         </SmallChart>
@@ -94,7 +94,7 @@ export default function FormattersShowcase() {
         <SmallChart title="fmtLabels — categorical labels">
           <Chart width={W} height={H} data={catData}>
             <Scale id="x" auto />
-            <Axis scale="x" side={Side.Bottom} values={fmtLabels(labels)} />
+            <Axis scaleId="x" side={Side.Bottom} values={fmtLabels(labels)} />
             <Series stroke="#1abc9c" />
           </Chart>
         </SmallChart>

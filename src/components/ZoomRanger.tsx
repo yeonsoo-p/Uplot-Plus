@@ -322,16 +322,16 @@ export function ZoomRanger({
   return (
     <div className={className} data-testid="zoom-ranger" style={{ position: 'relative', width, height }}>
       <Chart width={width} height={height} data={normalized}>
-        <Axis scale="x" show={false} />
-        <Axis scale="y" show={false} />
+        <Axis scaleId="x" show={false} />
+        <Axis scaleId="y" show={false} />
         {Array.from({ length: seriesCount }, (_, i) => (
           <Series
             key={`0:${i}`}
             group={0}
             index={i}
-            yScale="y"
+            yScaleId="y"
             stroke={colors != null && colors[i] != null ? colors[i] : `hsl(${i * 137}, 60%, 50%)`}
-            width={1}
+            strokeWidth={1}
           />
         ))}
       </Chart>

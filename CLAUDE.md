@@ -29,7 +29,7 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 │   └── index.ts       public API exports
 ├── test/              Vitest unit/integration tests (68 files, 756 tests)
 ├── e2e/               Playwright e2e tests (11 spec files, chromium + firefox)
-├── demo/              demo app (vite dev server, 107 examples)
+├── demo/              demo app (vite dev server, 105 examples)
 └── dist/              build output (gitignored)
 ```
 
@@ -98,7 +98,7 @@ npm run test:e2e    # Playwright e2e tests (requires dev server running)
 - **Pattern**: `describe`/`it` blocks with `@/` path aliases; helper factories for scales/data
 - **Coverage**: math (utils, increments, stack, align, lttb), core (Scale, ScaleManager, DataStore, BlockMinMax, normalizeData, RenderScheduler, CursorManager), axes (ticks, layout, log filter, asinh splits), paths (linear, lttbLinear, stepped, bars, spline, candlestick, points, path utils), annotations, time formatting, formatters, colors, sync, hooks (useChart, useDraggableOverlay, useDrawHook), components (Chart, Legend, Tooltip, ZoomRanger, FloatingLegend, ThemeProvider), utils (shallowEqual), integration tests (convergence, auto-ranging, cursor snapping, cursor snapping extended, interactions, resize, mount, focus, defaults, axis drag, touch pinch)
 - **Interaction tests**: `setupInteraction()` extracted from `useInteraction` hook for direct DOM event testing without React Testing Library
-- **Demos**: 108 interactive examples across 14 categories (Getting Started, Line Styles, Bars & Stacking, Scales, Axes & Formatting, Time & Dates, Cursor & Interaction, Zoom & Pan, Data Handling, Tooltips & Legends, Layout & Streaming, Annotations & Drawing, Theming, Specialized Charts)
+- **Demos**: 105 interactive examples across 14 categories (Getting Started, Line Styles, Bars & Stacking, Scales, Axes & Formatting, Time & Dates, Cursor & Interaction, Zoom & Pan, Data Handling, Tooltips & Legends, Layout & Streaming, Annotations & Drawing, Theming, Specialized Charts)
 
 ## Reference Code
 

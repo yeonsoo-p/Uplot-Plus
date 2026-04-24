@@ -11,7 +11,7 @@ function makeScale(min: number, max: number): ScaleState {
 
 describe('convergeSize integration', () => {
   it('single y-axis produces correct plotBox', () => {
-    const axes = [createAxisState({ scale: 'y', side: Side.Left })];
+    const axes = [createAxisState({ scaleId: 'y', side: Side.Left })];
     const scales: Record<string, ScaleState> = { y: makeScale(-10, 10) };
     const plotBox = convergeSize(800, 600, axes, id => scales[id]);
 
@@ -23,8 +23,8 @@ describe('convergeSize integration', () => {
 
   it('x + y axes produce correct plotBox', () => {
     const axes = [
-      createAxisState({ scale: 'x', side: Side.Bottom }),
-      createAxisState({ scale: 'y', side: Side.Left }),
+      createAxisState({ scaleId: 'x', side: Side.Bottom }),
+      createAxisState({ scaleId: 'y', side: Side.Left }),
     ];
     const scales: Record<string, ScaleState> = {
       x: makeScale(0, 1000),
@@ -43,8 +43,8 @@ describe('convergeSize integration', () => {
 
   it('is deterministic across multiple calls', () => {
     const makeAxes = () => [
-      createAxisState({ scale: 'x', side: Side.Bottom }),
-      createAxisState({ scale: 'y', side: Side.Left }),
+      createAxisState({ scaleId: 'x', side: Side.Bottom }),
+      createAxisState({ scaleId: 'y', side: Side.Left }),
     ];
     const scales: Record<string, ScaleState> = {
       x: makeScale(0, 100),
@@ -63,9 +63,9 @@ describe('convergeSize integration', () => {
 
   it('handles dual y-axes', () => {
     const axes = [
-      createAxisState({ scale: 'x', side: Side.Bottom }),
-      createAxisState({ scale: 'y1', side: Side.Left }),
-      createAxisState({ scale: 'y2', side: Side.Right }),
+      createAxisState({ scaleId: 'x', side: Side.Bottom }),
+      createAxisState({ scaleId: 'y1', side: Side.Left }),
+      createAxisState({ scaleId: 'y2', side: Side.Right }),
     ];
     const scales: Record<string, ScaleState> = {
       x: makeScale(0, 100),

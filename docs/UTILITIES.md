@@ -19,8 +19,8 @@ Format numbers with SI suffixes: `1200` → `"1.2K"`,
 `2500000` → `"2.5M"`. Handles negative values and zero.
 
 ```tsx
-<Axis scale="y" values={fmtCompact()} />           // 1.2K, 3.5M
-<Axis scale="y" values={fmtCompact({ decimals: 2 })} />  // 1.20K
+<Axis scaleId="y" values={fmtCompact()} />           // 1.2K, 3.5M
+<Axis scaleId="y" values={fmtCompact({ decimals: 2 })} />  // 1.20K
 ```
 
 ### `fmtSuffix(suffix: string, decimals?: number)`
@@ -28,8 +28,8 @@ Format numbers with SI suffixes: `1200` → `"1.2K"`,
 Append a suffix to each formatted value.
 
 ```tsx
-<Axis scale="y" values={fmtSuffix('%')} />         // 42%
-<Axis scale="y" values={fmtSuffix('°C', 1)} />    // 23.5°C
+<Axis scaleId="y" values={fmtSuffix('%')} />         // 42%
+<Axis scaleId="y" values={fmtSuffix('°C', 1)} />    // 23.5°C
 ```
 
 ### `fmtPrefix(prefix: string, decimals?: number)`
@@ -37,8 +37,8 @@ Append a suffix to each formatted value.
 Prepend a prefix to each formatted value.
 
 ```tsx
-<Axis scale="y" values={fmtPrefix('$')} />         // $42
-<Axis scale="y" values={fmtPrefix('$', 2)} />      // $42.00
+<Axis scaleId="y" values={fmtPrefix('$')} />         // $42
+<Axis scaleId="y" values={fmtPrefix('$', 2)} />      // $42.00
 ```
 
 ### `fmtWrap(prefix: string, suffix: string, decimals?: number)`
@@ -46,8 +46,8 @@ Prepend a prefix to each formatted value.
 Wrap each value with a prefix and suffix.
 
 ```tsx
-<Axis scale="y" values={fmtWrap('$', 'M')} />      // $42M
-<Axis scale="y" values={fmtWrap('(', ')')} />       // (42)
+<Axis scaleId="y" values={fmtWrap('$', 'M')} />      // $42M
+<Axis scaleId="y" values={fmtWrap('(', ')')} />       // (42)
 ```
 
 ### `fmtHourMin(opts?: { utc?: boolean })`
@@ -55,8 +55,8 @@ Wrap each value with a prefix and suffix.
 Format unix timestamps (seconds) as `HH:MM`.
 
 ```tsx
-<Axis scale="x" values={fmtHourMin()} />               // 14:30
-<Axis scale="x" values={fmtHourMin({ utc: true })} />  // 14:30 (UTC)
+<Axis scaleId="x" values={fmtHourMin()} />               // 14:30
+<Axis scaleId="x" values={fmtHourMin({ utc: true })} />  // 14:30 (UTC)
 ```
 
 ### `fmtMonthName(opts?: { utc?: boolean; format?: 'short' | 'long' })`
@@ -64,8 +64,8 @@ Format unix timestamps (seconds) as `HH:MM`.
 Format unix timestamps (seconds) as month names.
 
 ```tsx
-<Axis scale="x" values={fmtMonthName()} />                     // Jan, Feb, ...
-<Axis scale="x" values={fmtMonthName({ format: 'long' })} />   // January, February, ...
+<Axis scaleId="x" values={fmtMonthName()} />                     // Jan, Feb, ...
+<Axis scaleId="x" values={fmtMonthName({ format: 'long' })} />   // January, February, ...
 ```
 
 ### `fmtDateStr(opts?: Intl.DateTimeFormatOptions & { tz?: string })`
@@ -73,7 +73,7 @@ Format unix timestamps (seconds) as month names.
 Format unix timestamps (seconds) using arbitrary `Intl.DateTimeFormat` options.
 
 ```tsx
-<Axis scale="x" values={fmtDateStr({ year: 'numeric', month: 'short', day: 'numeric' })} />
+<Axis scaleId="x" values={fmtDateStr({ year: 'numeric', month: 'short', day: 'numeric' })} />
 ```
 
 ### `fmtLabels(labels: readonly string[], offset?: number)`
@@ -81,8 +81,8 @@ Format unix timestamps (seconds) using arbitrary `Intl.DateTimeFormat` options.
 Map numeric indices to labels from an array. Useful for categorical/ordinal axes.
 
 ```tsx
-<Axis scale="x" values={fmtLabels(['Q1', 'Q2', 'Q3', 'Q4'])} />
-<Axis scale="x" values={fmtLabels(['Mon', 'Tue', 'Wed'], 1)} />  // offset by 1
+<Axis scaleId="x" values={fmtLabels(['Q1', 'Q2', 'Q3', 'Q4'])} />
+<Axis scaleId="x" values={fmtLabels(['Mon', 'Tue', 'Wed'], 1)} />  // offset by 1
 ```
 
 ## Color Utilities

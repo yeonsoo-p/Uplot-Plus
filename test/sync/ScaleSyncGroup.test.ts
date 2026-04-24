@@ -80,7 +80,7 @@ describe('ScaleSyncGroup', () => {
 
     const ax = a.scaleManager.getScale('x');
     // a's range is whatever a started with; b's blocked echo must not have
-    // overwritten a (a.scale.min/max should remain at the source value).
+    // overwritten a (a.scaleId.min/max should remain at the source value).
     expect(ax?.min).toBe(0);  // a was the source; we didn't change it
     expect(ax?.max).toBe(100);
 

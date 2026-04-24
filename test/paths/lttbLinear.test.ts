@@ -101,7 +101,7 @@ describe('lttbLinear path builder', () => {
     it('has LINE_DEFAULTS', () => {
       const builder = lttbLinear();
       expect(builder.defaults).toBeDefined();
-      expect(builder.defaults!.width).toBe(1);
+      expect(builder.defaults!.strokeWidth).toBe(1);
     });
   });
 });

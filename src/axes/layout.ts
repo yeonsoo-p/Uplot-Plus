@@ -43,7 +43,7 @@ export function axesCalc(
     if (config.show === false)
       continue;
 
-    const scale = getScale(config.scale);
+    const scale = getScale(config.scaleId);
 
     if (!scale || !isScaleReady(scale)) {
       if (axis._show) {

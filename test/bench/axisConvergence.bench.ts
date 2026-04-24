@@ -14,9 +14,9 @@ function makeScale(id: string, min: number, max: number, ori: Orientation): Scal
   };
 }
 
-function makeAxisState(scale: string, side: Side): AxisState {
+function makeAxisState(scaleId: string, side: Side): AxisState {
   return {
-    config: { scale, side },
+    config: { scaleId, side },
     _show: true,
     _size: 0,
     _pos: 0,

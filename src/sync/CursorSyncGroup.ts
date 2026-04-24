@@ -65,10 +65,10 @@ export class CursorSyncGroup {
     this.publishing = true;
 
     const cursor = source.cursorManager.state;
-    const { activeGroup, activeDataIdx } = cursor;
+    const { activeGroup, activeDataIndex } = cursor;
 
     // Get the x-value at the cursor position from the source chart
-    if (activeGroup < 0 || activeDataIdx < 0) {
+    if (activeGroup < 0 || activeDataIndex < 0) {
       // Cursor left the source — hide on all others
       for (const member of this.members) {
         if (member === source) continue;
@@ -81,7 +81,7 @@ export class CursorSyncGroup {
     }
 
     const xData = source.dataStore.getXValues(activeGroup);
-    const xVal = xData[activeDataIdx];
+    const xVal = xData[activeDataIndex];
     if (xVal == null) {
       this.publishing = false;
       return;

@@ -26,11 +26,11 @@ export default function TimeSeries() {
     <Chart width="auto" height={400} data={data}>
       <Scale id="req"  />
       <Scale id="err"  />
-      <Axis scale="x" label="Time (UTC)" values={fmtHourMin({ utc: true })} space={80} />
-      <Axis scale="req" label="Requests" values={fmtCompact({ decimals: 1 })} stroke="#2980b9" />
-      <Axis scale="err" side={Side.Right} label="Errors" stroke="#e74c3c" grid={{ show: false }} />
-      <Series yScale="req" stroke="#2980b9" fill={withAlpha('#2980b9', 0.1)} label="Requests" />
-      <Series yScale="err" stroke="#e74c3c" label="Errors" />
+      <Axis scaleId="x" label="Time (UTC)" values={fmtHourMin({ utc: true })} space={80} />
+      <Axis scaleId="req" label="Requests" values={fmtCompact({ decimals: 1 })} stroke="#2980b9" />
+      <Axis scaleId="err" side={Side.Right} label="Errors" stroke="#e74c3c" grid={{ show: false }} />
+      <Series yScaleId="req" stroke="#2980b9" fill={withAlpha('#2980b9', 0.1)} label="Requests" />
+      <Series yScaleId="err" stroke="#e74c3c" label="Errors" />
       <Legend />
     </Chart>
   );

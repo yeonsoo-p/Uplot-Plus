@@ -16,7 +16,7 @@ export default function SparseData() {
       <Chart width="auto" height={400} data={data} xlabel="X Position" ylabel="Value">
         <Series
           label="Sparse (10 pts)"
-          points={{ show: true, size: 10, fill: '#e67e22', stroke: '#fff', width: 2 }} />
+          points={{ show: true, size: 10, fill: '#e67e22', stroke: '#fff', strokeWidth: 2 }} />
         <Legend />
       </Chart>
     </div>

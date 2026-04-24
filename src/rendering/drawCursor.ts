@@ -44,7 +44,7 @@ export function drawCursor(
   data: ChartData,
   seriesConfigs: SeriesConfig[],
   getScale: (id: string) => ScaleState | undefined,
-  getGroupXScaleKey: (groupIdx: number) => string | undefined,
+  getGroupXScaleId: (groupIdx: number) => string | undefined,
   config?: CursorDrawConfig,
   seriesConfigMap?: Map<string, SeriesConfig>,
   theme?: ResolvedTheme,
@@ -99,10 +99,10 @@ export function drawCursor(
   ctx.setLineDash([]);
 
   // Draw point indicator at snapped data point
-  if (cursor.activeGroup >= 0 && cursor.activeDataIdx >= 0) {
+  if (cursor.activeGroup >= 0 && cursor.activeDataIndex >= 0) {
     const gi = cursor.activeGroup;
-    const si = cursor.activeSeriesIdx;
-    const di = cursor.activeDataIdx;
+    const si = cursor.activeSeriesIndex;
+    const di = cursor.activeDataIndex;
 
     const group = data[gi];
     if (group != null && si >= 0 && si < (group.series.length) && di < group.x.length) {
@@ -122,9 +122,9 @@ export function drawCursor(
         }
 
         if (showPoint) {
-          const xScaleId = getGroupXScaleKey(gi);
+          const xScaleId = getGroupXScaleId(gi);
           const xScale = xScaleId != null ? getScale(xScaleId) : undefined;
-          const yScaleId = matchedCfg?.yScale ?? findYScaleId(seriesConfigs, gi, si);
+          const yScaleId = matchedCfg?.yScaleId ?? findYScaleId(seriesConfigs, gi, si);
           const yScale = yScaleId != null ? getScale(yScaleId) : undefined;
 
           if (xScale != null && yScale != null && isScaleReady(xScale) && isScaleReady(yScale)) {
@@ -153,7 +153,7 @@ export function drawCursor(
 function findYScaleId(seriesConfigs: SeriesConfig[], group: number, index: number): string | undefined {
   for (const sc of seriesConfigs) {
     if (sc.group === group && sc.index === index) {
-      return sc.yScale;
+      return sc.yScaleId;
     }
   }
   return undefined;

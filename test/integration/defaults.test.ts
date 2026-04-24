@@ -29,8 +29,8 @@ describe('store-level defaults', () => {
     expect(store.seriesConfigs).toHaveLength(1);
     expect(store.seriesConfigs[0]?._source).toBe('fill');
     expect(store.axisConfigs).toHaveLength(2);
-    expect(store.axisConfigs[0]).toMatchObject({ scale: 'x', side: Side.Bottom, show: true, label: 'X Axis' });
-    expect(store.axisConfigs[1]).toMatchObject({ scale: 'y', side: Side.Left, show: true, label: 'Y Axis' });
+    expect(store.axisConfigs[0]).toMatchObject({ scaleId: 'x', side: Side.Bottom, show: true, label: 'X Axis' });
+    expect(store.axisConfigs[1]).toMatchObject({ scaleId: 'y', side: Side.Left, show: true, label: 'Y Axis' });
   });
 
   it('uses xlabel/ylabel from store for default axis labels', () => {
@@ -55,23 +55,23 @@ describe('store-level defaults', () => {
   it('creates default y-axis even when user provides custom x-axis', () => {
     const store = setupStore(singleSeries);
     // User provides only a custom x-axis
-    store.axisConfigs.push({ scale: 'x', side: Side.Bottom, show: true, label: 'Custom X' });
+    store.axisConfigs.push({ scaleId: 'x', side: Side.Bottom, show: true, label: 'Custom X' });
     store.redraw();
 
     // x-axis: user's custom one
-    expect(store.axisConfigs[0]).toMatchObject({ scale: 'x', label: 'Custom X' });
+    expect(store.axisConfigs[0]).toMatchObject({ scaleId: 'x', label: 'Custom X' });
     // y-axis: auto-created default
     expect(store.axisConfigs).toHaveLength(2);
-    expect(store.axisConfigs[1]).toMatchObject({ scale: 'y', side: Side.Left, show: true, label: 'Y Axis' });
+    expect(store.axisConfigs[1]).toMatchObject({ scaleId: 'y', side: Side.Left, show: true, label: 'Y Axis' });
   });
 
   it('creates default x-axis even when user provides custom y-axis', () => {
     const store = setupStore(singleSeries);
-    store.axisConfigs.push({ scale: 'y', side: Side.Left, show: true, label: 'Custom Y' });
+    store.axisConfigs.push({ scaleId: 'y', side: Side.Left, show: true, label: 'Custom Y' });
     store.redraw();
 
     // x-axis: auto-created default
-    expect(store.axisConfigs.some(a => a.scale === 'x')).toBe(true);
+    expect(store.axisConfigs.some(a => a.scaleId === 'x')).toBe(true);
     // y-axis: user's custom one
     expect(store.axisConfigs.some(a => a.label === 'Custom Y')).toBe(true);
     expect(store.axisConfigs).toHaveLength(2);
@@ -80,10 +80,10 @@ describe('store-level defaults', () => {
   it('uses ylabel prop when user provides custom x-axis', () => {
     const store = setupStore(singleSeries);
     store.ylabel = 'Revenue';
-    store.axisConfigs.push({ scale: 'x', side: Side.Bottom, show: true, label: 'Month' });
+    store.axisConfigs.push({ scaleId: 'x', side: Side.Bottom, show: true, label: 'Month' });
     store.redraw();
 
-    const yAxis = store.axisConfigs.find(a => a.scale !== 'x');
+    const yAxis = store.axisConfigs.find(a => a.scaleId !== 'x');
     expect(yAxis).toMatchObject({ label: 'Revenue' });
   });
 
@@ -91,10 +91,10 @@ describe('store-level defaults', () => {
     const store = setupStore(singleSeries);
     store.registerScale({ id: 'x', auto: true });
     store.registerScale({ id: 'y', auto: true });
-    store.registerSeries({ group: 0, index: 0, yScale: 'y', show: true });
+    store.registerSeries({ group: 0, index: 0, yScaleId: 'y', show: true });
     store.axisConfigs.push(
-      { scale: 'x', side: Side.Bottom, show: true },
-      { scale: 'y', side: Side.Left, show: true },
+      { scaleId: 'x', side: Side.Bottom, show: true },
+      { scaleId: 'y', side: Side.Left, show: true },
     );
     store.redraw();
 

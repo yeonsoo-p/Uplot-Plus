@@ -48,7 +48,7 @@ export function FloatingLegend({
   const overlayHost = useContext(OverlayHostContext);
   const snap = useSyncExternalStore(store.subscribeCursor, store.getSnapshot);
 
-  const { activeGroup, activeDataIdx } = snap;
+  const { activeGroup, activeDataIndex } = snap;
 
   // Build rows + collect text content for pre-measurement
   const rowContent: Array<{ label: string; value: string }> = [];
@@ -56,7 +56,7 @@ export function FloatingLegend({
   // Internal helper series and legend=false series are excluded entirely.
   const rows = store.seriesConfigs.filter(c => c.legend !== false && c._source !== 'internal').map((cfg) => {
     const color = getSeriesColor(cfg);
-    const value = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIdx);
+    const value = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIndex);
     const label = cfg.label ?? `Series ${cfg.index}`;
     rowContent.push({ label, value });
     return { cfg, color, value, label };

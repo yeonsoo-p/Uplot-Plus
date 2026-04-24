@@ -112,7 +112,7 @@ describe('useCursorSyncGroup hook', () => {
     // Simulate cursor change
     act(() => {
       store.cursorManager.state.activeGroup = 0;
-      store.cursorManager.state.activeDataIdx = 2;
+      store.cursorManager.state.activeDataIndex = 2;
       store.cursorManager.state.left = 100;
       store.cursorManager.state.top = 100;
       rebuildSnapshot(store);
@@ -139,7 +139,7 @@ describe('useCursorSyncGroup hook', () => {
     // First cursor change
     act(() => {
       store.cursorManager.state.activeGroup = 0;
-      store.cursorManager.state.activeDataIdx = 2;
+      store.cursorManager.state.activeDataIndex = 2;
       rebuildSnapshot(store);
       for (const fn of store.cursorListeners) fn();
     });

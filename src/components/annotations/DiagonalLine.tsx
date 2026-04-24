@@ -1,17 +1,16 @@
-import { useDrawHook } from '../../hooks/useDrawHook';
-import { useLayoutEffect, useRef } from 'react';
+import { useAnnotationDraw } from './useAnnotationDraw';
 import { useStore } from '../../hooks/useChart';
 import { drawDiagonalLine, drawSlopeInterceptLine } from '../../annotations';
 
 interface DiagonalLineCommonProps {
   /** Scale id for the x-axis (default: 'x') */
-  xScale?: string;
+  xScaleId?: string;
   /** Scale id for the y-axis (default: 'y') */
-  yScale?: string;
+  yScaleId?: string;
   /** Line color (default: theme annotationStroke) */
   stroke?: string;
-  /** Line width in CSS pixels (default: 1) */
-  width?: number;
+  /** Stroke width in CSS pixels (default: 1) */
+  strokeWidth?: number;
   /** Dash pattern */
   dash?: number[];
   /** Optional text label drawn at midpoint */
@@ -57,19 +56,15 @@ export type DiagonalLineProps = DiagonalLineTwoPointProps | DiagonalLineSlopePro
  */
 export function DiagonalLine(props: DiagonalLineProps): null {
   const store = useStore();
-  const propsRef = useRef(props);
-  useLayoutEffect(() => { propsRef.current = props; });
-
-  useDrawHook((dc) => {
-    const p = propsRef.current;
-    const xScale = dc.getScale(p.xScale ?? 'x');
-    const yScale = dc.getScale(p.yScale ?? 'y');
+  useAnnotationDraw(props, (dc, p) => {
+    const xScale = dc.getScale(p.xScaleId ?? 'x');
+    const yScale = dc.getScale(p.yScaleId ?? 'y');
     if (xScale == null || yScale == null) return;
 
     const t = store.theme;
     const style = {
       stroke: p.stroke ?? t.annotationStroke,
-      width: p.width,
+      strokeWidth: p.strokeWidth,
       dash: p.dash,
       extend: p.extend,
       label: p.label,

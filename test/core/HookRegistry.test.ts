@@ -47,7 +47,7 @@ describe('ChartStore draw-hook sets', () => {
     store.cursorDrawHooks.add(fn);
 
     const dc = makeDC();
-    const cursor = { left: 100, top: 50, activeGroup: 0, activeSeriesIdx: 1, activeDataIdx: 5 };
+    const cursor = { left: 100, top: 50, activeGroup: 0, activeSeriesIndex: 1, activeDataIndex: 5 };
     for (const hook of store.cursorDrawHooks) hook(dc, cursor);
 
     expect(fn).toHaveBeenCalledWith(dc, cursor);

@@ -66,8 +66,8 @@ const cursorTheme: ChartTheme = {
   axisStroke: '#ccc',
   gridStroke: 'rgba(255,255,255,0.08)',
   seriesColors: ['#bb86fc', '#03dac6'],
-  cursor: { stroke: '#ff0', width: 2, pointRadius: 5, pointFill: '#121212' },
-  select: { fill: 'rgba(187,134,252,0.15)', stroke: '#bb86fc', width: 2 },
+  cursor: { stroke: '#ff0', strokeWidth: 2, pointRadius: 5, pointFill: '#121212' },
+  select: { fill: 'rgba(187,134,252,0.15)', stroke: '#bb86fc', strokeWidth: 2 },
   overlay: { panelBg: 'rgba(30,30,30,0.95)', panelBorder: '#bb86fc', panelShadow: '0 2px 8px rgba(0,0,0,0.5)' },
 };
 

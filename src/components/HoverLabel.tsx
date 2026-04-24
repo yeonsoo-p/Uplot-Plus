@@ -40,14 +40,14 @@ export function HoverLabel({
   // Compute estimated size eagerly so first render places the panel close to its final spot
   // even before the layout-effect measurement lands.
   const cfg = store.seriesConfigs.find(
-    (s) => s.group === snap.activeGroup && s.index === snap.activeSeriesIdx,
+    (s) => s.group === snap.activeGroup && s.index === snap.activeSeriesIndex,
   );
   const estimated = estimatePanelSize({ rows: [{ label: cfg?.label ?? '' }] }, store.theme);
   const { w: mW, h: mH } = useMeasuredOverlay(panelRef, estimated);
 
   // Track series changes and manage timer
   useEffect(() => {
-    const si = snap.activeSeriesIdx;
+    const si = snap.activeSeriesIndex;
     if (si !== trackedSeries.current) {
       trackedSeries.current = si;
       setVisible(false);
@@ -56,7 +56,7 @@ export function HoverLabel({
         timerRef.current = window.setTimeout(() => setVisible(true), delay);
       }
     }
-  }, [snap.activeSeriesIdx, delay]);
+  }, [snap.activeSeriesIndex, delay]);
 
   // Cleanup
   useEffect(() => () => { window.clearTimeout(timerRef.current); }, []);

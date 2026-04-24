@@ -53,7 +53,7 @@ function ensureXScale(store: ChartStore): void {
 function bindGroupsToX(store: ChartStore): void {
   const data = store.dataStore.data;
   for (let i = 0; i < data.length; i++) {
-    if (!store.scaleManager.getGroupXScaleKey(i)) {
+    if (!store.scaleManager.getGroupXScaleId(i)) {
       store.scaleManager.setGroupXScale(i, 'x');
     }
   }
@@ -67,7 +67,7 @@ function bindGroupsToX(store: ChartStore): void {
 function ensureSeriesScales(store: ChartStore): Set<string> {
   const registered = new Set(store.scaleConfigs.map(s => s.id));
   const referenced = new Set<string>();
-  for (const s of store.seriesConfigs) referenced.add(s.yScale);
+  for (const s of store.seriesConfigs) referenced.add(s.yScaleId);
   if (referenced.size === 0 && !registered.has('y')) referenced.add('y');
   for (const yId of referenced) {
     if (registered.has(yId)) continue;
@@ -85,7 +85,7 @@ function ensureSeriesScales(store: ChartStore): Set<string> {
  */
 function retireUnusedDefaults(store: ChartStore): void {
   const referencedScales = new Set<string>();
-  for (const s of store.seriesConfigs) referencedScales.add(s.yScale);
+  for (const s of store.seriesConfigs) referencedScales.add(s.yScaleId);
   if (store.dataStore.data.length > 0) referencedScales.add('x');
 
   const keptScales: ScaleConfig[] = [];
@@ -99,7 +99,7 @@ function retireUnusedDefaults(store: ChartStore): void {
   if (keptScales.length !== store.scaleConfigs.length) store.scaleConfigs = keptScales;
 
   const keptAxes = store.axisConfigs.filter(
-    cfg => cfg._default !== true || referencedScales.has(cfg.scale),
+    cfg => cfg._default !== true || referencedScales.has(cfg.scaleId),
   );
   if (keptAxes.length !== store.axisConfigs.length) store.axisConfigs = keptAxes;
 }
@@ -110,31 +110,31 @@ function retireUnusedDefaults(store: ChartStore): void {
  * axes from store.xlabel / store.ylabel each call.
  */
 function ensureAxes(store: ChartStore, referencedYScales: Set<string>): void {
-  const hasXAxis = store.axisConfigs.some(a => a.scale === 'x');
+  const hasXAxis = store.axisConfigs.some(a => a.scaleId === 'x');
   if (!hasXAxis) {
     store.axisConfigs.push({
-      scale: 'x', side: Side.Bottom, show: true,
+      scaleId: 'x', side: Side.Bottom, show: true,
       label: store.xlabel ?? 'X Axis',
       _default: true,
       _autoSide: true,
     });
   } else {
-    const defXAxis = store.axisConfigs.find(a => a.scale === 'x' && a._default === true);
+    const defXAxis = store.axisConfigs.find(a => a.scaleId === 'x' && a._default === true);
     if (defXAxis != null) defXAxis.label = store.xlabel ?? 'X Axis';
   }
 
-  const axisScales = new Set(store.axisConfigs.map(a => a.scale));
+  const axisScales = new Set(store.axisConfigs.map(a => a.scaleId));
   for (const yId of referencedYScales) {
     if (!axisScales.has(yId)) {
       store.axisConfigs.push({
-        scale: yId, side: Side.Left, show: true,
+        scaleId: yId, side: Side.Left, show: true,
         label: store.ylabel ?? 'Y Axis',
         _default: true,
         _autoSide: true,
       });
       axisScales.add(yId);
     } else {
-      const defYAxis = store.axisConfigs.find(a => a.scale === yId && a._default === true);
+      const defYAxis = store.axisConfigs.find(a => a.scaleId === yId && a._default === true);
       if (defYAxis != null) defYAxis.label = store.ylabel ?? 'Y Axis';
     }
   }
@@ -206,7 +206,7 @@ function fillSeries(store: ChartStore): void {
       next.push({
         group: g,
         index: i,
-        yScale: 'y',
+        yScaleId: 'y',
         show: true,
         stroke: palette[colorIdx % palette.length] ?? '#000',
         _autoStroke: true,
@@ -244,13 +244,13 @@ function recolorSeries(store: ChartStore): void {
  * their yScale has no visible siblings — a fallback so scales like Candlestick
  * (all helpers `show=false`) still get a range.
  */
-function pickScaleParticipants(seriesConfigs: ResolvedSeriesConfig[]): Array<{ group: number; index: number; yScale: string }> {
+function pickScaleParticipants(seriesConfigs: ResolvedSeriesConfig[]): Array<{ group: number; index: number; yScaleId: string }> {
   const visibleScales = new Set<string>();
-  for (const s of seriesConfigs) if (s.show !== false) visibleScales.add(s.yScale);
-  const out: Array<{ group: number; index: number; yScale: string }> = [];
+  for (const s of seriesConfigs) if (s.show !== false) visibleScales.add(s.yScaleId);
+  const out: Array<{ group: number; index: number; yScaleId: string }> = [];
   for (const s of seriesConfigs) {
-    if (s.show !== false || !visibleScales.has(s.yScale)) {
-      out.push({ group: s.group, index: s.index, yScale: s.yScale });
+    if (s.show !== false || !visibleScales.has(s.yScaleId)) {
+      out.push({ group: s.group, index: s.index, yScaleId: s.yScaleId });
     }
   }
   return out;
@@ -321,10 +321,10 @@ function applySeriesOrientations(store: ChartStore): void {
   const requested = new Map<string, Orientation>();
   for (const cfg of store.seriesConfigs) {
     if (!cfg.transposed) continue;
-    const xScaleKey = store.scaleManager.getGroupXScaleKey(cfg.group);
-    if (xScaleKey == null) continue;
-    requestOri(requested, xScaleKey, Orientation.Vertical);
-    requestOri(requested, cfg.yScale, Orientation.Horizontal);
+    const xScaleId = store.scaleManager.getGroupXScaleId(cfg.group);
+    if (xScaleId == null) continue;
+    requestOri(requested, xScaleId, Orientation.Vertical);
+    requestOri(requested, cfg.yScaleId, Orientation.Horizontal);
   }
 
   for (const [scaleId, ori] of requested) {
@@ -336,19 +336,19 @@ function applySeriesOrientations(store: ChartStore): void {
   // (e.g. bars() and horizontalBars() sharing the same y-scale would render incorrectly).
   for (const cfg of store.seriesConfigs) {
     if (cfg.transposed) continue;
-    const xScaleKey = store.scaleManager.getGroupXScaleKey(cfg.group);
-    if (xScaleKey != null && requested.has(xScaleKey)) {
-      console.warn(`[uPlot+] Scale "${xScaleKey}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
+    const xScaleId = store.scaleManager.getGroupXScaleId(cfg.group);
+    if (xScaleId != null && requested.has(xScaleId)) {
+      console.warn(`[uPlot+] Scale "${xScaleId}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
     }
-    if (requested.has(cfg.yScale)) {
-      console.warn(`[uPlot+] Scale "${cfg.yScale}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
+    if (requested.has(cfg.yScaleId)) {
+      console.warn(`[uPlot+] Scale "${cfg.yScaleId}" used by both vertical and horizontal bar series. Use separate scales for each orientation.`);
     }
   }
 
   // Re-derive default sides for axes that didn't have an explicit `side` prop.
   for (const axis of store.axisConfigs) {
     if (axis._autoSide !== true) continue;
-    const scale = store.scaleManager.getScale(axis.scale);
+    const scale = store.scaleManager.getScale(axis.scaleId);
     if (scale == null) continue;
     axis.side = scale.ori === Orientation.Horizontal ? Side.Bottom : Side.Left;
   }
@@ -429,8 +429,8 @@ export interface ChartSnapshot {
   left: number;
   top: number;
   activeGroup: number;
-  activeSeriesIdx: number;
-  activeDataIdx: number;
+  activeSeriesIndex: number;
+  activeDataIndex: number;
   // Layout
   plotLeft: number;
   plotTop: number;
@@ -442,28 +442,28 @@ export interface ChartSnapshot {
 }
 
 const EMPTY_SNAPSHOT: ChartSnapshot = {
-  left: -10, top: -10, activeGroup: -1, activeSeriesIdx: -1, activeDataIdx: -1,
+  left: -10, top: -10, activeGroup: -1, activeSeriesIndex: -1, activeDataIndex: -1,
   plotLeft: 0, plotTop: 0, plotWidth: 0, plotHeight: 0,
   seriesCount: 0, revision: -1,
 };
 
 /** Rebuild store.snapshot if any tracked field changed. */
 export function rebuildSnapshot(store: ChartStore): void {
-  const { left, top, activeGroup, activeSeriesIdx, activeDataIdx } = store.cursorManager.state;
+  const { left, top, activeGroup, activeSeriesIndex, activeDataIndex } = store.cursorManager.state;
   const { left: plotLeft, top: plotTop, width: plotWidth, height: plotHeight } = store.plotBox;
   const seriesCount = store.seriesConfigs.length;
   const { revision } = store;
   const prev = store.snapshot;
   if (
     prev.left === left && prev.top === top &&
-    prev.activeGroup === activeGroup && prev.activeSeriesIdx === activeSeriesIdx &&
-    prev.activeDataIdx === activeDataIdx &&
+    prev.activeGroup === activeGroup && prev.activeSeriesIndex === activeSeriesIndex &&
+    prev.activeDataIndex === activeDataIndex &&
     prev.plotLeft === plotLeft && prev.plotTop === plotTop &&
     prev.plotWidth === plotWidth && prev.plotHeight === plotHeight &&
     prev.seriesCount === seriesCount && prev.revision === revision
   ) return;
   store.snapshot = {
-    left, top, activeGroup, activeSeriesIdx, activeDataIdx,
+    left, top, activeGroup, activeSeriesIndex, activeDataIndex,
     plotLeft, plotTop, plotWidth, plotHeight,
     seriesCount, revision,
   };
@@ -598,6 +598,8 @@ export interface ChartStore {
   registerBand: (cfg: BandConfig) => void;
   /** Unregister a band config by reference identity */
   unregisterBand: (cfg: BandConfig) => void;
+  /** Replace a band config (matched by reference identity of `prev`) */
+  updateBand: (prev: BandConfig, next: BandConfig) => void;
   /** Set chart data (syncs DataStore + clears render cache) */
   setData: (data: ChartData) => void;
   /** Set the canvas element */
@@ -614,7 +616,7 @@ export interface ChartStore {
  *  - explicit-side axes dedupe by (scale, side); explicit and auto are never merged
  */
 function axisKeyMatches(a: AxisConfig, b: AxisConfig): boolean {
-  if (a.scale !== b.scale) return false;
+  if (a.scaleId !== b.scaleId) return false;
   const aAuto = a._autoSide === true;
   const bAuto = b._autoSide === true;
   if (aAuto !== bAuto) return false;
@@ -806,7 +808,7 @@ export function createChartStore(): ChartStore {
           dataStore.data,
           store.seriesConfigs,
           getScale,
-          (gi) => scaleManager.getGroupXScaleKey(gi),
+          (gi) => scaleManager.getGroupXScaleId(gi),
           undefined,
           store.seriesConfigMap,
           store.theme,
@@ -851,8 +853,8 @@ export function createChartStore(): ChartStore {
 
       // 2. Update data windows from x-scale ranges
       dataStore.updateWindows((groupIdx) => {
-        const scaleKey = scaleManager.getGroupXScaleKey(groupIdx);
-        return scaleKey != null ? scaleManager.getScale(scaleKey) : undefined;
+        const scaleId = scaleManager.getGroupXScaleId(groupIdx);
+        return scaleId != null ? scaleManager.getScale(scaleId) : undefined;
       });
 
       // 3. Auto-range all scales (single pass — windows already set)
@@ -899,9 +901,9 @@ export function createChartStore(): ChartStore {
       // 8. Draw series (clipped to plot area)
       const renderList: RenderableSeriesInfo[] = [];
       for (const cfg of seriesConfigs) {
-        const xScaleKey = scaleManager.getGroupXScaleKey(cfg.group);
-        const xScale = xScaleKey != null ? scaleManager.getScale(xScaleKey) : undefined;
-        const yScale = scaleManager.getScale(cfg.yScale);
+        const xScaleId = scaleManager.getGroupXScaleId(cfg.group);
+        const xScale = xScaleId != null ? scaleManager.getScale(xScaleId) : undefined;
+        const yScale = scaleManager.getScale(cfg.yScaleId);
 
         if (xScale == null || yScale == null) continue;
 
@@ -948,14 +950,14 @@ export function createChartStore(): ChartStore {
       }
 
       for (const band of store.bandConfigs) {
-        const xScaleKey = scaleManager.getGroupXScaleKey(band.group);
-        const xScale = xScaleKey != null ? scaleManager.getScale(xScaleKey) : undefined;
+        const xScaleId = scaleManager.getGroupXScaleId(band.group);
+        const xScale = xScaleId != null ? scaleManager.getScale(xScaleId) : undefined;
         const upperCfg = seriesCfgMap.get(`${band.group}-${band.series[0]}`);
         const lowerCfg = seriesCfgMap.get(`${band.group}-${band.series[1]}`);
 
         if (xScale == null || upperCfg == null || lowerCfg == null) continue;
 
-        const yScale = scaleManager.getScale(upperCfg.yScale);
+        const yScale = scaleManager.getScale(upperCfg.yScaleId);
         if (yScale == null) continue;
 
         const [i0, i1] = dataStore.getWindow(band.group);
@@ -986,7 +988,7 @@ export function createChartStore(): ChartStore {
         const cfg = info.config;
         if (cfg.show === false) continue;
         const ptsCfg = cfg.points;
-        const seriesWidth = cfg.width ?? 1;
+        const seriesWidth = cfg.strokeWidth ?? 1;
         const ptDia = ptsCfg?.size ?? (3 + seriesWidth * 2);
         const ptSpace = ptsCfg?.space ?? (ptDia * 2);
         const [wi0, wi1] = info.window;
@@ -1044,7 +1046,7 @@ export function createChartStore(): ChartStore {
           seriesConfigs,
           getScale,
           (gi) => dataStore.getWindow(gi),
-          (gi) => scaleManager.getGroupXScaleKey(gi),
+          (gi) => scaleManager.getGroupXScaleId(gi),
         );
       }
 
@@ -1057,7 +1059,7 @@ export function createChartStore(): ChartStore {
         dataStore.data,
         seriesConfigs,
         getScale,
-        (gi) => scaleManager.getGroupXScaleKey(gi),
+        (gi) => scaleManager.getGroupXScaleId(gi),
         undefined,
         store.seriesConfigMap,
         store.theme,
@@ -1137,6 +1139,10 @@ export function createChartStore(): ChartStore {
       store.bandConfigs = store.bandConfigs.filter(b => b !== cfg);
     },
 
+    updateBand(prev: BandConfig, next: BandConfig) {
+      store.bandConfigs = store.bandConfigs.map(b => b === prev ? next : b);
+    },
+
     setData(data: ChartData) {
       // Streaming guard: only re-run data-derived defaults when the *shape*
       // changes (group count or per-group series count). Pure value updates
@@ -1204,11 +1210,11 @@ function syncAxisStates(store: ChartStore): void {
 
   const existing = new Map<string, AxisState>();
   for (const as of axisStates) {
-    existing.set(`${as.config.scale}:${as.config.side}`, as);
+    existing.set(`${as.config.scaleId}:${as.config.side}`, as);
   }
 
   store.axisStates = axisConfigs.map(cfg => {
-    const key = `${cfg.scale}:${cfg.side}`;
+    const key = `${cfg.scaleId}:${cfg.side}`;
     const prev = existing.get(key);
     if (prev != null) {
       prev.config = cfg;

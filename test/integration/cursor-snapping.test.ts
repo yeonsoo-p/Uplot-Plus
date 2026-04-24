@@ -23,8 +23,8 @@ describe('CursorManager snapping', () => {
   ];
 
   const seriesConfigs: SeriesConfig[] = [
-    { group: 0, index: 0, yScale: 'y' },
-    { group: 0, index: 1, yScale: 'y' },
+    { group: 0, index: 0, yScaleId: 'y' },
+    { group: 0, index: 1, yScaleId: 'y' },
   ];
 
   const scales: Record<string, ScaleState> = {
@@ -34,7 +34,7 @@ describe('CursorManager snapping', () => {
 
   const getScale = (id: string) => scales[id];
   const getWindow = (): [number, number] => [0, 4];
-  const getGroupXScaleKey = () => 'x';
+  const getGroupXScaleId = () => 'x';
 
   it('snaps to the correct nearest data index', () => {
     const mgr = new CursorManager();
@@ -52,10 +52,10 @@ describe('CursorManager snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
-    expect(mgr.state.activeDataIdx).toBe(2);
+    expect(mgr.state.activeDataIndex).toBe(2);
     expect(mgr.state.activeGroup).toBe(0);
   });
 
@@ -76,10 +76,10 @@ describe('CursorManager snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
-    expect(mgr.state.activeDataIdx).toBe(1);
+    expect(mgr.state.activeDataIndex).toBe(1);
   });
 
   it('snaps to edge point when cursor is beyond data range', () => {
@@ -94,24 +94,24 @@ describe('CursorManager snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
     // Should snap to the leftmost point (index 0)
-    expect(mgr.state.activeDataIdx).toBe(0);
+    expect(mgr.state.activeDataIndex).toBe(0);
     expect(mgr.state.activeGroup).toBe(0);
   });
 
   it('hide() resets cursor to off-screen and clears active indices', () => {
     const mgr = new CursorManager();
-    mgr.update(400, 200, plotBox, data, seriesConfigs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(400, 200, plotBox, data, seriesConfigs, getScale, getWindow, getGroupXScaleId);
     mgr.hide();
 
     expect(mgr.state.left).toBe(-10);
     expect(mgr.state.top).toBe(-10);
-    expect(mgr.state.activeDataIdx).toBe(-1);
+    expect(mgr.state.activeDataIndex).toBe(-1);
     expect(mgr.state.activeGroup).toBe(-1);
-    expect(mgr.state.activeSeriesIdx).toBe(-1);
+    expect(mgr.state.activeSeriesIndex).toBe(-1);
   });
 
   it('selects the series closest in y-pixel distance', () => {
@@ -132,10 +132,10 @@ describe('CursorManager snapping', () => {
       seriesConfigs,
       getScale,
       getWindow,
-      getGroupXScaleKey,
+      getGroupXScaleId,
     );
 
-    expect(mgr.state.activeDataIdx).toBe(3);
-    expect(mgr.state.activeSeriesIdx).toBe(0);
+    expect(mgr.state.activeDataIndex).toBe(3);
+    expect(mgr.state.activeSeriesIndex).toBe(0);
   });
 });

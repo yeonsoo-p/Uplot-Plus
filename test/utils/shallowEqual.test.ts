@@ -25,14 +25,14 @@ describe('shallowEqual', () => {
 
   // Nested object support (config nesting pattern)
   it('returns true for inline nested objects with same values', () => {
-    const a = { scale: 'x', grid: { show: true, stroke: '#ccc', width: 1 } };
-    const b = { scale: 'x', grid: { show: true, stroke: '#ccc', width: 1 } };
+    const a = { scaleId: 'x', grid: { show: true, stroke: '#ccc', width: 1 } };
+    const b = { scaleId: 'x', grid: { show: true, stroke: '#ccc', width: 1 } };
     expect(shallowEqual(a, b)).toBe(true);
   });
 
   it('returns false for nested objects with different values', () => {
-    const a = { scale: 'x', grid: { show: true, stroke: '#ccc' } };
-    const b = { scale: 'x', grid: { show: false, stroke: '#ccc' } };
+    const a = { scaleId: 'x', grid: { show: true, stroke: '#ccc' } };
+    const b = { scaleId: 'x', grid: { show: false, stroke: '#ccc' } };
     expect(shallowEqual(a, b)).toBe(false);
   });
 

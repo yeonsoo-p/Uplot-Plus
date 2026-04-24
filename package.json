@@ -1,6 +1,6 @@
 {
   "name": "uplot-plus",
-  "version": "0.5.34",
+  "version": "0.6.0",
   "description": "High-performance React charting library with multi-x-axis support",
   "type": "module",
   "main": "dist/index.cjs",

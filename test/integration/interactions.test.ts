@@ -38,13 +38,13 @@ function setup(): TestHarness {
   store.scaleManager.setGroupXScale(0, 'x');
 
   // Register a series and set data
-  store.registerSeries({ group: 0, index: 0, yScale: 'y', stroke: 'red', show: true });
+  store.registerSeries({ group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true });
   store.dataStore.setData([{
     x: [0, 25, 50, 75, 100],
     series: [[10, 40, 70, 30, 90]],
   }]);
   store.dataStore.updateWindows((gi) => {
-    const key = store.scaleManager.getGroupXScaleKey(gi);
+    const key = store.scaleManager.getGroupXScaleId(gi);
     return key != null ? store.scaleManager.getScale(key) : undefined;
   });
 
@@ -117,7 +117,7 @@ describe('Interaction: cursor tracking', () => {
     const { clientX, clientY } = plotToClient(h, 350, 280);
     h.el.dispatchEvent(mouseEvent('mousemove', clientX, clientY));
 
-    expect(h.store.cursorManager.state.activeDataIdx).toBe(2);
+    expect(h.store.cursorManager.state.activeDataIndex).toBe(2);
     expect(h.store.cursorManager.state.activeGroup).toBe(0);
   });
 
@@ -131,7 +131,7 @@ describe('Interaction: cursor tracking', () => {
     h.el.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
 
     expect(h.store.cursorManager.state.left).toBe(-10);
-    expect(h.store.cursorManager.state.activeDataIdx).toBe(-1);
+    expect(h.store.cursorManager.state.activeDataIndex).toBe(-1);
   });
 
   it('mouseleave fires onCursorLeave callback', () => {

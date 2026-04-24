@@ -2,8 +2,8 @@ import type { Side } from './common';
 
 /** Configuration for an axis */
 export interface AxisConfig {
-  /** Which scale this axis displays */
-  scale: string;
+  /** Scale id this axis displays */
+  scaleId: string;
   /** Which side of the chart (default: Bottom for "x" scale, Left for others) */
   side: Side;
   /** Whether to show this axis */
@@ -49,14 +49,14 @@ export interface AxisConfig {
 export interface GridConfig {
   show?: boolean;
   stroke?: string;
-  width?: number;
+  strokeWidth?: number;
   dash?: number[];
 }
 
 export interface TickConfig {
   show?: boolean;
   stroke?: string;
-  width?: number;
+  strokeWidth?: number;
   size?: number;
   dash?: number[];
 }
@@ -64,7 +64,7 @@ export interface TickConfig {
 export interface BorderConfig {
   show?: boolean;
   stroke?: string;
-  width?: number;
+  strokeWidth?: number;
   dash?: number[];
 }
 

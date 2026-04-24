@@ -52,11 +52,11 @@ export type PathBuilderFn = (
 
 /** Path builder with optional default SeriesConfig overrides (e.g. bars set width=0) */
 export type PathBuilder = PathBuilderFn & {
-  defaults?: Partial<Pick<SeriesConfig, 'width' | 'fill' | 'fillTo' | 'points' | 'cursor' | 'transposed'>>;
+  defaults?: Partial<Pick<SeriesConfig, 'strokeWidth' | 'fill' | 'fillTo' | 'points' | 'cursor' | 'transposed'>>;
 };
 
 /** Shared default sets for path builder families */
-export const LINE_DEFAULTS: PathBuilder['defaults'] = { width: 1 };
-export const BAR_DEFAULTS: PathBuilder['defaults'] = { width: 0, fill: 'auto', fillTo: 0, points: { show: false }, cursor: { show: false } };
+export const LINE_DEFAULTS: PathBuilder['defaults'] = { strokeWidth: 1 };
+export const BAR_DEFAULTS: PathBuilder['defaults'] = { strokeWidth: 0, fill: 'auto', fillTo: 0, points: { show: false }, cursor: { show: false } };
 export const H_BAR_DEFAULTS: PathBuilder['defaults'] = { ...BAR_DEFAULTS, transposed: true };
-export const POINTS_DEFAULTS: PathBuilder['defaults'] = { width: 0, cursor: { show: false } };
+export const POINTS_DEFAULTS: PathBuilder['defaults'] = { strokeWidth: 0, cursor: { show: false } };

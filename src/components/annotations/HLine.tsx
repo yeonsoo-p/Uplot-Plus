@@ -8,11 +8,11 @@ export interface HLineProps {
   /** Y data value where the line is drawn */
   value: number;
   /** Scale id for the y-axis (default: 'y') */
-  yScale?: string;
+  yScaleId?: string;
   /** Line color (default: 'red') */
   stroke?: string;
-  /** Line width in CSS pixels (default: 1) */
-  width?: number;
+  /** Stroke width in CSS pixels (default: 1) */
+  strokeWidth?: number;
   /** Dash pattern */
   dash?: number[];
   /** Optional text label drawn at the left edge */
@@ -27,11 +27,13 @@ export interface HLineProps {
  */
 export function HLine(props: HLineProps): null {
   const store = useStore();
-  useAnnotationDraw(props, props.yScale ?? 'y', (dc, scale, p) => {
+  useAnnotationDraw(props, (dc, p) => {
+    const scale = dc.getScale(p.yScaleId ?? 'y');
+    if (scale == null) return;
     const t = store.theme;
     drawHLine(dc, scale, p.value, {
       stroke: p.stroke ?? t.annotationStroke,
-      width: p.width,
+      strokeWidth: p.strokeWidth,
       dash: p.dash,
     });
 
@@ -41,12 +43,10 @@ export function HLine(props: HLineProps): null {
       ctx.font = p.labelFont ?? t.annotationFont;
       ctx.fillStyle = p.stroke ?? t.annotationStroke;
       if (scale.ori === Orientation.Horizontal) {
-        // Transposed: line is vertical on screen — label above the top edge.
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(p.label, pos, plotBox.top - 4);
       } else {
-        // Line is horizontal on screen — label at the left edge.
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
         ctx.fillText(p.label, plotBox.left + 4, pos - 4);

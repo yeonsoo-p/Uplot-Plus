@@ -28,11 +28,11 @@ export default function MissingData() {
     <Chart width="auto" height={400} data={data}>
       <Scale id="pct"  />
       <Scale id="mb"  />
-      <Axis scale="pct" values={fmtSuffix('%', 1)} />
-      <Axis scale="mb" side={Side.Right} values={fmtSuffix(' MB', 2)} grid={{ show: false }} />
-      <Series yScale="pct" stroke="red" fill="rgba(255,0,0,0.05)" label="CPU" />
-      <Series yScale="pct" stroke="blue" fill="rgba(0,0,255,0.05)" label="RAM" />
-      <Series yScale="mb" stroke="green" fill="rgba(0,255,0,0.05)" label="TCP Out" />
+      <Axis scaleId="pct" values={fmtSuffix('%', 1)} />
+      <Axis scaleId="mb" side={Side.Right} values={fmtSuffix(' MB', 2)} grid={{ show: false }} />
+      <Series yScaleId="pct" stroke="red" fill="rgba(255,0,0,0.05)" label="CPU" />
+      <Series yScaleId="pct" stroke="blue" fill="rgba(0,0,255,0.05)" label="RAM" />
+      <Series yScaleId="mb" stroke="green" fill="rgba(0,255,0,0.05)" label="TCP Out" />
     </Chart>
   );
 }

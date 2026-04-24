@@ -14,8 +14,8 @@ export default function HorizontalBarChart() {
 
   return (
     <Chart width="auto" height={500} data={data}>
-      <Axis scale="x" label="Month" values={fmtLabels(MONTHS)} />
-      <Axis scale="y" label="Revenue" values={fmtWrap('$', 'K')} />
+      <Axis scaleId="x" label="Month" values={fmtLabels(MONTHS)} />
+      <Axis scaleId="y" label="Revenue" values={fmtWrap('$', 'K')} />
       <Series stroke="#2980b9" label="Revenue" paths={horizontalBars()} />
     </Chart>
   );

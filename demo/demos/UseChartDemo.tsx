@@ -21,7 +21,7 @@ function ChartInfoPanel() {
   const yMax = yScale?.max?.toFixed(1) ?? '—';
   const cursorX = chart.left >= 0 ? chart.left.toFixed(0) : '—';
   const cursorY = chart.top >= 0 ? chart.top.toFixed(0) : '—';
-  const activeIdx = chart.activeDataIdx >= 0 ? chart.activeDataIdx : '—';
+  const activeIdx = chart.activeDataIndex >= 0 ? chart.activeDataIndex : '—';
 
   const cellClass = 'px-2 py-0.5 text-xs font-mono';
   const labelClass = `${cellClass} text-muted-light text-right`;

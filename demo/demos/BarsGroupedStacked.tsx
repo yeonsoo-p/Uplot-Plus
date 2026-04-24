@@ -21,7 +21,7 @@ export default function BarsGroupedStacked() {
   return (
     <div>
       <Chart width="auto" height={400} data={data} title="Grouped Bars" ylabel="Sales">
-        <Axis scale="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
+        <Axis scaleId="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
         <Series stroke="#2980b9" label="Product A" paths={groupedBars(0, 3)} />
         <Series stroke="#27ae60" label="Product B" paths={groupedBars(1, 3)} />
         <Series stroke="#e67e22" label="Product C" paths={groupedBars(2, 3)} />

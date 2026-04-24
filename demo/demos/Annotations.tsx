@@ -23,8 +23,8 @@ export default function Annotations() {
         <VRegion xMin={100} xMax={130} fill="rgba(52,152,219,0.1)" stroke="rgba(52,152,219,0.3)" strokeWidth={1} dash={[3, 3]} />
 
         {/* Horizontal threshold lines */}
-        <HLine value={65} stroke="#e74c3c" width={1.5} dash={[6, 4]} label="Upper threshold" />
-        <HLine value={35} stroke="#3498db" width={1.5} dash={[6, 4]} label="Lower threshold" />
+        <HLine value={65} stroke="#e74c3c" strokeWidth={1.5} dash={[6, 4]} label="Upper threshold" />
+        <HLine value={35} stroke="#3498db" strokeWidth={1.5} dash={[6, 4]} label="Lower threshold" />
 
         {/* Vertical marker */}
         <VLine value={75} stroke="#8e44ad" dash={[4, 4]} />

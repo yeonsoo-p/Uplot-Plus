@@ -24,7 +24,7 @@ export default function StackedBars() {
   return (
     <div>
       <Chart width="auto" height={400} data={data} title="Stacked Bars" ylabel="Sales">
-        <Axis scale="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
+        <Axis scaleId="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
         <Series stroke="#3498db" fill="#3498db" label="Product A" paths={stackedBars()} />
         <Series stroke="#2ecc71" fill="#2ecc71" label="Product B" paths={stackedBars(stackedSeries[0])} />
         <Series stroke="#e74c3c" fill="#e74c3c" label="Product C" paths={stackedBars(stackedSeries[1])} />

@@ -16,10 +16,10 @@ export default function SyncYZero() {
       <Chart width="auto" height={400} data={data} xlabel="Index">
         <Scale id="y1"  min={0} />
         <Scale id="y2"  min={0} />
-        <Axis scale="y1" label="Small (0-80)" stroke="#e74c3c" />
-        <Axis scale="y2" side={Side.Right} label="Large (0-600)" stroke="#3498db" />
-        <Series yScale="y1" stroke="#e74c3c" label="Small Scale" />
-        <Series yScale="y2" stroke="#3498db" label="Large Scale" />
+        <Axis scaleId="y1" label="Small (0-80)" stroke="#e74c3c" />
+        <Axis scaleId="y2" side={Side.Right} label="Large (0-600)" stroke="#3498db" />
+        <Series yScaleId="y1" stroke="#e74c3c" label="Small Scale" />
+        <Series yScaleId="y2" stroke="#3498db" label="Large Scale" />
         <Legend />
       </Chart>
     </div>

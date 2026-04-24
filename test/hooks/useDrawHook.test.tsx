@@ -137,7 +137,7 @@ describe('useCursorDrawHook', () => {
 
     // Verify our fn is callable
     const mockDc = makeDC();
-    const mockCursor = { left: 0, top: 0, activeGroup: -1, activeSeriesIdx: -1, activeDataIdx: -1 };
+    const mockCursor = { left: 0, top: 0, activeGroup: -1, activeSeriesIndex: -1, activeDataIndex: -1 };
     for (const w of store.cursorDrawHooks) w(mockDc, mockCursor);
     expect(fn).toHaveBeenCalledWith(mockDc, mockCursor);
   });
@@ -159,7 +159,7 @@ describe('useCursorDrawHook', () => {
     await flushEffects();
 
     const mockDc = makeDC();
-    const mockCursor = { left: 0, top: 0, activeGroup: -1, activeSeriesIdx: -1, activeDataIdx: -1 };
+    const mockCursor = { left: 0, top: 0, activeGroup: -1, activeSeriesIndex: -1, activeDataIndex: -1 };
     for (const w of store.cursorDrawHooks) w(mockDc, mockCursor);
 
     expect(fn).toHaveBeenCalledWith(mockDc, mockCursor);

@@ -54,8 +54,8 @@ export default function GridOverSeries() {
       </div>
       <div>
         <Chart width="auto" height={200} data={data} onDraw={gridOverlay} title="Grid over series (via onDraw hook)">
-          <Axis scale="x" grid={{ show: false }} />
-          <Axis scale="y" grid={{ show: false }} />
+          <Axis scaleId="x" grid={{ show: false }} />
+          <Axis scaleId="y" grid={{ show: false }} />
           <Series stroke="#e74c3c" fill="rgba(231,76,60,0.3)" label="Series A" />
           <Series stroke="#3498db" fill="rgba(52,152,219,0.3)" label="Series B" />
         </Chart>

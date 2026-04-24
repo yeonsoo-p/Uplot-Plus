@@ -27,8 +27,8 @@ function simulateCursor(store: ChartStore, dataIdx: number, opts?: { left?: numb
   store.cursorManager.state.left = opts?.left ?? 100;
   store.cursorManager.state.top = opts?.top ?? 100;
   store.cursorManager.state.activeGroup = opts?.group ?? 0;
-  store.cursorManager.state.activeSeriesIdx = 0;
-  store.cursorManager.state.activeDataIdx = dataIdx;
+  store.cursorManager.state.activeSeriesIndex = 0;
+  store.cursorManager.state.activeDataIndex = dataIdx;
   rebuildSnapshot(store);
   for (const fn of store.cursorListeners) fn();
 }
@@ -37,8 +37,8 @@ function clearCursor(store: ChartStore) {
   store.cursorManager.state.left = -1;
   store.cursorManager.state.top = -1;
   store.cursorManager.state.activeGroup = -1;
-  store.cursorManager.state.activeSeriesIdx = -1;
-  store.cursorManager.state.activeDataIdx = -1;
+  store.cursorManager.state.activeSeriesIndex = -1;
+  store.cursorManager.state.activeDataIndex = -1;
   rebuildSnapshot(store);
   for (const fn of store.cursorListeners) fn();
 }
@@ -72,7 +72,7 @@ describe('Tooltip data extraction', () => {
     expect(captured!.items[1]!.value).toBe(80);
   });
 
-  it('returns no panel when activeDataIdx is -1', async () => {
+  it('returns no panel when activeDataIndex is -1', async () => {
     const { container } = renderChart(
       { data: testData },
       React.createElement(React.Fragment, null,

@@ -14,7 +14,7 @@ export interface ChartTheme {
   // --- Cursor ---
   cursor?: {
     stroke?: string;
-    width?: number;
+    strokeWidth?: number;
     dash?: number[];
     pointRadius?: number;
     pointFill?: string;
@@ -24,7 +24,7 @@ export interface ChartTheme {
   select?: {
     fill?: string;
     stroke?: string;
-    width?: number;
+    strokeWidth?: number;
   };
 
   // --- Series palette ---

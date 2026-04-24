@@ -42,7 +42,7 @@ export default function DrawHooks() {
       <Scale id="y" auto={false} min={10} max={90} />
       <Series label="Signal" />
       <Region yMin={65} yMax={90} fill="rgba(231, 76, 60, 0.08)" />
-      <HLine value={65} stroke="#e74c3c" width={2} dash={[6, 4]} label="Threshold: 65" />
+      <HLine value={65} stroke="#e74c3c" strokeWidth={2} dash={[6, 4]} label="Threshold: 65" />
     </Chart>
   );
 }

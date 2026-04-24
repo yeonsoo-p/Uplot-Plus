@@ -38,20 +38,20 @@ export class ScaleManager {
   }
 
   /** Assign a group index to an x-scale */
-  setGroupXScale(groupIdx: number, scaleKey: string): void {
-    this.groupXScales.set(groupIdx, scaleKey);
+  setGroupXScale(groupIdx: number, scaleId: string): void {
+    this.groupXScales.set(groupIdx, scaleId);
   }
 
   /** Get the x-scale key for a group */
-  getGroupXScaleKey(groupIdx: number): string | undefined {
+  getGroupXScaleId(groupIdx: number): string | undefined {
     return this.groupXScales.get(groupIdx);
   }
 
   /**
    * Set a scale's range directly (e.g., for zoom).
    */
-  setRange(scaleKey: string, min: number, max: number): void {
-    const scale = this.scales.get(scaleKey);
+  setRange(scaleId: string, min: number, max: number): void {
+    const scale = this.scales.get(scaleId);
     if (scale) {
       scale.min = min;
       scale.max = max;
@@ -66,8 +66,8 @@ export class ScaleManager {
   autoRangeX(data: ChartData): void {
     const xRanges = new Map<string, { dataMin: number; dataMax: number; groups: number[] }>();
 
-    for (const [groupIdx, scaleKey] of this.groupXScales) {
-      const scale = this.scales.get(scaleKey);
+    for (const [groupIdx, scaleId] of this.groupXScales) {
+      const scale = this.scales.get(scaleId);
       if (!scale || !scale.auto) continue;
 
       const group = data[groupIdx];
@@ -76,19 +76,19 @@ export class ScaleManager {
       const gMin = group.x[0];
       const gMax = group.x[group.x.length - 1];
       if (gMin == null || gMax == null) continue;
-      const existing = xRanges.get(scaleKey);
+      const existing = xRanges.get(scaleId);
 
       if (existing) {
         existing.dataMin = Math.min(existing.dataMin, gMin);
         existing.dataMax = Math.max(existing.dataMax, gMax);
         existing.groups.push(groupIdx);
       } else {
-        xRanges.set(scaleKey, { dataMin: gMin, dataMax: gMax, groups: [groupIdx] });
+        xRanges.set(scaleId, { dataMin: gMin, dataMax: gMax, groups: [groupIdx] });
       }
     }
 
-    for (const [scaleKey, { dataMin, dataMax, groups }] of xRanges) {
-      const scale = this.scales.get(scaleKey);
+    for (const [scaleId, { dataMin, dataMax, groups }] of xRanges) {
+      const scale = this.scales.get(scaleId);
       if (!scale) continue;
 
       // Detect discrete (all-integer) x-data and find minimum spacing
@@ -144,7 +144,7 @@ export class ScaleManager {
    */
   autoRange(
     data: ChartData,
-    seriesScaleMap: { group: number; index: number; yScale: string }[],
+    seriesScaleMap: { group: number; index: number; yScaleId: string }[],
     dataStore: DataStore,
   ): void {
     // X-scales are already handled by autoRangeX() which runs first
@@ -154,7 +154,7 @@ export class ScaleManager {
     const yMins = new Map<string, number>();
     const yMaxs = new Map<string, number>();
 
-    for (const { group, index, yScale } of seriesScaleMap) {
+    for (const { group, index, yScaleId } of seriesScaleMap) {
       const grp = data[group];
       if (!grp) continue;
 
@@ -165,23 +165,23 @@ export class ScaleManager {
       const i0 = window ? window[0] : 0;
       const i1 = window ? window[1] : yData.length - 1;
 
-      const yScaleState = this.scales.get(yScale);
+      const yScaleState = this.scales.get(yScaleId);
       const isLog = yScaleState?.distr === Distribution.Log;
       const [sMin, sMax] = dataStore.getCachedMinMax(group, index, i0, i1, 0, isLog);
 
-      const curMin = yMins.get(yScale);
-      const curMax = yMaxs.get(yScale);
+      const curMin = yMins.get(yScaleId);
+      const curMax = yMaxs.get(yScaleId);
 
-      yMins.set(yScale, curMin != null ? Math.min(curMin, sMin) : sMin);
-      yMaxs.set(yScale, curMax != null ? Math.max(curMax, sMax) : sMax);
+      yMins.set(yScaleId, curMin != null ? Math.min(curMin, sMin) : sMin);
+      yMaxs.set(yScaleId, curMax != null ? Math.max(curMax, sMax) : sMax);
     }
 
     // Apply y-scale ranges
-    for (const [scaleKey, dataMin] of yMins) {
-      const scale = this.scales.get(scaleKey);
+    for (const [scaleId, dataMin] of yMins) {
+      const scale = this.scales.get(scaleId);
       if (!scale || !scale.auto) continue;
 
-      const dataMax = yMaxs.get(scaleKey) ?? -inf;
+      const dataMax = yMaxs.get(scaleId) ?? -inf;
 
       if (dataMin === inf) continue; // no valid data
 

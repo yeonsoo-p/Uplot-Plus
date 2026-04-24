@@ -22,7 +22,7 @@ function getScale(id: string): ScaleState | undefined {
   return scales.get(id);
 }
 
-function getGroupXScaleKey(_gi: number): string | undefined {
+function getGroupXScaleId(_gi: number): string | undefined {
   return 'x';
 }
 
@@ -39,26 +39,26 @@ describe('CursorManager: edge cases', () => {
 
   it('handles empty data array without crashing', () => {
     const data: ChartData = [];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
 
     expect(mgr.state.activeGroup).toBe(-1);
-    expect(mgr.state.activeDataIdx).toBe(-1);
+    expect(mgr.state.activeDataIndex).toBe(-1);
   });
 
   it('handles group with empty x array', () => {
     const data: ChartData = [{ x: [], series: [[]] }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
 
     expect(mgr.state.activeGroup).toBe(-1);
   });
 
   it('handles missing x-scale key', () => {
     const data: ChartData = [{ x: [0, 50, 100], series: [[10, 50, 90]] }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
     mgr.update(350, 280, plotBox, data, configs, getScale, getWindow,
       () => undefined, // no x-scale key
@@ -69,9 +69,9 @@ describe('CursorManager: edge cases', () => {
 
   it('handles missing y-scale', () => {
     const data: ChartData = [{ x: [0, 50, 100], series: [[10, 50, 90]] }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'nonexistent', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'nonexistent', show: true }];
 
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
 
     // Should not snap to anything since y-scale is missing
     expect(mgr.state.activeGroup).toBe(-1);
@@ -84,10 +84,10 @@ describe('CursorManager: edge cases', () => {
       ['y', makeScale('y', 0, 100, Orientation.Vertical)],
     ]);
     const data: ChartData = [{ x: [0, 50, 100], series: [[10, 50, 90]] }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
     mgr.update(350, 280, plotBox, data, configs,
-      (id) => nullScales.get(id), getWindow, getGroupXScaleKey,
+      (id) => nullScales.get(id), getWindow, getGroupXScaleId,
     );
 
     expect(mgr.state.activeGroup).toBe(-1);
@@ -98,14 +98,14 @@ describe('CursorManager: edge cases', () => {
       x: [0, 25, 50, 75, 100],
       series: [[null, null, 50, null, null]],
     }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
     mgr.update(350, 280, plotBox, data, configs, getScale,
-      (): [number, number] => [0, 4], getGroupXScaleKey,
+      (): [number, number] => [0, 4], getGroupXScaleId,
     );
 
     // Should snap to index 2 (the only non-null value)
-    expect(mgr.state.activeDataIdx).toBe(2);
+    expect(mgr.state.activeDataIndex).toBe(2);
   });
 
   it('window boundary constrains candidate indices', () => {
@@ -113,16 +113,16 @@ describe('CursorManager: edge cases', () => {
       x: [0, 25, 50, 75, 100],
       series: [[10, 40, 70, 30, 90]],
     }];
-    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScale: 'y', show: true }];
+    const configs: SeriesConfig[] = [{ group: 0, index: 0, yScaleId: 'y', show: true }];
 
     // Window only shows indices 1-3
     mgr.update(350, 280, plotBox, data, configs, getScale,
-      (): [number, number] => [1, 3], getGroupXScaleKey,
+      (): [number, number] => [1, 3], getGroupXScaleId,
     );
 
     // Should snap within window bounds
-    expect(mgr.state.activeDataIdx).toBeGreaterThanOrEqual(1);
-    expect(mgr.state.activeDataIdx).toBeLessThanOrEqual(3);
+    expect(mgr.state.activeDataIndex).toBeGreaterThanOrEqual(1);
+    expect(mgr.state.activeDataIndex).toBeLessThanOrEqual(3);
   });
 });
 
@@ -139,14 +139,14 @@ describe('CursorManager: grouped configs cache', () => {
       series: [[10, 50, 90], [20, 60, 80]],
     }];
     const configs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: false },
-      { group: 0, index: 1, yScale: 'y', show: true },
+      { group: 0, index: 0, yScaleId: 'y', show: false },
+      { group: 0, index: 1, yScaleId: 'y', show: true },
     ];
 
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
 
     // Should snap to series 1, not series 0
-    expect(mgr.state.activeSeriesIdx).toBe(1);
+    expect(mgr.state.activeSeriesIndex).toBe(1);
   });
 
   it('invalidateGroupedConfigs forces rebuild on next update', () => {
@@ -155,19 +155,19 @@ describe('CursorManager: grouped configs cache', () => {
       series: [[10, 50, 90], [20, 60, 80]],
     }];
     const configs: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: true },
-      { group: 0, index: 1, yScale: 'y', show: true },
+      { group: 0, index: 0, yScaleId: 'y', show: true },
+      { group: 0, index: 1, yScaleId: 'y', show: true },
     ];
 
     // First update caches grouped configs
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
-    const firstIdx = mgr.state.activeSeriesIdx;
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
+    const firstIdx = mgr.state.activeSeriesIndex;
 
     // Invalidate and update with same reference — should still work
     mgr.invalidateGroupedConfigs();
-    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs, getScale, getWindow, getGroupXScaleId);
 
-    expect(mgr.state.activeSeriesIdx).toBe(firstIdx);
+    expect(mgr.state.activeSeriesIndex).toBe(firstIdx);
   });
 
   it('cache rebuilds when seriesConfigs reference changes', () => {
@@ -176,17 +176,17 @@ describe('CursorManager: grouped configs cache', () => {
       series: [[10, 50, 90]],
     }];
     const configs1: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: true },
+      { group: 0, index: 0, yScaleId: 'y', show: true },
     ];
 
-    mgr.update(350, 280, plotBox, data, configs1, getScale, getWindow, getGroupXScaleKey);
-    expect(mgr.state.activeSeriesIdx).toBe(0);
+    mgr.update(350, 280, plotBox, data, configs1, getScale, getWindow, getGroupXScaleId);
+    expect(mgr.state.activeSeriesIndex).toBe(0);
 
     // New reference with show: false
     const configs2: SeriesConfig[] = [
-      { group: 0, index: 0, yScale: 'y', show: false },
+      { group: 0, index: 0, yScaleId: 'y', show: false },
     ];
-    mgr.update(350, 280, plotBox, data, configs2, getScale, getWindow, getGroupXScaleKey);
+    mgr.update(350, 280, plotBox, data, configs2, getScale, getWindow, getGroupXScaleId);
 
     // No visible series
     expect(mgr.state.activeGroup).toBe(-1);
@@ -206,7 +206,7 @@ describe('CursorManager: syncToValue edge cases', () => {
     const store = {
       dataStore: { data: emptyData, getWindow: (): [number, number] => [0, 0] },
       scaleManager: {
-        getGroupXScaleKey: () => 'x',
+        getGroupXScaleId: () => 'x',
         getScale: (id: string) => scales.get(id),
       },
       seriesConfigs: emptyConfigs,
@@ -226,10 +226,10 @@ describe('CursorManager: syncToValue edge cases', () => {
         getWindow: (): [number, number] => [0, 2],
       },
       scaleManager: {
-        getGroupXScaleKey: () => 'x',
+        getGroupXScaleId: () => 'x',
         getScale: (id: string) => scales.get(id),
       },
-      seriesConfigs: [{ group: 0, index: 0, yScale: 'y', show: true }],
+      seriesConfigs: [{ group: 0, index: 0, yScaleId: 'y', show: true }],
       plotBox,
     };
 

@@ -1,45 +1,39 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useRef } from 'react';
 import type { BandConfig } from '../types/bands';
-import { useStore } from '../hooks/useChart';
+import { useRegisterConfig } from '../hooks/useRegisterConfig';
 
 /**
  * Renderless component that registers a band config with the chart store.
  * A band fills the area between two series.
  *
- * Uses a mount/update split: registers once on mount, replaces config immutably on prop changes.
- * Destructures series tuple to primitives for stable dependency comparison.
+ * Identity is the bound series pair + group — changing those remounts the
+ * band; fill/dir changes go through update-in-place.
  */
 export function Band({ series, group, fill, dir }: BandConfig): null {
-  const store = useStore();
-  const cfgRef = useRef<BandConfig | null>(null);
-
-  // Destructure tuple to primitives for stable deps
+  const registeredRef = useRef<BandConfig | null>(null);
   const s0 = series[0];
   const s1 = series[1];
+  const cfg: BandConfig = { series: [s0, s1], group, fill, dir };
 
-  // Layout effect: register/update on any prop change, unregister on unmount.
-  // Must be useLayoutEffect (not useEffect) so Band is registered before
-  // Chart's first sync redraw fires in its own layout effect.
-  useLayoutEffect(() => {
-    const cfg: BandConfig = { series: [s0, s1], group, fill, dir };
-
-    // Remove previous config if re-running due to prop change
-    if (cfgRef.current != null) {
-      store.unregisterBand(cfgRef.current);
-    }
-
-    cfgRef.current = cfg;
-    store.registerBand(cfg);
-    store.scheduleRedraw();
-
-    return () => {
-      if (cfgRef.current != null) {
-        store.unregisterBand(cfgRef.current);
+  useRegisterConfig(
+    cfg,
+    [s0, s1, group],
+    (store, c) => {
+      registeredRef.current = c;
+      store.registerBand(c);
+    },
+    (store) => {
+      if (registeredRef.current != null) {
+        store.unregisterBand(registeredRef.current);
+        registeredRef.current = null;
       }
-      cfgRef.current = null;
-      store.scheduleRedraw();
-    };
-  }, [store, s0, s1, group, fill, dir]);
-
+    },
+    (store, c) => {
+      const prev = registeredRef.current;
+      if (prev == null) return;
+      store.updateBand(prev, c);
+      registeredRef.current = c;
+    },
+  );
   return null;
 }

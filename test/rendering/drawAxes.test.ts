@@ -36,7 +36,7 @@ describe('drawAxesGrid', () => {
 
   it('skips hidden axes (_show=false)', () => {
     const axis = makeAxisState({
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _show: false,
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
@@ -50,7 +50,7 @@ describe('drawAxesGrid', () => {
 
   it('skips axes with null scale range', () => {
     const axis = makeAxisState({
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
     });
@@ -63,7 +63,7 @@ describe('drawAxesGrid', () => {
 
   it('skips axes with null splits or values', () => {
     const axis = makeAxisState({
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _splits: null,
       _values: null,
     });
@@ -75,7 +75,7 @@ describe('drawAxesGrid', () => {
 
   it('renders tick labels at correct positions for bottom axis', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom },
+      config: { scaleId: 'x', side: Side.Bottom },
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
       _pos: 320,
@@ -96,7 +96,7 @@ describe('drawAxesGrid', () => {
 
   it('renders tick labels for left axis', () => {
     const axis = makeAxisState({
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
       _pos: 50,
@@ -112,7 +112,7 @@ describe('drawAxesGrid', () => {
 
   it('draws grid lines when grid.show is not false', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom, grid: { show: true } },
+      config: { scaleId: 'x', side: Side.Bottom, grid: { show: true } },
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
       _pos: 320,
@@ -129,7 +129,7 @@ describe('drawAxesGrid', () => {
 
   it('does not draw grid when grid.show=false', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom, grid: { show: false }, ticks: { show: false } },
+      config: { scaleId: 'x', side: Side.Bottom, grid: { show: false }, ticks: { show: false } },
       _splits: [0, 50, 100],
       _values: ['0', '50', '100'],
       _pos: 320,
@@ -147,7 +147,7 @@ describe('drawAxesGrid', () => {
 
   it('draws tick marks when ticks.show is not false', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom, ticks: { show: true, size: 10 }, grid: { show: false } },
+      config: { scaleId: 'x', side: Side.Bottom, ticks: { show: true, size: 10 }, grid: { show: false } },
       _splits: [0, 100],
       _values: ['0', '100'],
       _pos: 320,
@@ -163,7 +163,7 @@ describe('drawAxesGrid', () => {
 
   it('renders axis label when config.label is set', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom, label: 'Time (s)' },
+      config: { scaleId: 'x', side: Side.Bottom, label: 'Time (s)' },
       _splits: [0],
       _values: ['0'],
       _pos: 320,
@@ -182,7 +182,7 @@ describe('drawAxesGrid', () => {
 
   it('rotates vertical axis labels', () => {
     const axis = makeAxisState({
-      config: { scale: 'y', side: Side.Left, label: 'Value' },
+      config: { scaleId: 'y', side: Side.Left, label: 'Value' },
       _splits: [0, 100],
       _values: ['0', '100'],
       _pos: 50,
@@ -214,7 +214,7 @@ describe('drawAxesGrid', () => {
 
   it('skips empty string values in labels', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom },
+      config: { scaleId: 'x', side: Side.Bottom },
       _splits: [0, 50, 100],
       _values: ['0', '', '100'],
       _pos: 320,
@@ -230,7 +230,7 @@ describe('drawAxesGrid', () => {
 
   it('draws axis border when border config is set', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom, border: { show: true, stroke: '#000', width: 1 }, grid: { show: false }, ticks: { show: false } },
+      config: { scaleId: 'x', side: Side.Bottom, border: { show: true, stroke: '#000', strokeWidth: 1 }, grid: { show: false }, ticks: { show: false } },
       _splits: [0],
       _values: ['0'],
       _pos: 320,
@@ -247,7 +247,7 @@ describe('drawAxesGrid', () => {
 
   it('scales positions by pxRatio for HiDPI', () => {
     const axis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom },
+      config: { scaleId: 'x', side: Side.Bottom },
       _splits: [50],
       _values: ['50'],
       _pos: 320,
@@ -267,14 +267,14 @@ describe('drawAxesGrid', () => {
 
   it('handles multiple axes', () => {
     const xAxis = makeAxisState({
-      config: { scale: 'x', side: Side.Bottom },
+      config: { scaleId: 'x', side: Side.Bottom },
       _splits: [0, 100],
       _values: ['0', '100'],
       _pos: 320,
       _space: 50,
     });
     const yAxis = makeAxisState({
-      config: { scale: 'y', side: Side.Left },
+      config: { scaleId: 'y', side: Side.Left },
       _splits: [0, 100],
       _values: ['0', '100'],
       _pos: 50,

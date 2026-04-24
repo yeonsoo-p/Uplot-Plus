@@ -22,10 +22,10 @@ export default function MultipleScales() {
     <Chart width="auto" height={400} data={data} xlabel="Sample">
       <Scale id="temp"  />
       <Scale id="humid"  />
-      <Axis scale="temp" label="Temperature" values={fmtSuffix('°C', 1)} stroke="#e74c3c" />
-      <Axis scale="humid" side={Side.Right} label="Humidity" values={fmtSuffix('%')} stroke="#3498db" grid={{ show: false }} />
-      <Series yScale="temp" stroke="#e74c3c" label="Temperature" />
-      <Series yScale="humid" stroke="#3498db" label="Humidity" />
+      <Axis scaleId="temp" label="Temperature" values={fmtSuffix('°C', 1)} stroke="#e74c3c" />
+      <Axis scaleId="humid" side={Side.Right} label="Humidity" values={fmtSuffix('%')} stroke="#3498db" grid={{ show: false }} />
+      <Series yScaleId="temp" stroke="#e74c3c" label="Temperature" />
+      <Series yScaleId="humid" stroke="#3498db" label="Humidity" />
     </Chart>
   );
 }

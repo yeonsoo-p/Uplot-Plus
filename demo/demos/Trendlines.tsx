@@ -43,7 +43,7 @@ export default function Trendlines() {
         points={{ show: true, size: 4, fill: '#3498db' }} />
       <DiagonalLine
         slope={slope} intercept={intercept}
-        stroke="#e74c3c" width={2.5} dash={[8, 4]}
+        stroke="#e74c3c" strokeWidth={2.5} dash={[8, 4]}
         label={trendLabel}
       />
     </Chart>

@@ -24,7 +24,7 @@ function buildScaleFilters(store: ChartStore): { isX: ScaleFilter; isY: ScaleFil
   const xIds = new Set<string>();
   for (const id of store.scaleManager.groupXScales.values()) xIds.add(id);
   const yIds = new Set<string>();
-  for (const cfg of store.seriesConfigs) yIds.add(cfg.yScale);
+  for (const cfg of store.seriesConfigs) yIds.add(cfg.yScaleId);
   return {
     isX: (s) => xIds.has(s.id),
     isY: (s) => yIds.has(s.id),
@@ -587,7 +587,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
           (side === Side.Bottom && inHorizRange && localY >= pos && localY < pos + totalSize);
 
         if (inAxis) {
-          return { scaleId: cfg.scale, ori: sideOrientation(side) };
+          return { scaleId: cfg.scaleId, ori: sideOrientation(side) };
         }
       }
       return null;
@@ -650,19 +650,19 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
       const cursor = store.cursorManager.state;
       let point: NearestPoint | null = null;
 
-      if (cursor.activeGroup >= 0 && cursor.activeDataIdx >= 0) {
+      if (cursor.activeGroup >= 0 && cursor.activeDataIndex >= 0) {
         const group = store.dataStore.data[cursor.activeGroup];
         if (group != null) {
-          const xVal = group.x[cursor.activeDataIdx];
-          const yData = group.series[cursor.activeSeriesIdx];
-          const yVal = yData != null ? yData[cursor.activeDataIdx] : undefined;
+          const xVal = group.x[cursor.activeDataIndex];
+          const yData = group.series[cursor.activeSeriesIndex];
+          const yVal = yData != null ? yData[cursor.activeDataIndex] : undefined;
 
           if (xVal != null && yVal != null) {
             const plotBox = store.plotBox;
-            const xScaleKey = store.scaleManager.getGroupXScaleKey(cursor.activeGroup);
-            const xScale = xScaleKey != null ? store.scaleManager.getScale(xScaleKey) : undefined;
-            const seriesCfg = store.seriesConfigMap.get(`${cursor.activeGroup}:${cursor.activeSeriesIdx}`);
-            const yScale = seriesCfg != null ? store.scaleManager.getScale(seriesCfg.yScale) : undefined;
+            const xScaleId = store.scaleManager.getGroupXScaleId(cursor.activeGroup);
+            const xScale = xScaleId != null ? store.scaleManager.getScale(xScaleId) : undefined;
+            const seriesCfg = store.seriesConfigMap.get(`${cursor.activeGroup}:${cursor.activeSeriesIndex}`);
+            const yScale = seriesCfg != null ? store.scaleManager.getScale(seriesCfg.yScaleId) : undefined;
 
             let pxX = cx;
             let pxY = cy;
@@ -677,8 +677,8 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
 
             point = {
               group: cursor.activeGroup,
-              seriesIdx: cursor.activeSeriesIdx,
-              dataIdx: cursor.activeDataIdx,
+              index: cursor.activeSeriesIndex,
+              dataIndex: cursor.activeDataIndex,
               xVal,
               yVal,
               pxX,
@@ -730,7 +730,7 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
         cx, cy, store.plotBox, store.dataStore.data, store.seriesConfigs,
         (id) => store.scaleManager.getScale(id),
         (gi) => store.dataStore.getWindow(gi),
-        (gi) => store.scaleManager.getGroupXScaleKey(gi),
+        (gi) => store.scaleManager.getGroupXScaleId(gi),
       );
 
       // Hover action dispatch — only when cursor actually moved
@@ -748,13 +748,13 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
           // Built-in focus behavior: auto-switch focused series
           if (store.focusAlpha < 1) {
             const cursor = store.cursorManager.state;
-            if (cursor.activeGroup >= 0 && cursor.activeSeriesIdx >= 0) {
+            if (cursor.activeGroup >= 0 && cursor.activeSeriesIndex >= 0) {
               const focused = store.focusedSeries;
               if (focused == null
                 || focused.group !== cursor.activeGroup
-                || focused.index !== cursor.activeSeriesIdx
+                || focused.index !== cursor.activeSeriesIndex
               ) {
-                store.focusedSeries = { group: cursor.activeGroup, index: cursor.activeSeriesIdx };
+                store.focusedSeries = { group: cursor.activeGroup, index: cursor.activeSeriesIndex };
                 store.scheduleRedraw();
               }
             }
@@ -775,7 +775,9 @@ export function setupInteraction(store: ChartStore, el: HTMLElement): () => void
     // -----------------------------------------------------------------------
 
     function onMouseEnter(): void {
-      if (document.activeElement !== el) el.focus();
+      // preventScroll: otherwise the browser scrolls a partially-offscreen chart
+      // fully into view on hover, which looks like the page "snapping."
+      if (document.activeElement !== el) el.focus({ preventScroll: true });
     }
 
     function onMouseDown(e: MouseEvent): void {

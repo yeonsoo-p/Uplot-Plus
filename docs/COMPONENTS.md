@@ -23,7 +23,9 @@ organized by hierarchy.
     ├── <Vector>                 Directional arrows overlay (canvas draw hook)
     ├── <HLine>                  Horizontal line annotation (canvas draw hook)
     ├── <VLine>                  Vertical line annotation (canvas draw hook)
-    ├── <Region>                 Shaded region annotation (canvas draw hook)
+    ├── <Region>                 Shaded region between two y-values (canvas draw hook)
+    ├── <VRegion>                Shaded region between two x-values (canvas draw hook)
+    ├── <DiagonalLine>           Diagonal line by points or slope/intercept (canvas draw hook)
     └── <AnnotationLabel>        Text label annotation (canvas draw hook)
 
 <ZoomRanger>                     Overview mini-chart (standalone, wraps Chart internally)
@@ -80,8 +82,8 @@ import { Chart, Series, ThemeProvider, DARK_THEME } from 'uplot-plus';
 **Themeable properties:** `axisStroke`, `gridStroke`,
 `titleFill`, `tickFont`, `labelFont`, `titleFont`,
 `bandFill`,
-`cursor.{stroke,width,dash,pointRadius,pointFill}`,
-`select.{fill,stroke,width}`, `seriesColors[]`,
+`cursor.{stroke,strokeWidth,dash,pointRadius,pointFill}`,
+`select.{fill,stroke,strokeWidth}`, `seriesColors[]`,
 `candlestick.{upColor,downColor}`,
 `boxWhisker.{fill,stroke,medianColor,whiskerColor}`,
 `vector.color`, `sparkline.stroke`,
@@ -188,9 +190,9 @@ import { Scale, Series, Axis } from 'uplot-plus';
 <Chart width={800} height={400} data={data}>
   <Scale id="x" />
   <Scale id="y" />
-  <Axis scale="x" label="X-Axis" />
-  <Axis scale="y" label="Y-Axis" />
-  <Series stroke="#e74c3c" width={2} label="Series A" />
+  <Axis scaleId="x" label="X-Axis" />
+  <Axis scaleId="y" label="Y-Axis" />
+  <Series stroke="#e74c3c" strokeWidth={2} label="Series A" />
 </Chart>
 ```
 
@@ -276,7 +278,7 @@ to pin a slot — `<Series index={2} />` is slot `(0, 2)`. When
 data slots get auto-filled with palette colors; declaring an
 explicit `<Series>` simply *replaces* the fill at that slot.
 
-`yScale` defaults to `'y'`, `stroke` is auto-assigned from a
+`yScaleId` defaults to `'y'`, `stroke` is auto-assigned from a
 15-color palette based on registration order, and `show`
 defaults to `true`.
 
@@ -284,12 +286,12 @@ defaults to `true`.
 | --- | --- | --- | --- |
 | `group` | `number` | auto-bump | Data group index. Omit to auto-pick the next unclaimed slot. |
 | `index` | `number` | auto-bump | Series index within group. Omit to auto-pick the next unclaimed slot. |
-| `yScale` | `string` | `'y'` | Y-axis scale key |
+| `yScaleId` | `string` | `'y'` | Y-axis scale key |
 | `show` | `boolean` | `true` | Visibility |
 | `label` | `string` | — | Legend/tooltip label |
 | `stroke` | `ColorValue` | — | Line color (string or gradient) |
 | `fill` | `ColorValue` | — | Fill color (string or gradient) |
-| `width` | `number` | — | Stroke width in CSS pixels |
+| `strokeWidth` | `number` | — | Stroke width in CSS pixels |
 | `alpha` | `number` | `1` | Opacity 0–1 |
 | `paths` | `PathBuilder` | `lttbLinear()` | Path builder function (internal default: LTTB downsampling + pixel decimation) |
 | `points` | `PointsConfig` | — | Point marker config |
@@ -308,7 +310,7 @@ defaults to `true`.
 | `show` | `boolean \| function` | — | Show points (function receives viewport info) |
 | `size` | `number` | — | Point diameter in CSS pixels |
 | `space` | `number` | — | Min space between points |
-| `width` | `number` | — | Point stroke width |
+| `strokeWidth` | `number` | — | Point stroke width |
 | `stroke` | `string` | — | Point stroke color |
 | `fill` | `string` | — | Point fill color |
 | `dash` | `number[]` | — | Point stroke dash |
@@ -345,7 +347,7 @@ Use the `fadeGradient()` and `withAlpha()` helpers from
 import { Series, bars, withAlpha, fadeGradient } from 'uplot-plus';
 
 // Line series — slot defaults to (0, 0)
-<Series stroke="#e74c3c" width={2} label="Revenue" />
+<Series stroke="#e74c3c" strokeWidth={2} label="Revenue" />
 
 // Bar series
 <Series paths={bars()} stroke="#3498db" fill="#3498db80" />
@@ -385,8 +387,8 @@ import { Chart, Series, Axis, horizontalBars } from 'uplot-plus';
 
 <Chart data={data}>
   <Series paths={horizontalBars()} stroke="#3498db" />
-  <Axis scale="x" />  {/* auto-side: rendered on the Left */}
-  <Axis scale="y" />  {/* auto-side: rendered on the Bottom */}
+  <Axis scaleId="x" />  {/* auto-side: rendered on the Left */}
+  <Axis scaleId="y" />  {/* auto-side: rendered on the Bottom */}
 </Chart>
 ```
 
@@ -400,7 +402,7 @@ returns `null`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `scale` | `string` | — | Scale key **(required)** |
+| `scaleId` | `string` | — | Scale key **(required)** |
 | `side` | `Side` | `Bottom` for `"x"`, `Left` otherwise | `Side.Top`, `Side.Right`, `Side.Bottom`, `Side.Left` |
 | `show` | `boolean` | `true` | Visibility |
 | `label` | `string` | — | Axis label text |
@@ -426,7 +428,7 @@ returns `null`.
 | --- | --- | --- | --- |
 | `show` | `boolean` | `true` (grid/ticks), `false` (border) | Visibility |
 | `stroke` | `string` | — | Color |
-| `width` | `number` | — | Line width |
+| `strokeWidth` | `number` | — | Line width |
 | `dash` | `number[]` | — | Dash pattern |
 | `size` | `number` | — | Tick mark size (TickConfig only) |
 
@@ -435,17 +437,17 @@ Use the built-in **axis value formatters** for common patterns:
 ```tsx
 import { Axis, fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, fmtLabels } from 'uplot-plus';
 
-<Axis scale="y" values={fmtCompact()} />            // 1.2K, 3.5M
-<Axis scale="y" values={fmtSuffix('%')} />          // 42%
-<Axis scale="y" values={fmtSuffix('°C', 1)} />     // 23.5°C
-<Axis scale="x" values={fmtHourMin({ utc: true })} /> // 14:30
-<Axis scale="x" values={fmtMonthName()} />          // Jan, Feb, ...
-<Axis scale="x" values={fmtLabels(['Q1','Q2','Q3','Q4'])} />
+<Axis scaleId="y" values={fmtCompact()} />            // 1.2K, 3.5M
+<Axis scaleId="y" values={fmtSuffix('%')} />          // 42%
+<Axis scaleId="y" values={fmtSuffix('°C', 1)} />     // 23.5°C
+<Axis scaleId="x" values={fmtHourMin({ utc: true })} /> // 14:30
+<Axis scaleId="x" values={fmtMonthName()} />          // Jan, Feb, ...
+<Axis scaleId="x" values={fmtLabels(['Q1','Q2','Q3','Q4'])} />
 ```
 
 ```tsx
 // Right axis with no grid, custom stroke color
-<Axis scale="humid" side={Side.Right} label="Humidity" values={fmtSuffix('%')} stroke="#3498db" grid={{ show: false }} />
+<Axis scaleId="humid" side={Side.Right} label="Humidity" values={fmtSuffix('%')} stroke="#3498db" grid={{ show: false }} />
 ```
 
 **Demos:** `axis-control`, `custom-axis-values`,
@@ -472,8 +474,8 @@ import { Band } from 'uplot-plus';
 <Chart data={data}>
   <Scale id="x" />
   <Scale id="y" />
-  <Axis scale="x" />
-  <Axis scale="y" />
+  <Axis scaleId="x" />
+  <Axis scaleId="y" />
   <Series index={0} stroke="blue" label="Upper" />
   <Series index={1} stroke="blue" label="Lower" />
   <Band series={[0, 1]} group={0} fill="rgba(100,150,255,0.2)" />
@@ -642,15 +644,15 @@ Horizontal line at a y-data-value.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `value` | `number` | — | Y data value **(required)** |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 | `stroke` | `string` | `'red'` | Line color |
-| `width` | `number` | `1` | Line width (CSS px) |
+| `strokeWidth` | `number` | `1` | Stroke width (CSS px) |
 | `dash` | `number[]` | — | Dash pattern |
 | `label` | `string` | — | Text label at left edge |
 | `labelFont` | `string` | `'11px sans-serif'` | Label font |
 
 ```tsx
-<HLine value={65} yScale="y" stroke="#e74c3c" dash={[6, 4]} label="Threshold: 65" />
+<HLine value={65} yScaleId="y" stroke="#e74c3c" dash={[6, 4]} label="Threshold: 65" />
 ```
 
 ### `<VLine>`
@@ -660,15 +662,15 @@ Vertical line at an x-data-value.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `value` | `number` | — | X data value **(required)** |
-| `xScale` | `string` | `'x'` | X-axis scale id |
+| `xScaleId` | `string` | `'x'` | X-axis scale id |
 | `stroke` | `string` | `'red'` | Line color |
-| `width` | `number` | `1` | Line width (CSS px) |
+| `strokeWidth` | `number` | `1` | Stroke width (CSS px) |
 | `dash` | `number[]` | — | Dash pattern |
 | `label` | `string` | — | Text label at top |
 | `labelFont` | `string` | `'11px sans-serif'` | Label font |
 
 ```tsx
-<VLine value={100} xScale="x" stroke="#8e44ad" dash={[4, 4]} label="Event" />
+<VLine value={100} xScaleId="x" stroke="#8e44ad" dash={[4, 4]} label="Event" />
 ```
 
 ### `<Region>`
@@ -679,14 +681,56 @@ Shaded region between two y-data-values.
 | --- | --- | --- | --- |
 | `yMin` | `number` | — | Lower y value **(required)** |
 | `yMax` | `number` | — | Upper y value **(required)** |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 | `fill` | `string` | `'rgba(255,0,0,0.1)'` | Fill color |
 | `stroke` | `string` | — | Border stroke color |
 | `strokeWidth` | `number` | — | Border stroke width |
 | `dash` | `number[]` | — | Border dash pattern |
 
 ```tsx
-<Region yMin={40} yMax={60} yScale="y" fill="rgba(46,204,113,0.12)" />
+<Region yMin={40} yMax={60} yScaleId="y" fill="rgba(46,204,113,0.12)" />
+```
+
+### `<VRegion>`
+
+Shaded region between two x-data-values.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `xMin` | `number` | — | Left x value **(required)** |
+| `xMax` | `number` | — | Right x value **(required)** |
+| `xScaleId` | `string` | `'x'` | X-axis scale id |
+| `fill` | `string` | theme `annotationFill` | Fill color |
+| `stroke` | `string` | — | Border stroke color |
+| `strokeWidth` | `number` | — | Border stroke width |
+| `dash` | `number[]` | — | Border dash pattern |
+
+```tsx
+<VRegion xMin={80} xMax={120} xScaleId="x" fill="rgba(52,152,219,0.12)" />
+```
+
+### `<DiagonalLine>`
+
+Diagonal line specified either by two data points (`x1,y1,x2,y2`) or
+by `slope` + `intercept`. Slope/intercept form defaults to `extend: true`
+(extrapolated to the plot-box edges).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `x1`, `y1`, `x2`, `y2` | `number` | — | Two-point form (required together) |
+| `slope`, `intercept` | `number` | — | Slope/intercept form (required together) |
+| `xScaleId` | `string` | `'x'` | X-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
+| `stroke` | `string` | theme `annotationStroke` | Line color |
+| `strokeWidth` | `number` | `1` | Stroke width (CSS px) |
+| `dash` | `number[]` | — | Dash pattern |
+| `label` | `string` | — | Optional label at midpoint |
+| `labelFont` | `string` | theme `annotationFont` | Label font |
+| `extend` | `boolean` | `true` for slope form | Extrapolate to plot-box edges |
+
+```tsx
+<DiagonalLine x1={0} y1={0} x2={100} y2={100} stroke="#2ecc71" />
+<DiagonalLine slope={0.5} intercept={10} dash={[4, 4]} />
 ```
 
 ### `<AnnotationLabel>`
@@ -698,8 +742,8 @@ Text label at data coordinates.
 | `x` | `number` | — | X data value **(required)** |
 | `y` | `number` | — | Y data value **(required)** |
 | `text` | `string` | — | Label text **(required)** |
-| `xScale` | `string` | `'x'` | X-axis scale id |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `xScaleId` | `string` | `'x'` | X-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 | `fill` | `string` | `'#000'` | Text color |
 | `font` | `string` | `'12px sans-serif'` | Font |
 | `align` | `CanvasTextAlign` | `'left'` | Text alignment |
@@ -717,18 +761,19 @@ import { HLine, VLine, Region, AnnotationLabel } from 'uplot-plus';
 <Chart width={800} height={400} data={data}>
   <Scale id="x" />
   <Scale id="y" auto={false} min={10} max={90} />
-  <Axis scale="x" />
-  <Axis scale="y" />
-  <Series stroke="#2980b9" width={2} />
-  <Region yMin={65} yMax={90} yScale="y" fill="rgba(231, 76, 60, 0.08)" />
-  <HLine value={65} yScale="y" stroke="#e74c3c" width={2} dash={[6, 4]} label="Threshold: 65" />
-  <VLine value={100} xScale="x" stroke="#8e44ad" dash={[4, 4]} />
+  <Axis scaleId="x" />
+  <Axis scaleId="y" />
+  <Series stroke="#2980b9" strokeWidth={2} />
+  <Region yMin={65} yMax={90} yScaleId="y" fill="rgba(231, 76, 60, 0.08)" />
+  <HLine value={65} yScaleId="y" stroke="#e74c3c" strokeWidth={2} dash={[6, 4]} label="Threshold: 65" />
+  <VLine value={100} xScaleId="x" stroke="#8e44ad" dash={[4, 4]} />
   <AnnotationLabel x={50} y={65} text="Alert zone" fill="#e74c3c" />
 </Chart>
 ```
 
 Imperative helpers are also available for custom draw hooks:
-`drawHLine`, `drawVLine`, `drawLabel`, `drawRegion`. See the
+`drawHLine`, `drawVLine`, `drawLabel`, `drawRegion`, `drawVRegion`,
+`drawDiagonalLine`, `drawSlopeInterceptLine`. See the
 `annotations` demo for this approach.
 
 **Demos:** `draw-hooks` (declarative `<HLine>` + `<Region>`),
@@ -782,7 +827,7 @@ const lanes = [
 
 <Chart width={800} height={200} data={[{ x: [0, 24], series: [] }]}>
   <Scale id="x" />
-  <Axis scale="x" label="Hour" />
+  <Axis scaleId="x" label="Hour" />
   <Timeline lanes={lanes} laneHeight={30} gap={4} />
 </Chart>
 ```
@@ -800,7 +845,7 @@ layer. Must be inside `<Chart>`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `boxes` | `Array<{ min, q1, median, q3, max }>` | — | Box data, one per category **(required)** |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 | `boxWidth` | `number` | `0.5` | Box width as fraction of category spacing |
 | `fill` | `string` | `'rgba(52, 152, 219, 0.4)'` | Box fill color |
 | `stroke` | `string` | `'#2980b9'` | Box stroke color |
@@ -813,8 +858,8 @@ import { Chart, Scale, Axis, BoxWhisker, fmtLabels } from 'uplot-plus';
 <Chart width={800} height={400} data={chartData}>
   <Scale id="x" auto={false} min={0.5} max={10.5} />
   <Scale id="y" auto={false} min={yMin} max={yMax} />
-  <Axis scale="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
-  <Axis scale="y" />
+  <Axis scaleId="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
+  <Axis scaleId="y" />
   <BoxWhisker boxes={boxes} />
 </Chart>
 ```
@@ -834,7 +879,7 @@ store (4 series: open, high, low, close). Shares the
 | --- | --- | --- | --- |
 | `group` | `number` | `0` | Data group containing OHLC series |
 | `series` | `[number, number, number, number]` | `[0,1,2,3]` | Series indices: [open, high, low, close] |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 | `upColor` | `string` | `'#26a69a'` | Color for up candles (close >= open) |
 | `downColor` | `string` | `'#ef5350'` | Color for down candles (close < open) |
 | `bodyWidth` | `number` | `0.6` | Body width as fraction of available space |
@@ -870,7 +915,7 @@ Must be inside `<Chart>`.
 | `xRange` | `[number, number]` | `[0, rows]` | X-axis value range |
 | `yRange` | `[number, number]` | `[0, cols]` | Y-axis value range |
 | `colorMap` | `(t: number) => string` | blue-cyan-green-yellow-orange-red | Color function (0..1 normalized) |
-| `yScale` | `string` | `'y'` | Y-axis scale id |
+| `yScaleId` | `string` | `'y'` | Y-axis scale id |
 
 ```tsx
 import { Chart, Scale, Axis, Heatmap, fmtSuffix } from 'uplot-plus';
@@ -878,8 +923,8 @@ import { Chart, Scale, Axis, Heatmap, fmtSuffix } from 'uplot-plus';
 <Chart width={800} height={400} data={chartData}>
   <Scale id="x" auto={false} min={0} max={24} />
   <Scale id="y" auto={false} min={0} max={300} />
-  <Axis scale="x" label="Hour" />
-  <Axis scale="y" label="Latency" values={fmtSuffix('ms')} />
+  <Axis scaleId="x" label="Hour" />
+  <Axis scaleId="y" label="Latency" values={fmtSuffix('ms')} />
   <Heatmap grid={grid} xRange={[0, 24]} yRange={[0, 300]} />
 </Chart>
 ```
@@ -907,7 +952,7 @@ canvas layer. Must be inside `<Chart>`.
 import { Chart, Series, Axis, Vector, fmtSuffix } from 'uplot-plus';
 
 <Chart width={800} height={400} data={chartData} ylabel="Wind Speed (km/h)">
-  <Axis scale="x" label="Time (hours)" values={fmtSuffix('h')} />
+  <Axis scaleId="x" label="Time (hours)" values={fmtSuffix('h')} />
   <Series label="Speed" dash={[4, 3]} />
   <Vector directions={directions} />
 </Chart>
@@ -936,6 +981,8 @@ via the `onRangeChange` callback. Used **outside**
 | `className` | `string` | — | CSS class for wrapper |
 | `colors` | `string[]` | auto | Series colors (one per series in group 0) |
 | `grips` | `boolean` | `false` | Show grip handles on selection edges |
+| `syncScaleKey` | `string` | — | Bi-directional scale sync key — charts sharing the same key via `syncScaleKey` mirror the selection range automatically |
+| `scaleId` | `string` | `'x'` | Scale id to publish/subscribe on the sync group |
 
 **Interactions:**
 
@@ -958,8 +1005,8 @@ const [range, setRange] = useState<[number, number] | null>(null);
 <Chart width={800} height={300} data={data}>
   <Scale id="x" min={range?.[0]} max={range?.[1]} />
   <Scale id="y" />
-  <Axis scale="x" />
-  <Axis scale="y" />
+  <Axis scaleId="x" />
+  <Axis scaleId="y" />
   <Series stroke="#3498db" />
 </Chart>
 ```
@@ -981,7 +1028,7 @@ hidden axes and `pointerEvents: 'none'`.
 | `height` | `number` | `30` | Height (CSS px) |
 | `stroke` | `ColorValue` | `'#03a9f4'` | Line/bar color |
 | `fill` | `ColorValue` | — | Fill color |
-| `lineWidth` | `number` | `1` | Line width (CSS px) |
+| `strokeWidth` | `number` | `1` | Stroke width (CSS px) |
 | `paths` | `PathBuilder` | `linear()` | Path builder (pass `bars()` for bar sparklines) |
 | `fillTo` | `number` | — | Fill target value (e.g. `0` for bars) |
 | `className` | `string` | — | CSS class for wrapper div |

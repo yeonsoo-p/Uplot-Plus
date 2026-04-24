@@ -18,8 +18,8 @@ export default function EventCallbacks() {
   const onClick = useCallback((info: ChartEventInfo) => {
     setMenu(null);
     if (info.point) {
-      const { seriesIdx, xVal, yVal, dist } = info.point;
-      setStatus(`Clicked: series ${seriesIdx}, x=${xVal.toFixed(1)}, y=${yVal.toFixed(1)} (${dist.toFixed(0)}px away)`);
+      const { index, xVal, yVal, dist } = info.point;
+      setStatus(`Clicked: series ${index}, x=${xVal.toFixed(1)}, y=${yVal.toFixed(1)} (${dist.toFixed(0)}px away)`);
     } else {
       setStatus(`Clicked at (${info.plotX.toFixed(0)}, ${info.plotY.toFixed(0)}) — no nearby point`);
     }
@@ -66,12 +66,12 @@ export default function EventCallbacks() {
             {menu.info.point ? (
               <>
                 <div className="px-3 py-1 font-bold border-b border-border-lighter">
-                  Series {menu.info.point.seriesIdx}
+                  Series {menu.info.point.index}
                 </div>
                 <div className="px-3 py-1">X: {menu.info.point.xVal.toFixed(2)}</div>
                 <div className="px-3 py-1">Y: {menu.info.point.yVal.toFixed(2)}</div>
                 <div className="px-3 py-1 text-muted-lighter">
-                  Index: {menu.info.point.dataIdx}
+                  Index: {menu.info.point.dataIndex}
                 </div>
               </>
             ) : (

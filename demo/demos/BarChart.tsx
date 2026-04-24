@@ -16,8 +16,8 @@ export default function BarChart() {
 
   return (
     <Chart width="auto" height={400} data={data}>
-      <Axis scale="x" label="Month" values={fmtLabels(MONTHS)} />
-      <Axis scale="y" label="Amount" values={fmtWrap('$', 'K')} />
+      <Axis scaleId="x" label="Month" values={fmtLabels(MONTHS)} />
+      <Axis scaleId="y" label="Amount" values={fmtWrap('$', 'K')} />
       <Series stroke="#2980b9" label="Revenue" paths={groupedBars(0, 2)} />
       <Series stroke="#e74c3c" label="Costs" paths={groupedBars(1, 2)} />
     </Chart>

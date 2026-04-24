@@ -35,9 +35,9 @@ export function Tooltip({
   const overlayHost = useContext(OverlayHostContext);
   const snap = useSyncExternalStore(store.subscribeCursor, store.getSnapshot);
 
-  const { activeGroup, activeDataIdx } = snap;
+  const { activeGroup, activeDataIndex } = snap;
   const plotBox = store.plotBox;
-  const hasCursor = activeDataIdx >= 0 && activeGroup >= 0 && snap.left >= 0;
+  const hasCursor = activeDataIndex >= 0 && activeGroup >= 0 && snap.left >= 0;
 
   // Resolve offset with defaults for optional x/y
   const offset = { x: offsetProp.x ?? 12, y: offsetProp.y ?? -12 };
@@ -50,7 +50,7 @@ export function Tooltip({
 
   if (hasCursor) {
     const group = store.dataStore.data[activeGroup];
-    xVal = group != null ? (group.x[activeDataIdx] ?? null) : null;
+    xVal = group != null ? (group.x[activeDataIndex] ?? null) : null;
     xLabel = xVal != null ? parseFloat(xVal.toFixed(precision)).toString() : '';
 
     // Hidden series (show=false) are excluded from tooltip — showing values for
@@ -58,7 +58,7 @@ export function Tooltip({
     for (const cfg of store.seriesConfigs) {
       if (cfg.show === false || cfg.legend === false || cfg._source === 'internal') continue;
       const yData = store.dataStore.getYValues(cfg.group, cfg.index);
-      const val = cfg.group === activeGroup ? (yData[activeDataIdx] ?? null) : null;
+      const val = cfg.group === activeGroup ? (yData[activeDataIndex] ?? null) : null;
       items.push({
         label: cfg.label ?? `Series ${cfg.index}`,
         value: val,

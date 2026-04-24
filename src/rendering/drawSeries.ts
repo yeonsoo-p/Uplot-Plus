@@ -77,7 +77,7 @@ export function drawSeriesPath(
 
   // Draw stroke
   if (config.stroke) {
-    const lineWidth = (config.width ?? 1) * pxRatio;
+    const lineWidth = (config.strokeWidth ?? 1) * pxRatio;
     ctx.strokeStyle = resolveColor(ctx, config.stroke, box, horizontalGradient);
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = config.join ?? 'round';

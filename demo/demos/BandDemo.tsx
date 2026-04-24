@@ -34,9 +34,9 @@ export default function BandDemo() {
     <div>
       <h4 className="mt-3 mb-1">Confidence Interval</h4>
       <Chart width="auto" height={280} data={confData} xlabel="Sample" ylabel="Value">
-        <Series label="Mean" stroke="#2980b9" width={2} />
-        <Series label="Upper" stroke="#85c1e9" width={1} dash={[4, 4]} />
-        <Series label="Lower" stroke="#85c1e9" width={1} dash={[4, 4]} />
+        <Series label="Mean" stroke="#2980b9" strokeWidth={2} />
+        <Series label="Upper" stroke="#85c1e9" strokeWidth={1} dash={[4, 4]} />
+        <Series label="Lower" stroke="#85c1e9" strokeWidth={1} dash={[4, 4]} />
         <Band series={[1, 2]} group={0} fill="rgba(41, 128, 185, 0.15)" />
         <Legend />
       </Chart>

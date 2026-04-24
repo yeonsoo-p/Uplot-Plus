@@ -37,11 +37,11 @@ describe('ScaleManager', () => {
   describe('group x-scale mapping', () => {
     it('set and get', () => {
       mgr.setGroupXScale(0, 'x');
-      expect(mgr.getGroupXScaleKey(0)).toBe('x');
+      expect(mgr.getGroupXScaleId(0)).toBe('x');
     });
 
     it('returns undefined for unmapped group', () => {
-      expect(mgr.getGroupXScaleKey(99)).toBeUndefined();
+      expect(mgr.getGroupXScaleId(99)).toBeUndefined();
     });
   });
 
@@ -97,7 +97,7 @@ describe('ScaleManager', () => {
       mgr.autoRangeX(data);
       ds.updateWindows(() => mgr.getScale('x'));
 
-      const seriesMap = [{ group: 0, index: 0, yScale: 'y' }];
+      const seriesMap = [{ group: 0, index: 0, yScaleId: 'y' }];
       mgr.autoRange(data, seriesMap, ds);
 
       const s = mgr.getScale('y');
@@ -134,7 +134,7 @@ describe('ScaleManager', () => {
       ds.setData(logData);
       ds.updateWindows(() => mgr.getScale('x'));
 
-      mgr.autoRange(logData, [{ group: 0, index: 0, yScale: 'y' }], ds);
+      mgr.autoRange(logData, [{ group: 0, index: 0, yScaleId: 'y' }], ds);
 
       const s = mgr.getScale('y');
       expect(s!.min).toBeDefined();

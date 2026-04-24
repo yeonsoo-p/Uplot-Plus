@@ -31,13 +31,13 @@ export default function PointStyles() {
       <Series label="Line only" />
       {/* Line + points */}
       <Series label="Line + Points"
-        points={{ show: true, size: 6, fill: "#fff", stroke: "#e74c3c", width: 1.5 }} />
+        points={{ show: true, size: 6, fill: "#fff", stroke: "#e74c3c", strokeWidth: 1.5 }} />
       {/* Points only (no line) */}
       <Series label="Points only"
         points={{ show: true, size: 8, fill: "#3498db" }} />
       {/* Custom point colors */}
       <Series stroke="#f39c12" fill="rgba(243,156,18,0.1)" label="Custom pts"
-        points={{ show: true, size: 5, fill: "#e74c3c", stroke: "#f39c12", width: 1 }} />
+        points={{ show: true, size: 5, fill: "#e74c3c", stroke: "#f39c12", strokeWidth: 1 }} />
     </Chart>
   );
 }

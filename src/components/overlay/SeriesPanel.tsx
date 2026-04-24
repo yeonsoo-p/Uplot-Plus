@@ -153,13 +153,13 @@ export function formatSeriesValue(
   group: number,
   index: number,
   activeGroup: number,
-  activeDataIdx: number,
+  activeDataIndex: number,
   precision = 4,
 ): string {
-  if (activeDataIdx < 0 || activeGroup < 0) return '';
+  if (activeDataIndex < 0 || activeGroup < 0) return '';
   if (group !== activeGroup) return '';
   const yData = store.dataStore.getYValues(group, index);
-  const val = yData[activeDataIdx];
+  const val = yData[activeDataIndex];
   if (val == null) return '';
   return typeof val === 'number' ? val.toPrecision(precision) : String(val);
 }

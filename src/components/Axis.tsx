@@ -8,7 +8,7 @@ function resolveAxis(p: AxisProps): AxisConfig {
   const autoSide = p.side == null;
   return {
     ...p,
-    side: p.side ?? (p.scale === 'x' ? Side.Bottom : Side.Left),
+    side: p.side ?? (p.scaleId === 'x' ? Side.Bottom : Side.Left),
     show: p.show ?? true,
     _autoSide: autoSide,
   };
@@ -23,7 +23,7 @@ export function Axis(props: AxisProps): null {
 
   useRegisterConfig(
     resolved,
-    [resolved.scale, resolved.side, resolved._autoSide],
+    [resolved.scaleId, resolved.side, resolved._autoSide],
     (store, cfg) => store.registerAxis(cfg),
     (store, cfg) => store.unregisterAxis(cfg),
     (store, cfg) => store.updateAxis(cfg),

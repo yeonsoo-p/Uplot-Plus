@@ -7,9 +7,9 @@ export interface CursorState {
   /** Active group index (which xGroup the closest point belongs to) */
   activeGroup: number;
   /** Active series index within the group */
-  activeSeriesIdx: number;
+  activeSeriesIndex: number;
   /** Active data index within the series's x array */
-  activeDataIdx: number;
+  activeDataIndex: number;
 }
 
 /** Selection rectangle state */

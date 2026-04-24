@@ -1,5 +1,4 @@
-import { useDrawHook } from '../../hooks/useDrawHook';
-import { useLayoutEffect, useRef } from 'react';
+import { useAnnotationDraw } from './useAnnotationDraw';
 import { useStore } from '../../hooks/useChart';
 
 export interface AnnotationLabelProps {
@@ -10,9 +9,9 @@ export interface AnnotationLabelProps {
   /** Label text */
   text: string;
   /** Scale id for the x-axis (default: 'x') */
-  xScale?: string;
+  xScaleId?: string;
   /** Scale id for the y-axis (default: 'y') */
-  yScale?: string;
+  yScaleId?: string;
   /** Text color (default: '#000') */
   fill?: string;
   /** Font (default: '12px sans-serif') */
@@ -29,12 +28,8 @@ export interface AnnotationLabelProps {
  */
 export function AnnotationLabel(props: AnnotationLabelProps): null {
   const store = useStore();
-  const propsRef = useRef(props);
-  useLayoutEffect(() => { propsRef.current = props; });
-
-  useDrawHook((dc) => {
-    const p = propsRef.current;
-    const pos = dc.project(p.x, p.y, p.xScale ?? 'x', p.yScale ?? 'y');
+  useAnnotationDraw(props, (dc, p) => {
+    const pos = dc.project(p.x, p.y, p.xScaleId ?? 'x', p.yScaleId ?? 'y');
     if (pos == null) return;
 
     const t = store.theme;

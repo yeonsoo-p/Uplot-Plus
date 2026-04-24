@@ -18,10 +18,10 @@ export default function ScaleDirection() {
     <Chart width="auto" height={400} data={data} xlabel="Sample">
       <Scale id="depth"  dir={Direction.Backward} />
       <Scale id="temp"  />
-      <Axis scale="depth" label="Depth" values={fmtSuffix('m')} stroke="#2980b9" />
-      <Axis scale="temp" side={Side.Right} label="Temperature (°C)" stroke="#e67e22" grid={{ show: false }} />
-      <Series yScale="depth" stroke="#2980b9" label="Depth" />
-      <Series yScale="temp" stroke="#e67e22" label="Temperature" />
+      <Axis scaleId="depth" label="Depth" values={fmtSuffix('m')} stroke="#2980b9" />
+      <Axis scaleId="temp" side={Side.Right} label="Temperature (°C)" stroke="#e67e22" grid={{ show: false }} />
+      <Series yScaleId="depth" stroke="#2980b9" label="Depth" />
+      <Series yScaleId="temp" stroke="#e67e22" label="Temperature" />
     </Chart>
   );
 }

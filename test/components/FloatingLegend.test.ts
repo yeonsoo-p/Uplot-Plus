@@ -76,7 +76,7 @@ describe('formatSeriesValue', () => {
     expect(formatSeriesValue(mockStore, 0, 0, 0, 2)).toBe('');
   });
 
-  it('returns empty string when activeDataIdx is -1', () => {
+  it('returns empty string when activeDataIndex is -1', () => {
     expect(formatSeriesValue(mockStore, 0, 0, 0, -1)).toBe('');
   });
 

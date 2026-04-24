@@ -64,7 +64,7 @@ describe('rebuildSnapshot', () => {
     rebuildSnapshot(store);
     const snap1 = store.snapshot;
 
-    store.registerSeries({ group: 0, index: 0, yScale: 'y', show: true });
+    store.registerSeries({ group: 0, index: 0, yScaleId: 'y', show: true });
     rebuildSnapshot(store);
     const snap2 = store.snapshot;
 
@@ -85,18 +85,18 @@ describe('rebuildSnapshot', () => {
     expect(snap2.revision).toBe(1);
   });
 
-  it('creates a new snapshot when activeDataIdx changes', () => {
+  it('creates a new snapshot when activeDataIndex changes', () => {
     const store = setup();
     rebuildSnapshot(store);
     const snap1 = store.snapshot;
 
-    store.cursorManager.state.activeDataIdx = 5;
+    store.cursorManager.state.activeDataIndex = 5;
     store.cursorManager.state.activeGroup = 0;
     rebuildSnapshot(store);
     const snap2 = store.snapshot;
 
     expect(snap2).not.toBe(snap1);
-    expect(snap2.activeDataIdx).toBe(5);
+    expect(snap2.activeDataIndex).toBe(5);
     expect(snap2.activeGroup).toBe(0);
   });
 });

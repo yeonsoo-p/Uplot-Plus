@@ -1,23 +1,19 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useDrawHook } from '../../hooks/useDrawHook';
 import type { DrawContext } from '../../types/hooks';
-import type { ScaleState } from '../../types';
 
 /**
- * Shared hook for annotation components.
- * Handles props ref syncing and scale lookup, then calls the draw function.
+ * Shared hook for annotation components. Keeps a `propsRef` current so the
+ * draw callback always sees the latest props, and registers the draw hook.
+ * Scale lookups are the caller's responsibility — callers can use
+ * `dc.getScale(id)` for single-scale annotations or `dc.project(...)` /
+ * multiple `getScale` calls for two-scale annotations.
  */
 export function useAnnotationDraw<T>(
   props: T,
-  scaleId: string,
-  draw: (dc: DrawContext, scale: ScaleState, props: T) => void,
+  draw: (dc: DrawContext, props: T) => void,
 ): void {
   const propsRef = useRef(props);
   useLayoutEffect(() => { propsRef.current = props; }, [props]);
-
-  useDrawHook((dc) => {
-    const scale = dc.getScale(scaleId);
-    if (scale == null) return;
-    draw(dc, scale, propsRef.current);
-  });
+  useDrawHook((dc) => draw(dc, propsRef.current));
 }

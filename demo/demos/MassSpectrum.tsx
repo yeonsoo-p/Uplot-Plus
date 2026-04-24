@@ -60,8 +60,8 @@ export default function MassSpectrum() {
   return (
     <Chart width="auto" height={400} data={data}>
       <Scale id="y"  distr={Distribution.Log} log={10} />
-      <Axis scale="x" label="m/z" values={fmtSuffix('')} />
-      <Axis scale="y" label="Intensity" values={fmtIntensity} />
+      <Axis scaleId="x" label="m/z" values={fmtSuffix('')} />
+      <Axis scaleId="y" label="Intensity" values={fmtIntensity} />
       <Series
         stroke="#2c3e50"
         label="Intensity"

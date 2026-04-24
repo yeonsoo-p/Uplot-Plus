@@ -28,13 +28,13 @@ function setup(): TestHarness {
   store.scaleManager.addScale({ id: 'y', min: 0, max: 100 });
   store.scaleManager.setGroupXScale(0, 'x');
 
-  store.registerSeries({ group: 0, index: 0, yScale: 'y', stroke: 'red', show: true });
+  store.registerSeries({ group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true });
   store.dataStore.setData([{
     x: [0, 25, 50, 75, 100],
     series: [[10, 40, 70, 30, 90]],
   }]);
   store.dataStore.updateWindows((gi) => {
-    const key = store.scaleManager.getGroupXScaleKey(gi);
+    const key = store.scaleManager.getGroupXScaleId(gi);
     return key != null ? store.scaleManager.getScale(key) : undefined;
   });
 

@@ -19,13 +19,13 @@ export default function CursorTooltip() {
     <div>
       <div className="mb-4">
         <Chart width="auto" height={220} data={data1} syncCursorKey="tt" xlabel="Time">
-          <Axis scale="y" label="CPU" values={fmtSuffix('%')} />
+          <Axis scaleId="y" label="CPU" values={fmtSuffix('%')} />
           <Series fill="rgba(231,76,60,0.1)" label="CPU %" />
           <Tooltip />
         </Chart>
       </div>
       <Chart width="auto" height={220} data={data2} syncCursorKey="tt" xlabel="Time">
-        <Axis scale="y" label="Memory" values={fmtSuffix('%')} />
+        <Axis scaleId="y" label="Memory" values={fmtSuffix('%')} />
         <Series fill="rgba(52,152,219,0.1)" label="Memory %" />
         <Tooltip />
       </Chart>

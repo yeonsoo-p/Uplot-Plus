@@ -19,7 +19,7 @@ describe('auto-ranging pipeline', () => {
 
     // First pass: auto-range x from data
     mgr.autoRangeX(data);
-    mgr.autoRange(data, [{ group: 0, index: 0, yScale: 'y' }], ds);
+    mgr.autoRange(data, [{ group: 0, index: 0, yScaleId: 'y' }], ds);
 
     const xScale = mgr.getScale('x');
     // autoRangeX pads by halfCol (minDelta=1, halfCol=0.5)
@@ -28,12 +28,12 @@ describe('auto-ranging pipeline', () => {
 
     // Update windows from x-scale
     ds.updateWindows((gi) => {
-      const key = mgr.getGroupXScaleKey(gi);
+      const key = mgr.getGroupXScaleId(gi);
       return key ? mgr.getScale(key) : undefined;
     });
 
     // Second pass: y-range should reflect windowed data
-    mgr.autoRange(data, [{ group: 0, index: 0, yScale: 'y' }], ds);
+    mgr.autoRange(data, [{ group: 0, index: 0, yScaleId: 'y' }], ds);
 
     const yScale = mgr.getScale('y');
     // Auto-range with 10% padding: data [10, 100], delta=90, base=10, incr=1
@@ -58,21 +58,21 @@ describe('auto-ranging pipeline', () => {
 
     // Auto-range x (full), then y
     mgr.autoRangeX(data);
-    mgr.autoRange(data, [{ group: 0, index: 0, yScale: 'y' }], ds);
+    mgr.autoRange(data, [{ group: 0, index: 0, yScaleId: 'y' }], ds);
     ds.updateWindows(gi => {
-      const key = mgr.getGroupXScaleKey(gi);
+      const key = mgr.getGroupXScaleId(gi);
       return key ? mgr.getScale(key) : undefined;
     });
 
     // Now simulate zoom to first half only
     mgr.setRange('x', 0, 2);
     ds.updateWindows(gi => {
-      const key = mgr.getGroupXScaleKey(gi);
+      const key = mgr.getGroupXScaleId(gi);
       return key ? mgr.getScale(key) : undefined;
     });
 
     // Re-range y with zoomed window
-    mgr.autoRange(data, [{ group: 0, index: 0, yScale: 'y' }], ds);
+    mgr.autoRange(data, [{ group: 0, index: 0, yScaleId: 'y' }], ds);
 
     const yScale = mgr.getScale('y');
     // y-range should reflect only the first half's data (10-30), not 3000

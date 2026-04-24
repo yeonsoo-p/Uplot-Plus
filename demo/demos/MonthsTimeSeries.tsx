@@ -24,7 +24,7 @@ export default function MonthsTimeSeries() {
   return (
     <div>
       <Chart width="auto" height={400} data={data} ylabel="Value">
-        <Axis scale="x" label="Month" values={fmtMonthName()} />
+        <Axis scaleId="x" label="Month" values={fmtMonthName()} />
         <Series label="Metric A" />
         <Series label="Metric B" />
         <Legend />

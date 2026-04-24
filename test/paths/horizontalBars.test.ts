@@ -30,7 +30,7 @@ describe('horizontalBars defaults', () => {
 
   it('inherits all other defaults from BAR_DEFAULTS (width, fill, fillTo, points, cursor)', () => {
     expect(H_BAR_DEFAULTS).toMatchObject({
-      width: BAR_DEFAULTS!.width,
+      strokeWidth: BAR_DEFAULTS!.strokeWidth,
       fill: BAR_DEFAULTS!.fill,
       fillTo: BAR_DEFAULTS!.fillTo,
     });
@@ -49,10 +49,10 @@ describe('horizontalBars defaults', () => {
 describe('horizontalBars geometry', () => {
   const builder = horizontalBars();
   // Renderer would call with xDim=plotBox.height (since xScale.ori=Vertical),
-  // yDim=plotBox.width (since yScale.ori=Horizontal).
+  // yDim=plotBox.strokeWidth (since yScale.ori=Horizontal).
   // Use 300 for "height" and 400 for "width" to mirror the BarChart demo.
   const xDim = 300;  // plotBox.height — column axis (categories) maps along this
-  const yDim = 400;  // plotBox.width  — value axis maps along this
+  const yDim = 400;  // plotBox.strokeWidth  — value axis maps along this
   const xOff = 50;   // plotBox.top
   const yOff = 30;   // plotBox.left
 

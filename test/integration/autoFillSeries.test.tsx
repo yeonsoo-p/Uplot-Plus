@@ -13,7 +13,7 @@ describe('autoFillSeries', () => {
     expect(store.seriesConfigs[0]).toMatchObject({
       group: 0,
       index: 0,
-      yScale: 'y',
+      yScaleId: 'y',
       show: true,
       _source: 'fill',
     });

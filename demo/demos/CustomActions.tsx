@@ -28,19 +28,19 @@ export default function CustomActions() {
     // String → function: shift+click toggles stroke width
     ['shiftLeftClick', (store) => {
       const cursor = store.cursorManager.state;
-      if (cursor.activeSeriesIdx >= 0) {
-        const key = `${cursor.activeGroup}:${cursor.activeSeriesIdx}`;
+      if (cursor.activeSeriesIndex >= 0) {
+        const key = `${cursor.activeGroup}:${cursor.activeSeriesIndex}`;
         const cfg = store.seriesConfigMap.get(key);
         if (cfg != null) {
-          const isThick = (cfg.width ?? 2) > 2;
-          cfg.width = isThick ? 2 : 5;
+          const isThick = (cfg.strokeWidth ?? 2) > 2;
+          cfg.strokeWidth = isThick ? 2 : 5;
           setThickSeries(prev => {
             const next = new Set(prev);
-            if (isThick) next.delete(cursor.activeSeriesIdx);
-            else next.add(cursor.activeSeriesIdx);
+            if (isThick) next.delete(cursor.activeSeriesIndex);
+            else next.add(cursor.activeSeriesIndex);
             return next;
           });
-          addLog(`Shift+click: series ${cursor.activeSeriesIdx} → ${isThick ? 'thin' : 'thick'}`);
+          addLog(`Shift+click: series ${cursor.activeSeriesIndex} → ${isThick ? 'thin' : 'thick'}`);
           store.renderer.clearCache();
           store.scheduleRedraw();
         }
@@ -49,13 +49,13 @@ export default function CustomActions() {
     // String → function: ctrl+click logs data point
     ['ctrlLeftClick', (store) => {
       const cursor = store.cursorManager.state;
-      if (cursor.activeGroup >= 0 && cursor.activeDataIdx >= 0) {
+      if (cursor.activeGroup >= 0 && cursor.activeDataIndex >= 0) {
         const group = store.dataStore.data[cursor.activeGroup];
         if (group != null) {
-          const xVal = group.x[cursor.activeDataIdx];
-          const yData = group.series[cursor.activeSeriesIdx];
-          const yVal = yData != null ? yData[cursor.activeDataIdx] : null;
-          addLog(`Ctrl+click: series ${cursor.activeSeriesIdx}, x=${xVal?.toFixed(1)}, y=${yVal?.toFixed(1)}`);
+          const xVal = group.x[cursor.activeDataIndex];
+          const yData = group.series[cursor.activeSeriesIndex];
+          const yVal = yData != null ? yData[cursor.activeDataIndex] : null;
+          addLog(`Ctrl+click: series ${cursor.activeSeriesIndex}, x=${xVal?.toFixed(1)}, y=${yVal?.toFixed(1)}`);
         }
       }
     }],
@@ -72,8 +72,8 @@ export default function CustomActions() {
     [(e, ctx) => qHeld.current && e instanceof MouseEvent && ctx.action === 'leftClick',
       (store) => {
         const cursor = store.cursorManager.state;
-        if (cursor.activeDataIdx >= 0) {
-          addLog(`Q+click: nearest point idx=${cursor.activeDataIdx}`);
+        if (cursor.activeDataIndex >= 0) {
+          addLog(`Q+click: nearest point idx=${cursor.activeDataIndex}`);
         }
       },
     ],
@@ -84,8 +84,8 @@ export default function CustomActions() {
       onKeyUp={(e) => { if (e.key === 'q' || e.key === 'Q') qHeld.current = false; }}
     >
       <Chart width="auto" height={400} data={data} actions={actions} xlabel="Sample" ylabel="Value">
-        <Series label="Signal A" width={thickSeries.has(0) ? 5 : 2} />
-        <Series label="Signal B" width={thickSeries.has(1) ? 5 : 2} />
+        <Series label="Signal A" strokeWidth={thickSeries.has(0) ? 5 : 2} />
+        <Series label="Signal B" strokeWidth={thickSeries.has(1) ? 5 : 2} />
         <Legend />
       </Chart>
       {log.length > 0 && (

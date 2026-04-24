@@ -40,8 +40,8 @@ export default function TimeseriesDiscrete() {
     <div>
       <Chart width="auto" height={300} data={data}>
         <Scale id="y" min={-0.5} max={2.5} />
-        <Axis scale="x" label="Time" values={fmtTime} />
-        <Axis scale="y" label="Status" values={fmtStatus} />
+        <Axis scaleId="x" label="Time" values={fmtTime} />
+        <Axis scaleId="y" label="Status" values={fmtStatus} />
         <Series
           stroke="#e74c3c"
           fill="rgba(231, 76, 60, 0.15)"

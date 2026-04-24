@@ -44,7 +44,7 @@ describe('drawHLine', () => {
     const { dc, ctx } = makeDC();
     const yScale = makeScale('y', 0, 100, Orientation.Vertical);
 
-    drawHLine(dc, yScale, 50, { stroke: 'blue', width: 3 });
+    drawHLine(dc, yScale, 50, { stroke: 'blue', strokeWidth: 3 });
 
     expect(ctx.strokeStyle).toBe('blue');
     expect(ctx.lineWidth).toBe(3);
@@ -198,7 +198,7 @@ describe('drawDiagonalLine', () => {
     const xScale = makeScale('x', 0, 100);
     const yScale = makeScale('y', 0, 100, Orientation.Vertical);
 
-    drawDiagonalLine(dc, xScale, yScale, 0, 0, 100, 100, { stroke: 'blue', width: 3, dash: [5, 5] });
+    drawDiagonalLine(dc, xScale, yScale, 0, 0, 100, 100, { stroke: 'blue', strokeWidth: 3, dash: [5, 5] });
 
     expect(ctx.strokeStyle).toBe('blue');
     expect(ctx.lineWidth).toBe(3);

@@ -17,8 +17,8 @@ export interface SeriesConfig {
   group: number;
   /** Which series within the group (index into XGroup.series[]) */
   index: number;
-  /** Y-axis scale key */
-  yScale: string;
+  /** Y-axis scale id */
+  yScaleId: string;
   /** Whether to show this series */
   show?: boolean;
   /** Label for legend/tooltip */
@@ -30,7 +30,7 @@ export interface SeriesConfig {
   /** Fill color (string or gradient config) */
   fill?: ColorValue;
   /** Stroke width in CSS pixels */
-  width?: number;
+  strokeWidth?: number;
   /** Opacity 0-1 */
   alpha?: number;
   /** Whether data is sorted */
@@ -109,7 +109,7 @@ export function getSeriesColor(cfg: SeriesConfig): string {
   const fill = extractColor(cfg.fill);
   const hasStroke = stroke != null && !isTransparent(stroke);
   const hasFill = fill != null && !isTransparent(fill);
-  const isBar = cfg.paths?.defaults?.width === 0;
+  const isBar = cfg.paths?.defaults?.strokeWidth === 0;
   if (isBar && hasFill) return fill;
   if (!hasStroke && hasFill) return fill;
   return stroke ?? '#000';
@@ -119,7 +119,7 @@ export interface PointsConfig {
   show?: boolean | ((groupIdx: number, seriesIdx: number, i0: number, i1: number, dim: number) => boolean);
   size?: number;
   space?: number;
-  width?: number;
+  strokeWidth?: number;
   stroke?: string;
   fill?: string;
   dash?: number[];
@@ -128,8 +128,8 @@ export interface PointsConfig {
 /** Runtime series state (internal) */
 export interface SeriesState {
   config: SeriesConfig;
-  /** X-scale key (derived from group) */
-  xScale: string;
+  /** X-scale id (derived from group) */
+  xScaleId: string;
   /** Cached min y-value in current window */
   min: number;
   /** Cached max y-value in current window */

@@ -17,9 +17,9 @@ export default function DependentScales() {
   return (
     <Chart width="auto" height={400} data={data} xlabel="Day">
       <Scale id="f"  />
-      <Axis scale="f" label="Fahrenheit" values={fmtSuffix('°F')} stroke="#e74c3c" />
-      <Axis scale="f" side={Side.Right} label="Celsius" values={fmtC} stroke="#3498db" grid={{ show: false }} />
-      <Series yScale="f" stroke="#e74c3c" label="Temperature" />
+      <Axis scaleId="f" label="Fahrenheit" values={fmtSuffix('°F')} stroke="#e74c3c" />
+      <Axis scaleId="f" side={Side.Right} label="Celsius" values={fmtC} stroke="#3498db" grid={{ show: false }} />
+      <Series yScaleId="f" stroke="#e74c3c" label="Temperature" />
     </Chart>
   );
 }

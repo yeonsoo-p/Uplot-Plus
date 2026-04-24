@@ -19,7 +19,7 @@ export default function AxisControl() {
   return (
     <Chart width="auto" height={400} data={data} xlabel="Sample Index">
       <Scale id="y" auto={false} min={-50} max={50} />
-      <Axis scale="y" label="Amplitude" labelSize={20} space={50} />
+      <Axis scaleId="y" label="Amplitude" labelSize={20} space={50} />
       <Series label="Signal" />
     </Chart>
   );

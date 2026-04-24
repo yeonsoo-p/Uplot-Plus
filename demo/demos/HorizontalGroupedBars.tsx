@@ -21,7 +21,7 @@ export default function HorizontalGroupedBars() {
   return (
     <div>
       <Chart width="auto" height={500} data={data} title="Grouped Horizontal Bars" ylabel="Sales">
-        <Axis scale="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
+        <Axis scaleId="x" label="Month" values={fmtLabels(MONTH_NAMES)} />
         <Series stroke="#2980b9" label="Product A" paths={horizontalGroupedBars(0, 3)} />
         <Series stroke="#27ae60" label="Product B" paths={horizontalGroupedBars(1, 3)} />
         <Series stroke="#e67e22" label="Product C" paths={horizontalGroupedBars(2, 3)} />

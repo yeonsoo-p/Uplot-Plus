@@ -8,11 +8,11 @@ export interface VLineProps {
   /** X data value where the line is drawn */
   value: number;
   /** Scale id for the x-axis (default: 'x') */
-  xScale?: string;
+  xScaleId?: string;
   /** Line color (default: 'red') */
   stroke?: string;
-  /** Line width in CSS pixels (default: 1) */
-  width?: number;
+  /** Stroke width in CSS pixels (default: 1) */
+  strokeWidth?: number;
   /** Dash pattern */
   dash?: number[];
   /** Optional text label drawn at the top */
@@ -27,11 +27,13 @@ export interface VLineProps {
  */
 export function VLine(props: VLineProps): null {
   const store = useStore();
-  useAnnotationDraw(props, props.xScale ?? 'x', (dc, scale, p) => {
+  useAnnotationDraw(props, (dc, p) => {
+    const scale = dc.getScale(p.xScaleId ?? 'x');
+    if (scale == null) return;
     const t = store.theme;
     drawVLine(dc, scale, p.value, {
       stroke: p.stroke ?? t.annotationStroke,
-      width: p.width,
+      strokeWidth: p.strokeWidth,
       dash: p.dash,
     });
 
@@ -41,12 +43,10 @@ export function VLine(props: VLineProps): null {
       ctx.font = p.labelFont ?? t.annotationFont;
       ctx.fillStyle = p.stroke ?? t.annotationStroke;
       if (scale.ori === Orientation.Horizontal) {
-        // Line is vertical on screen — label above the top edge.
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(p.label, pos, plotBox.top - 4);
       } else {
-        // Transposed: line is horizontal on screen — label at the right edge.
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
         ctx.fillText(p.label, plotBox.left + plotBox.width - 4, pos - 4);

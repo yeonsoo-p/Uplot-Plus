@@ -22,7 +22,7 @@ function makeStoreWithData(xValues: number[]): ChartStore {
   }
 
   store.dataStore.updateWindows((gi) => {
-    const key = store.scaleManager.getGroupXScaleKey(gi);
+    const key = store.scaleManager.getGroupXScaleId(gi);
     return key != null ? store.scaleManager.getScale(key) : undefined;
   });
 
@@ -69,13 +69,13 @@ describe("CursorSyncGroup", () => {
 
     // Set cursor on source chart at data index 2
     source.cursorManager.state.activeGroup = 0;
-    source.cursorManager.state.activeDataIdx = 2;
+    source.cursorManager.state.activeDataIndex = 2;
 
     group.pub(source);
 
     // Target cursor should now be active
     expect(target.cursorManager.state.activeGroup).toBe(0);
-    expect(target.cursorManager.state.activeDataIdx).toBe(2);
+    expect(target.cursorManager.state.activeDataIndex).toBe(2);
 
     group.leave(source);
     group.leave(target);
@@ -91,7 +91,7 @@ describe("CursorSyncGroup", () => {
 
     // First, sync a position
     source.cursorManager.state.activeGroup = 0;
-    source.cursorManager.state.activeDataIdx = 2;
+    source.cursorManager.state.activeDataIndex = 2;
     group.pub(source);
 
     // Now hide the source cursor
@@ -99,7 +99,7 @@ describe("CursorSyncGroup", () => {
     group.pub(source);
 
     expect(target.cursorManager.state.activeGroup).toBe(-1);
-    expect(target.cursorManager.state.activeDataIdx).toBe(-1);
+    expect(target.cursorManager.state.activeDataIndex).toBe(-1);
 
     group.leave(source);
     group.leave(target);
@@ -112,14 +112,14 @@ describe("CursorSyncGroup", () => {
     group.join(source);
 
     source.cursorManager.state.activeGroup = 0;
-    source.cursorManager.state.activeDataIdx = 3;
+    source.cursorManager.state.activeDataIndex = 3;
     source.cursorManager.state.left = 42;
 
     group.pub(source);
 
     // Source should be unchanged
     expect(source.cursorManager.state.left).toBe(42);
-    expect(source.cursorManager.state.activeDataIdx).toBe(3);
+    expect(source.cursorManager.state.activeDataIndex).toBe(3);
 
     group.leave(source);
   });
@@ -134,21 +134,21 @@ describe("CursorSyncGroup", () => {
 
     // store1 publishes cursor at index 2
     store1.cursorManager.state.activeGroup = 0;
-    store1.cursorManager.state.activeDataIdx = 2;
+    store1.cursorManager.state.activeDataIndex = 2;
     group.pub(store1);
 
     // store2 was synced-to, so its next pub should be blocked
     store2.cursorManager.state.activeGroup = 0;
-    store2.cursorManager.state.activeDataIdx = 2;
-    const store1CursorBefore = store1.cursorManager.state.activeDataIdx;
+    store2.cursorManager.state.activeDataIndex = 2;
+    const store1CursorBefore = store1.cursorManager.state.activeDataIndex;
     group.pub(store2);
     // store1 should NOT have been re-synced (the echo was blocked)
-    expect(store1.cursorManager.state.activeDataIdx).toBe(store1CursorBefore);
+    expect(store1.cursorManager.state.activeDataIndex).toBe(store1CursorBefore);
 
     // But a fresh pub from store2 (after the block is consumed) should work
-    store2.cursorManager.state.activeDataIdx = 4;
+    store2.cursorManager.state.activeDataIndex = 4;
     group.pub(store2);
-    expect(store1.cursorManager.state.activeDataIdx).toBe(4);
+    expect(store1.cursorManager.state.activeDataIndex).toBe(4);
 
     group.leave(store1);
     group.leave(store2);

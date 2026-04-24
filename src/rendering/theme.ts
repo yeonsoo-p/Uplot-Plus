@@ -352,7 +352,7 @@ export function themeToVars(theme: ChartTheme): React.CSSProperties {
 
   // Cursor
   set('cursorStroke', theme.cursor?.stroke);
-  set('cursorWidth', theme.cursor?.width);
+  set('cursorWidth', theme.cursor?.strokeWidth);
   setArr('cursorDash', theme.cursor?.dash);
   set('cursorPointRadius', theme.cursor?.pointRadius);
   set('pointFill', theme.cursor?.pointFill);
@@ -360,7 +360,7 @@ export function themeToVars(theme: ChartTheme): React.CSSProperties {
   // Selection
   set('selectFill', theme.select?.fill);
   set('selectStroke', theme.select?.stroke);
-  set('selectWidth', theme.select?.width);
+  set('selectWidth', theme.select?.strokeWidth);
 
   // Series
   setArr('seriesColors', theme.seriesColors);

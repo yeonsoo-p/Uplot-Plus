@@ -37,8 +37,8 @@ export default function HeatmapDemo() {
     <Chart width="auto" height={400} data={chartData}>
       <Scale id="x" auto={false} min={0} max={HOURS} />
       <Scale id="y" auto={false} min={0} max={MAX_LATENCY} />
-      <Axis scale="x" label="Hour" values={fmtHour} />
-      <Axis scale="y" label="Latency" values={fmtSuffix('ms')} />
+      <Axis scaleId="x" label="Hour" values={fmtHour} />
+      <Axis scaleId="y" label="Latency" values={fmtSuffix('ms')} />
       <Heatmap grid={grid} xRange={[0, 24]} yRange={[0, 300]} />
     </Chart>
   );

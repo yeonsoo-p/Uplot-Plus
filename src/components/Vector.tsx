@@ -87,7 +87,7 @@ export function Vector({
 
     const yScaleId = store.seriesConfigs.find(
       s => s.group === group && s.index === index,
-    )?.yScale ?? 'y';
+    )?.yScaleId ?? 'y';
 
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;

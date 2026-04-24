@@ -79,7 +79,7 @@ export function Legend({ show = true, position = 'bottom', className }: LegendPr
 
   if (!show) return null;
 
-  const { activeGroup, activeDataIdx } = snap;
+  const { activeGroup, activeDataIndex } = snap;
 
   return (
     <div
@@ -92,7 +92,7 @@ export function Legend({ show = true, position = 'bottom', className }: LegendPr
       {store.seriesConfigs.map((cfg) => {
         if (cfg.legend === false || cfg._source === 'internal') return null;
         const color = getSeriesColor(cfg);
-        const valueStr = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIdx);
+        const valueStr = formatSeriesValue(store, cfg.group, cfg.index, activeGroup, activeDataIndex);
 
         return (
           <LegendItem

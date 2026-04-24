@@ -57,7 +57,7 @@ describe('path cache: scale stamp invalidation', () => {
     const xScale = makeScaleState('x', 0, 100);
     const yScale = makeScaleState('y', 0, 50);
     const info = [{
-      config: { group: 0, index: 0, yScale: 'y', show: true, stroke: 'red' },
+      config: { group: 0, index: 0, yScaleId: 'y', show: true, stroke: 'red' },
       dataX: [0], dataY: [0], xScale, yScale, window: tuple(0, 0),
     }];
     // Set initial stamp
@@ -71,7 +71,7 @@ describe('path cache: scale stamp invalidation', () => {
     const xScale = makeScaleState('x', 0, 100);
     const yScale = makeScaleState('y', 0, 50);
     const info1 = [{
-      config: { group: 0, index: 0, yScale: 'y', show: true, stroke: 'red' },
+      config: { group: 0, index: 0, yScaleId: 'y', show: true, stroke: 'red' },
       dataX: [0], dataY: [0], xScale, yScale, window: tuple(0, 0),
     }];
     r.checkScaleStamp(info1);
@@ -80,7 +80,7 @@ describe('path cache: scale stamp invalidation', () => {
     // Change scale range (simulate zoom)
     const xZoomed = makeScaleState('x', 20, 80);
     const info2 = [{
-      config: { group: 0, index: 0, yScale: 'y', show: true, stroke: 'red' },
+      config: { group: 0, index: 0, yScaleId: 'y', show: true, stroke: 'red' },
       dataX: [0], dataY: [0], xScale: xZoomed, yScale, window: tuple(0, 0),
     }];
     r.checkScaleStamp(info2);

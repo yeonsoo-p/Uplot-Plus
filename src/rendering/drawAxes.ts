@@ -105,7 +105,7 @@ export function drawAxesGrid(
     const side = config.side;
     const ori = sideOrientation(side);
 
-    const scale = getScale(config.scale);
+    const scale = getScale(config.scaleId);
     if (!scale || !isScaleReady(scale))
       continue;
 
@@ -132,7 +132,7 @@ export function drawAxesGrid(
     const grid = config.grid;
     if (grid?.show !== false) {
       const gridStroke = grid?.stroke ?? t.gridStroke;
-      const gridWidth = round((grid?.width ?? 2) * pxRatio);
+      const gridWidth = round((grid?.strokeWidth ?? 2) * pxRatio);
       const gridDash = (grid?.dash ?? []).map(d => d * pxRatio);
 
       const gridPos = ori === Orientation.Horizontal ? plotTop : plotLft;
@@ -145,7 +145,7 @@ export function drawAxesGrid(
     const ticks = config.ticks;
     if (ticks?.show !== false) {
       const tickStroke = ticks?.stroke ?? fillStyle;
-      const tickWidth = round((ticks?.width ?? 1) * pxRatio);
+      const tickWidth = round((ticks?.strokeWidth ?? 1) * pxRatio);
       const tickSize = round((ticks?.size ?? 10) * pxRatio);
       const tickDash = (ticks?.dash ?? []).map(d => d * pxRatio);
 
@@ -235,7 +235,7 @@ export function drawAxesGrid(
     const border = config.border;
     if (border?.show !== false && border != null) {
       const borderStroke = border.stroke ?? fillStyle;
-      const borderWidth = round((border.width ?? 1) * pxRatio);
+      const borderWidth = round((border.strokeWidth ?? 1) * pxRatio);
       const borderDash = (border.dash ?? []).map(d => d * pxRatio);
 
       const borderPos = round(axis._pos * pxRatio);

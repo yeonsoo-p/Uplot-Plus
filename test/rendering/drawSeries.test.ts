@@ -19,11 +19,11 @@ describe('drawSeriesPath', () => {
 
   beforeEach(() => {
     ctx = createMockCtx();
-    Object.defineProperty(ctx, 'canvas', { value: { width: 800, height: 600 }, writable: true });
+    Object.defineProperty(ctx, 'canvas', { value: { strokeWidth: 800, height: 600 }, writable: true });
   });
 
   it('draws stroke with correct style', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', width: 2, show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', strokeWidth: 2, show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -36,7 +36,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('draws fill when config.fill is set', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', fill: 'rgba(255,0,0,0.3)', show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', fill: 'rgba(255,0,0,0.3)', show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -46,7 +46,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('does not draw fill when config.fill is not set', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'blue', show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'blue', show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -55,7 +55,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('respects show=false — does nothing', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: false };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: false };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -66,7 +66,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('applies clip path when paths.clip is set', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true };
     const paths = makePaths();
     paths.clip = new Path2D();
 
@@ -76,7 +76,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('does not clip when paths.clip is null', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -85,7 +85,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('applies alpha when config.alpha < 1', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: true, alpha: 0.5 };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true, alpha: 0.5 };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -94,7 +94,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('applies dash pattern when config.dash is set', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: true, dash: [5, 3] };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true, dash: [5, 3] };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -103,7 +103,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('scales line width by pxRatio', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', width: 1, show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', strokeWidth: 1, show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 2);
@@ -112,7 +112,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('applies lineJoin and lineCap from config', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', stroke: 'red', show: true, join: 'bevel', cap: 'round' };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true, join: 'bevel', cap: 'round' };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);
@@ -122,7 +122,7 @@ describe('drawSeriesPath', () => {
   });
 
   it('does not draw stroke when config.stroke is not set', () => {
-    const config: SeriesConfig = { group: 0, index: 0, yScale: 'y', fill: 'blue', show: true };
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', fill: 'blue', show: true };
     const paths = makePaths();
 
     drawSeriesPath(ctx, config, paths, 1);

@@ -36,8 +36,8 @@ export default function BoxWhiskerDemo() {
 
   return (
     <Chart width="auto" height={400} data={chartData} ylabel="Value">
-      <Axis scale="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
-      <Axis scale="y" />
+      <Axis scaleId="x" label="Category" values={fmtLabels(categoryLabels, 1)} />
+      <Axis scaleId="y" />
       <BoxWhisker boxes={boxes} />
     </Chart>
   );

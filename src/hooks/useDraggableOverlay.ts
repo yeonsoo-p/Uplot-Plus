@@ -16,7 +16,9 @@ export function useMeasuredOverlay(
   fallback: { w: number; h: number },
 ): { w: number; h: number } {
   const [measured, setMeasured] = useState({ w: 0, h: 0 });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional no-deps; state guard prevents loop
+  // Intentional no-deps: re-measure every commit so content-size changes are
+  // picked up without re-subscribing. The w/h guard breaks the re-render loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     const el = panelRef.current;
     if (!el) return;
@@ -196,7 +198,7 @@ export function useDraggableOverlay({
 
   // 1. Cursor-mode measurement: measure after every DOM commit.
   // Content width/height can change per cursor position.
-  // State guard prevents infinite loops; no deps is intentional.
+  // Intentional no-deps: w/h guard breaks the re-render loop.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     if (mode !== 'cursor') return;
@@ -220,7 +222,8 @@ export function useDraggableOverlay({
   }, [mode, initialized, snap.plotWidth, position, store.plotBox, estimatedSize]);
 
   // 3. Sync draggable pos back into bounds when panel or plot resizes.
-  // No deps — runs every commit, mirrors the cursor-measurement effect.
+  // Intentional no-deps: measures the panel's live DOM size every commit.
+  // Early-return guards break the re-render loop when nothing has changed.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     if (mode !== 'draggable' || !initialized || pos == null || isDragging) return;

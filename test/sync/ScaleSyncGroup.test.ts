@@ -63,31 +63,48 @@ describe('ScaleSyncGroup', () => {
     group.leave(ms);
   });
 
-  it('does not echo back to a store that was just synced-to', () => {
-    const group = getScaleSyncGroup('zr-no-echo');
+  it('after a sync round-trip, the next genuine publish from a recipient still propagates', () => {
+    // Regression: previously a WeakSet-based "suppressNext" flag was set on
+    // recipients during publish, but the paired pre-advance of
+    // _prevScaleRanges prevented the expected echo from ever reaching
+    // pubFromStore — so the flag leaked and ate the next genuine pub.
+    const group = getScaleSyncGroup('zr-next-pub');
     const a = makeStore();
     const b = makeStore();
     const ma = group.joinStore(a);
     const mb = group.joinStore(b);
 
-    // a publishes 25..75, syncing b.
+    // a publishes 25..75, syncing b. In the real flow b's _prevScaleRanges
+    // is pre-advanced so notifyScaleChanges sees no diff and doesn't re-pub.
     group.pubFromStore(a, 'x', 25, 75);
+    expect(b.scaleManager.getScale('x')?.min).toBe(25);
 
-    // b's scale is now {25,75}. If b's local listener mistakenly pubs back,
-    // the WeakSet should swallow it — a stays at 25..75, not whatever b
-    // would have re-broadcast.
-    group.pubFromStore(b, 'x', 25, 75);
-
-    const ax = a.scaleManager.getScale('x');
-    // a's range is whatever a started with; b's blocked echo must not have
-    // overwritten a (a.scaleId.min/max should remain at the source value).
-    expect(ax?.min).toBe(0);  // a was the source; we didn't change it
-    expect(ax?.max).toBe(100);
-
-    // After consuming the suppression, a fresh pub from b should reach a.
+    // A genuine later zoom on b must still reach a — no stale suppression.
     group.pubFromStore(b, 'x', 5, 15);
+    const ax = a.scaleManager.getScale('x');
     expect(ax?.min).toBe(5);
     expect(ax?.max).toBe(15);
+
+    group.leave(ma);
+    group.leave(mb);
+  });
+
+  it('per-member dedup: skips a peer whose scale already equals the incoming range', () => {
+    const group = getScaleSyncGroup('zr-dedupe');
+    const a = makeStore();
+    const b = makeStore();
+    const ma = group.joinStore(a);
+    const mb = group.joinStore(b);
+
+    // Seed both to the same range so the dedup check kicks in.
+    group.pubFromStore(a, 'x', 25, 75);
+    expect(b.scaleManager.getScale('x')?.auto).toBe(false);
+
+    // Republishing identical values from b: a already equals, so no-op.
+    group.pubFromStore(b, 'x', 25, 75);
+    // a's scale was unchanged (still {25,75} from first pub, still whatever auto it had)
+    expect(a.scaleManager.getScale('x')?.min).toBe(25);
+    expect(a.scaleManager.getScale('x')?.max).toBe(75);
 
     group.leave(ma);
     group.leave(mb);

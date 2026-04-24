@@ -70,12 +70,12 @@ describe('ThemeProvider repaint path', () => {
     expect(redrawSpy).not.toHaveBeenCalled();
   });
 
-  it('increments revision counter on theme change', () => {
-    const revisions: number[] = [];
+  it('propagates the current theme through context on theme change', () => {
+    const seen: Array<ChartTheme | null> = [];
 
     function RevisionProbe() {
-      const rev = useContext(ThemeRevisionContext);
-      revisions.push(rev);
+      const t = useContext(ThemeRevisionContext);
+      seen.push(t);
       return null;
     }
 
@@ -91,9 +91,8 @@ describe('ThemeProvider repaint path', () => {
       </ThemeProvider>,
     );
 
-    // First render → revision 1, second render → revision 2
-    expect(revisions[0]).toBe(1);
-    expect(revisions[1]).toBe(2);
+    expect(seen[0]).toBe(THEME_A);
+    expect(seen[1]).toBe(THEME_B);
   });
 
   it('sets CSS custom properties on wrapper div', () => {

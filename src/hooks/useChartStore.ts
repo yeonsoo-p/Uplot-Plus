@@ -1079,12 +1079,12 @@ export function createChartStore(): ChartStore {
         ctx.restore();
       }
 
-      // 13. Notify subscribers (Legend, Tooltip, etc.)
+      // 14. Notify subscribers (Legend, Tooltip, etc.)
       rebuildSnapshot(store);
       for (const fn of store.listeners) fn();
       for (const fn of store.cursorListeners) fn();
 
-      // 14. Fire onScaleChange for any range changes the redraw introduced
+      // 15. Fire onScaleChange for any range changes the redraw introduced
       // (interaction handlers also notify on gesture end; either side is idempotent
       // because notifyScaleChanges updates _prevScaleRanges as it fires).
       notifyScaleChanges(store);

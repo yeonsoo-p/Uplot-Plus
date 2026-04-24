@@ -69,14 +69,14 @@ export function Chart({
 
   // When an ancestor ThemeProvider changes its theme, repaint the canvas
   // so it re-resolves the new CSS custom properties.
-  const themeRevision = useContext(ThemeRevisionContext);
-  const themeRevisionRef = useRef(themeRevision);
+  const ancestorTheme = useContext(ThemeRevisionContext);
+  const ancestorThemeRef = useRef(ancestorTheme);
   useEffect(() => {
-    if (themeRevisionRef.current === themeRevision) return;
-    themeRevisionRef.current = themeRevision;
+    if (ancestorThemeRef.current === ancestorTheme) return;
+    ancestorThemeRef.current = ancestorTheme;
     store.renderer.invalidateSnapshot();
     store.scheduleRedraw();
-  }, [store, themeRevision]);
+  }, [store, ancestorTheme]);
 
   // Merge user action overrides with defaults and sync to store
   useEffect(() => {
@@ -205,6 +205,20 @@ export function Chart({
     }
   }, [store, width, height, pxRatio, measured]);
 
+  // Pure-auto mode: ResizeObserver only fires on CSS-box changes, so pxRatio
+  // changes (DPR display switch, prop change) would otherwise leave the canvas
+  // backing store at the stale ratio. Re-apply size when pxRatio diverges.
+  useLayoutEffect(() => {
+    if (!measured) return;
+    if (typeof width === 'number' || typeof height === 'number') return;
+    if (store.pxRatio === pxRatio) return;
+    if (store.width <= 0 || store.height <= 0) return;
+    store.setSize(store.width, store.height, pxRatio);
+    if (mountedRef.current) {
+      store.redrawSync();
+    }
+  }, [store, width, height, pxRatio, measured]);
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -232,7 +246,7 @@ export function Chart({
       // In mixed mode (one auto, one explicit), use the explicit prop for the fixed dimension
       const resolvedW = typeof curWidth === 'number' ? curWidth : Math.round(w);
       const resolvedH = typeof curHeight === 'number' ? curHeight : Math.round(h);
-      if (resolvedW > 0 && resolvedH > 0 && (resolvedW !== store.width || resolvedH !== store.height)) {
+      if (resolvedW > 0 && resolvedH > 0 && (resolvedW !== store.width || resolvedH !== store.height || curPxRatio !== store.pxRatio)) {
         store.setSize(resolvedW, resolvedH, curPxRatio);
         if (!measuredRef.current) {
           measuredRef.current = true;

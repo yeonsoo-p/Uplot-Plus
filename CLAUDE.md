@@ -27,7 +27,7 @@ Library code lives at the project root. The `uPlot/` and `uplot-wrappers/` direc
 │   ├── formatters.ts  Axis value formatters (fmtCompact, fmtSuffix, fmtHourMin, fmtMonthName, etc.)
 │   ├── colors.ts      Color utilities (fadeGradient, withAlpha, palette)
 │   └── index.ts       public API exports
-├── test/              Vitest unit/integration tests (68 files, 756 tests)
+├── test/              Vitest unit/integration tests (78 files, 856 tests)
 ├── e2e/               Playwright e2e tests (11 spec files, chromium + firefox)
 ├── demo/              demo app (vite dev server, 105 examples)
 └── dist/              build output (gitignored)
@@ -59,7 +59,7 @@ npm run test:e2e    # Playwright e2e tests (requires dev server running)
 
 ## Features
 
-- **23 components**: Chart, Scale, Series, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel, ZoomRanger, Timeline, Sparkline, BoxWhisker, Candlestick, Heatmap, Vector, ThemeProvider, HLine, VLine, Region, VRegion, DiagonalLine, AnnotationLabel
+- **24 components**: Chart, Scale, Series, Axis, Band, Legend, Tooltip, FloatingLegend, HoverLabel, ZoomRanger, Timeline, Sparkline, BoxWhisker, Candlestick, Heatmap, Vector, DraggableLabel, ThemeProvider, HLine, VLine, Region, VRegion, DiagonalLine, AnnotationLabel
 - **9 exported path builders**: linear (pixel decimation), stepped, bars, groupedBars, stackedBars, horizontalBars, monotoneCubic, catmullRom, points. Internal default is lttbLinear (LTTB downsampling + pixel decimation), applied by CanvasRenderer when no `paths` prop is set.
 - **Theming**: `ThemeProvider` sets CSS custom properties on a wrapper div; `Chart.theme` prop for per-chart overrides. Pre-built `DARK_THEME` preset. 40+ themeable properties (axes, grid, cursor, selection, series palette, candlestick, box-whisker, overlay panels, zoom ranger, annotations). CSS custom properties (`--uplot-*`) also work without ThemeProvider. `resolveTheme()` reads from `getComputedStyle(canvas)` on each full redraw.
 - **Auto-fill defaults**: Chart auto-creates missing x/y scales, axes, **and series**. Minimal config: `<Chart data={data} />` — every `(group, index)` data slot renders with palette colors. Bare `<Series />` (no `group`/`index`) auto-bumps to the next unclaimed slot. Explicit `<Series group={g} index={i}>` *replaces* the fill at that slot. Opt out with `<Chart autoFillSeries={false}>`.

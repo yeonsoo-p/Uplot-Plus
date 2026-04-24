@@ -28,17 +28,15 @@ export function getScaleSyncGroup(key: string): ScaleSyncGroup {
  * components like ZoomRanger). A publisher emits `(scaleId, min, max)` and
  * every other member updates its matching scale (or invokes its callback).
  *
- * Loop prevention mirrors CursorSyncGroup:
- * 1. `publishing` flag blocks re-entrant synchronous calls.
- * 2. `syncedSources` WeakSet/Set blocks members that were just synced-to
- *    from echoing back on their next async redraw.
+ * Loop prevention: `publishing` blocks re-entrant synchronous calls, and
+ * recipients pre-advance their own "last published" bookkeeping
+ * (`_prevScaleRanges` for stores, `prevRangeRef` for ZoomRanger) so their
+ * post-update change-detection sees no diff and doesn't echo back.
  */
 export class ScaleSyncGroup {
   readonly key: string;
   private members: Set<Member> = new Set();
   private publishing = false;
-  private syncedStores = new WeakSet<ChartStore>();
-  private syncedCallbacks = new WeakSet();
 
   constructor(key: string) {
     this.key = key;
@@ -66,35 +64,15 @@ export class ScaleSyncGroup {
     }
   }
 
-  /**
-   * Suppress the next echo from this store — call before mutating a scale
-   * when you don't want the resulting subscribeCursor/onScaleChange to bounce
-   * the same value back to peers.
-   */
-  suppressNext(store: ChartStore): void {
-    this.syncedStores.add(store);
-  }
-
-  /**
-   * Publish a scale range from a chart store to all other members.
-   * Skips if the source was just synced-to (prevents async echo loops).
-   */
+  /** Publish a scale range from a chart store to all other members. */
   pubFromStore(source: ChartStore, scaleId: string, min: number, max: number): void {
     if (this.publishing) return;
-    if (this.syncedStores.has(source)) {
-      this.syncedStores.delete(source);
-      return;
-    }
     this.publish(source, null, scaleId, min, max);
   }
 
   /** Publish a scale range from a callback subscriber (e.g. ZoomRanger drag). */
   pubFromCallback(sourceCb: (scaleId: string, min: number, max: number) => void, scaleId: string, min: number, max: number): void {
     if (this.publishing) return;
-    if (this.syncedCallbacks.has(sourceCb)) {
-      this.syncedCallbacks.delete(sourceCb);
-      return;
-    }
     this.publish(null, sourceCb, scaleId, min, max);
   }
 
@@ -110,7 +88,6 @@ export class ScaleSyncGroup {
         const scale = m.store.scaleManager.getScale(scaleId);
         if (scale == null) continue;
         if (scale.min === min && scale.max === max) continue;
-        this.syncedStores.add(m.store);
         scale.min = min;
         scale.max = max;
         scale.auto = false;
@@ -122,7 +99,6 @@ export class ScaleSyncGroup {
         m.store.scheduleRedraw();
       } else {
         if (m.cb === sourceCb) continue;
-        this.syncedCallbacks.add(m.cb);
         try { m.cb(scaleId, min, max); } catch (err) { console.warn('[uPlot+] scale sync callback error:', err); }
       }
     }

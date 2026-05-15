@@ -129,7 +129,7 @@ export function SourceHighlight({ source }: { source: string }) {
   }, [source]);
 
   return (
-    <div className="flex-[1_1_0] min-w-75 flex flex-col rounded-md overflow-hidden bg-surface-light dark:bg-[#141422] max-[1200px]:max-h-100 transition-colors duration-200">
+    <div data-testid="source-panel" className="flex-[1_1_0] min-w-75 flex flex-col rounded-md overflow-hidden bg-surface-light dark:bg-[#141422] max-[1200px]:max-h-100 transition-colors duration-200">
       <div className="flex items-center justify-between py-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted bg-surface border-b border-border-light dark:text-[#8899aa] dark:bg-[#16161e] dark:border-[#2a2a3e] transition-colors duration-200">
         Source
         <button

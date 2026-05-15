@@ -4,11 +4,11 @@ import { hoverChart, leaveChart } from '../../helpers/interactions';
 
 test.describe('Cursor sync across charts', () => {
   test.beforeEach(async ({ demoPage }) => {
-    await demoPage.navigateTo('cursor-bind');
+    await demoPage.navigateTo('sync-cursor');
   });
 
   test('hovering chart 1 shows values in both legends', async ({ page }) => {
-    // cursor-bind has two charts with syncKey="bind" and Legend on each
+    // sync-cursor has two charts with syncCursorKey="demo-sync" and Legend on each
     await hoverChart(page, 0, 0.5);
 
     // Both chart legends should show live values (contain numeric text)

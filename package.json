@@ -65,6 +65,14 @@
     "vitest": "^2.0.0"
   },
   "license": "MIT",
+  "homepage": "https://github.com/yeonsoo-p/uPlot-Plus#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yeonsoo-p/uPlot-Plus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yeonsoo-p/uPlot-Plus/issues"
+  },
   "dependencies": {
     "@chenglou/pretext": "^0.0.4"
   }

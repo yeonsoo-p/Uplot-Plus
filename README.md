@@ -231,7 +231,7 @@ npm run dev         # Start demo dev server (105 examples)
 npm run build       # Build library (ES + CJS to dist/)
 npm run typecheck   # TypeScript strict check
 npm run lint        # ESLint
-npm run test        # Vitest unit/integration tests (756 tests)
+npm run test        # Vitest unit/integration tests (862 tests)
 npm run test:e2e    # Playwright e2e tests (chromium + firefox)
 ```
 

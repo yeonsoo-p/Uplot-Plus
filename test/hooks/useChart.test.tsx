@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { renderChart, flushEffects, twoSeriesData } from '../helpers/rtl';
 import { useChart } from '@/hooks/useChart';
@@ -6,9 +6,16 @@ import { Series } from '@/components/Series';
 
 describe('useChart hook', () => {
   it('throws when used outside Chart context', () => {
-    expect(() => {
-      renderHook(() => useChart());
-    }).toThrow('useChart must be used within a <Chart> component');
+    // React logs the caught error to console.error during renderHook; silence
+    // it so CI output stays clean — we're asserting the throw, not the log.
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() => {
+        renderHook(() => useChart());
+      }).toThrow('useChart must be used within a <Chart> component');
+    } finally {
+      errSpy.mockRestore();
+    }
   });
 
   it('returns snapshot fields matching initial store state', async () => {

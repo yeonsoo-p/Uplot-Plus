@@ -18,6 +18,16 @@ export const test = base.extend<{ demoPage: DemoPage }>({
       };
     });
 
+    // Hide the source-code side panel so the chart fills the full main column.
+    // Otherwise visual snapshots are layout-sensitive to source-panel width.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = '[data-testid="source-panel"]{display:none !important;}';
+        document.head.appendChild(style);
+      }, { once: true });
+    });
+
     const demoPage = new DemoPage(page);
     await use(demoPage);
   },

@@ -31,6 +31,8 @@ export interface PathBuilderOpts {
   barGroupCount?: number;
   /** Per-point baseline values for stacked fills. Supported by linear, stepped, spline, and bars. When set, overrides fillTo per data point. */
   fillToData?: ArrayLike<number | null>;
+  /** Device pixel ratio. Path builders use this to scale downsampling thresholds so LTTB/decimation preserve detail at the canvas's physical pixel density, not just its CSS width. */
+  pxRatio?: number;
 }
 
 /** Path builder function signature */

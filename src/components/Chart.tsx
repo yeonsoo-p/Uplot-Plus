@@ -219,6 +219,39 @@ export function Chart({
     }
   }, [store, width, height, pxRatio, measured]);
 
+  // DPR change listener: matchMedia fires when window.devicePixelRatio crosses
+  // a tolerance window (monitor switch, browser zoom). Without this, the host
+  // would have to re-render with a fresh devicePixelRatio read to trigger the
+  // pxRatio prop update. Skipped when an explicit pxRatio override is in use —
+  // the host owns the value in that case.
+  useEffect(() => {
+    if (pxRatioOverride != null) return;
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+
+    let query: MediaQueryList | null = null;
+    const handler = () => {
+      const newDpr = window.devicePixelRatio || 1;
+      if (store.width > 0 && store.height > 0 && store.pxRatio !== newDpr) {
+        store.setSize(store.width, store.height, newDpr);
+        if (mountedRef.current) store.redrawSync();
+      }
+      // Re-arm: the matchMedia query is anchored to the previous DPR, so it
+      // won't fire again for the next change without being re-registered.
+      if (query != null) query.removeEventListener('change', handler);
+      query = makeDprQuery();
+      query.addEventListener('change', handler);
+    };
+    const makeDprQuery = () => {
+      const dpr = window.devicePixelRatio || 1;
+      return window.matchMedia(`(min-resolution: ${dpr - 0.001}dppx) and (max-resolution: ${dpr + 0.001}dppx)`);
+    };
+    query = makeDprQuery();
+    query.addEventListener('change', handler);
+    return () => {
+      if (query != null) query.removeEventListener('change', handler);
+    };
+  }, [store, pxRatioOverride]);
+
   // Clean up on unmount
   useEffect(() => {
     return () => {

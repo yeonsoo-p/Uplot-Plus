@@ -79,6 +79,48 @@ describe('lttbLinear path builder', () => {
     });
   });
 
+  describe('pxRatio scaling', () => {
+    it('targets more points on HiDPI so detail matches device pixel density', () => {
+      const n = 4000;
+      const dataX = Array.from({ length: n }, (_, i) => i);
+      const dataY = Array.from({ length: n }, (_, i) => Math.sin(i * 0.01) * 100);
+
+      const sx = makeScale('x', 0, n - 1);
+      const sy: ScaleState = { ...makeScale('y', -100, 100, Orientation.Vertical) };
+
+      const builder = lttbLinear({ factor: 1 });
+
+      // Same CSS width (200), different pxRatio. 2x DPR canvas has 400 physical
+      // pixel columns, so target should ~double.
+      const result1x = builder(dataX, dataY, sx, sy, 200, 200, 0, 0, 0, n - 1, 1, pxRound, { pxRatio: 1 });
+      const result2x = builder(dataX, dataY, sx, sy, 200, 200, 0, 0, 0, n - 1, 1, pxRound, { pxRatio: 2 });
+
+      const count1x = getLineToCalls(result1x.stroke).length;
+      const count2x = getLineToCalls(result2x.stroke).length;
+
+      // 1x: target ≈ 200, 2x: target ≈ 400
+      expect(count1x).toBeGreaterThanOrEqual(190);
+      expect(count1x).toBeLessThanOrEqual(210);
+      expect(count2x).toBeGreaterThanOrEqual(390);
+      expect(count2x).toBeLessThanOrEqual(410);
+    });
+
+    it('defaults pxRatio to 1 when omitted (back-compat)', () => {
+      const n = 2000;
+      const dataX = Array.from({ length: n }, (_, i) => i);
+      const dataY = Array.from({ length: n }, (_, i) => Math.sin(i * 0.01) * 100);
+
+      const sx = makeScale('x', 0, n - 1);
+      const sy: ScaleState = { ...makeScale('y', -100, 100, Orientation.Vertical) };
+
+      const builder = lttbLinear({ factor: 1 });
+      const withoutOpt = builder(dataX, dataY, sx, sy, 200, 200, 0, 0, 0, n - 1, 1, pxRound);
+      const withOne = builder(dataX, dataY, sx, sy, 200, 200, 0, 0, 0, n - 1, 1, pxRound, { pxRatio: 1 });
+
+      expect(getLineToCalls(withoutOpt.stroke).length).toBe(getLineToCalls(withOne.stroke).length);
+    });
+  });
+
   describe('null gap handling', () => {
     it('handles data with null gaps', () => {
       const n = 1000;

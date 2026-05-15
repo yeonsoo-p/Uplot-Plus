@@ -22,6 +22,27 @@ import type { BandConfig } from '../types/bands';
 import { Side, DirtyFlag, Orientation } from '../types/common';
 import type { DrawContext, DrawCallback, CursorDrawCallback } from '../types/hooks';
 import { valToPx, projectPoint, isScaleReady } from '../core/Scale';
+import { incrRound } from '../math/utils';
+
+/**
+ * Snap a CSS-pixel BBox so each edge lands on a half-device-pixel boundary
+ * when multiplied by pxRatio. A no-op on integer DPRs (1, 2, 3); on fractional
+ * DPRs (1.25, 1.5, 1.75) it removes subpixel blur from the plot-area clip
+ * rect, grid edges, and axis lines.
+ */
+function snapBoxToHalfDevicePx(box: BBox, pxRatio: number): BBox {
+  if (pxRatio === 1 || pxRatio === Math.floor(pxRatio)) return box;
+  const lftDev = incrRound(box.left * pxRatio, 0.5);
+  const topDev = incrRound(box.top * pxRatio, 0.5);
+  const rgtDev = incrRound((box.left + box.width) * pxRatio, 0.5);
+  const btmDev = incrRound((box.top + box.height) * pxRatio, 0.5);
+  return {
+    left: lftDev / pxRatio,
+    top: topDev / pxRatio,
+    width: (rgtDev - lftDev) / pxRatio,
+    height: (btmDev - topDev) / pxRatio,
+  };
+}
 import type { EventCallbacks } from '../types/events';
 import { withAlpha } from '../colors';
 
@@ -881,6 +902,12 @@ export function createChartStore(): ChartStore {
           height: height - margin * 2,
         };
       }
+
+      // Snap plotBox so its edges land on half-device-pixel boundaries.
+      // Fractional DPRs (1.25, 1.5, 1.75) otherwise leave the clip rect and
+      // grid edges on subpixel coords, which blurs them on Windows scaling.
+      // Right/bottom anchored to the original edges to keep box dimensions stable.
+      store.plotBox = snapBoxToHalfDevicePx(store.plotBox, pxRatio);
 
       // 5b. Invalidate path cache if plotBox changed (axis/title/label updates)
       const prev = store._prevPlotBox;

@@ -1,6 +1,7 @@
 import type { SeriesConfig, BBox } from '../types';
 import type { SeriesPaths } from '../paths/types';
 import type { GradientConfig, ColorValue } from '../types/series';
+import { roundDec } from '../math/utils';
 
 interface GradientCacheEntry { grad: CanvasGradient; left: number; top: number; width: number; height: number }
 /** Cache gradients per (config, orientation) — separate maps so transposed and normal series don't collide. */
@@ -77,7 +78,9 @@ export function drawSeriesPath(
 
   // Draw stroke
   if (config.stroke) {
-    const lineWidth = (config.strokeWidth ?? 1) * pxRatio;
+    // roundDec absorbs FP jitter from `strokeWidth * pxRatio` on fractional DPRs
+    // (1.25, 1.5, 1.75) so the parity check for the half-pixel offset is stable.
+    const lineWidth = roundDec((config.strokeWidth ?? 1) * pxRatio, 3);
     ctx.strokeStyle = resolveColor(ctx, config.stroke, box, horizontalGradient);
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = config.join ?? 'round';

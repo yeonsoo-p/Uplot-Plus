@@ -88,8 +88,10 @@ export function linear(): PathBuilder {
 
     let hasGap = false;
 
-    // decimate when number of points >= 4x available pixels
-    const decimate = idx1 - idx0 >= xDim * 4;
+    // decimate when number of points >= 4x available device pixels.
+    // pxRatio scales the threshold so HiDPI canvases retain more detail.
+    const pxRatio = opts?.pxRatio ?? 1;
+    const decimate = idx1 - idx0 >= xDim * pxRatio * 4;
 
     if (decimate) {
       const xForPixel = (pos: number) => posToVal(pos, scaleX, xDim, xOff);

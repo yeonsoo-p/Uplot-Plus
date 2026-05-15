@@ -13,8 +13,9 @@ export interface LttbLinearOpts {
 
 /**
  * Linear path builder with LTTB downsampling pre-pass.
- * When the number of visible points exceeds factor * xDim * 2,
- * applies LTTB before delegating to linear().
+ * When the number of visible points exceeds factor * xDim * pxRatio * 2,
+ * applies LTTB before delegating to linear(). The pxRatio multiplier means
+ * a HiDPI canvas keeps more peaks/valleys to match its physical resolution.
  */
 export function lttbLinear(lttbOpts?: LttbLinearOpts): PathBuilder {
   const factor = lttbOpts?.factor ?? 1;
@@ -36,7 +37,8 @@ export function lttbLinear(lttbOpts?: LttbLinearOpts): PathBuilder {
     opts?: PathBuilderOpts,
   ): SeriesPaths => {
     const pointCount = idx1 - idx0 + 1;
-    const target = Math.round(xDim * factor);
+    const pxRatio = opts?.pxRatio ?? 1;
+    const target = Math.round(xDim * pxRatio * factor);
 
     if (pointCount > target * 2 && opts?.fillToData == null) {
       // Extract the visible window and run LTTB

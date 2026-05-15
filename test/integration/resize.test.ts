@@ -1,6 +1,46 @@
 import { describe, it, expect } from 'vitest';
 import { createChartStore } from '@/hooks/useChartStore';
 
+describe('plotBox half-device-pixel snap', () => {
+  it('snaps plotBox edges to half-device-pixel boundaries on fractional DPRs', () => {
+    const store = createChartStore();
+    const canvas = document.createElement('canvas');
+    store.canvas = canvas;
+    store.pxRatio = 1.25; // Windows 125% scaling — the worst-case fractional DPR
+    store.setSize(401, 301, 1.25); // odd CSS dims to force fractional device coords
+
+    // Drive a redraw so plotBox is computed. No series/scales/axes registered,
+    // so the no-axes margin branch runs: left=10, top=10, width=381, height=281.
+    store.redrawSync();
+
+    // Each edge × pxRatio must land on a multiple of 0.5 device pixels.
+    const onHalfPx = (cssEdge: number) => {
+      const dev = cssEdge * 1.25;
+      return Math.abs(dev - Math.round(dev * 2) / 2) < 1e-6;
+    };
+    expect(onHalfPx(store.plotBox.left)).toBe(true);
+    expect(onHalfPx(store.plotBox.top)).toBe(true);
+    expect(onHalfPx(store.plotBox.left + store.plotBox.width)).toBe(true);
+    expect(onHalfPx(store.plotBox.top + store.plotBox.height)).toBe(true);
+  });
+
+  it('is a no-op on integer DPRs', () => {
+    const store = createChartStore();
+    const canvas = document.createElement('canvas');
+    store.canvas = canvas;
+    store.pxRatio = 2;
+    store.setSize(401, 301, 2);
+
+    store.redrawSync();
+
+    // No-axes margin branch: integer DPR leaves the box exactly as computed.
+    expect(store.plotBox.left).toBe(10);
+    expect(store.plotBox.top).toBe(10);
+    expect(store.plotBox.width).toBe(381);
+    expect(store.plotBox.height).toBe(281);
+  });
+});
+
 describe('setSize', () => {
   it('updates width and height on the store', () => {
     const store = createChartStore();

@@ -111,6 +111,20 @@ describe('drawSeriesPath', () => {
     expect(ctx.lineWidth).toBe(2); // 1 * pxRatio=2
   });
 
+  it('rounds line width on fractional pxRatio to avoid FP jitter at the parity boundary', () => {
+    // strokeWidth=2 × pxRatio=1.25 = 2.5; FP residue could push the
+    // half-pixel offset off, blurring the stroke on Windows 125% scaling.
+    const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', strokeWidth: 2, show: true };
+    const paths = makePaths();
+
+    drawSeriesPath(ctx, config, paths, 1.25);
+
+    // lineWidth is rounded to 3 decimals — exact 2.5, no trailing noise.
+    expect(ctx.lineWidth).toBe(2.5);
+    // 2.5 % 2 = 0.5 → offset = 0.25; ctx.translate should be called with it.
+    expect(ctx.translate).toHaveBeenCalledWith(0.25, 0.25);
+  });
+
   it('applies lineJoin and lineCap from config', () => {
     const config: SeriesConfig = { group: 0, index: 0, yScaleId: 'y', stroke: 'red', show: true, join: 'bevel', cap: 'round' };
     const paths = makePaths();
